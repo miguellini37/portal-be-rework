@@ -7,18 +7,18 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-  "dev": "nodemon --watch src --exec ts-node --cwd . ./src/index.ts"
+    "dev": "nodemon --watch src --exec ts-node --cwd . ./src/index.ts"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.18",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "@eslint/js": "^9.27.0",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "eslint": "^9.27.0",
@@ -29,7 +29,10 @@
     "globals": "^16.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
   }
 }
