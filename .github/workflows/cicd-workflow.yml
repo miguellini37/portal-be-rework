@@ -29,7 +29,7 @@ jobs:
 
       - name: Delete old container
         run: docker rm -f portal-backend-container
-        
+
       - name: Write .env file from secret
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
@@ -41,5 +41,5 @@ jobs:
             --name portal-backend-container \
             portaljobs/portal-backend:latest
 
-      - name: Cleanup .env file
-        run: rm -f .env
+      # - name: Cleanup .env file
+      #   run: rm -f .env
