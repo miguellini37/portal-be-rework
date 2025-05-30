@@ -18,6 +18,10 @@ db.initialize()
   .then(() => {
     console.log('✅ Data Source has been initialized');
 
+    app.get('/', (_req, res) => {
+      res.status(200).json({ status: 'healthy' });
+    });
+
     app.use('/users', userRoutes); // ✅ DO NOT CALL userRoutes()
 
     app.listen(PORT, () => {
