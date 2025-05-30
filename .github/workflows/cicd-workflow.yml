@@ -28,4 +28,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f portal-backend-container
       - name: Run docker container
-        run: docker run -d -p 3000:3001 --name portal-backend-container portal-backend
+        run: docker run --pull always -d --restart always -p 3000:3001 --name portal-backend-container portaljobs/portal-backend:latest
