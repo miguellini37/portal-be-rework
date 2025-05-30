@@ -13,16 +13,16 @@ jobs:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} 
       - name: Build docker image
-        run: docker build -t portal-backend .
+        run: docker build -t portaljobs/portal-backend .
       - name: Publish image to docker hub
-        run: docker push portal-backend:latest
+        run: docker push portaljobs/portal-backend:latest
         
   deploy:
     needs: build
     runs-on: [self-hosted]
     steps:
       - name: Pull image from docker hub
-        run: docker pull portal-backend:latest
+        run: docker pull portaljobs/portal-backend:latest
       - name: Delete old container
         run: docker rm -f portal-backend-container
       - name: Run docker container
