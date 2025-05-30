@@ -1,10 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Application } from 'express';
 import cors from 'cors';
 import 'reflect-metadata';
 import { db } from './config/db';
-import dotenv from 'dotenv';
 import userRoutes from './routes/users';
-dotenv.config();
 
 const app: Application = express();
 app.use(cors({ origin: '*', credentials: true }));
