@@ -1,14 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2020",                // modern JS target
-    "module": "CommonJS",              // Node uses CommonJS modules
-    "outDir": "./dist",                // compiled JS output folder
-    "rootDir": "./src",                // TS source folder
-    "strict": true,                   // enable strict type checking
-    "esModuleInterop": true,          // allow import of CommonJS modules
+    "target": "ES2020", // modern JS target
+    "module": "CommonJS", // Node uses CommonJS modules
+    "outDir": "./dist", // compiled JS output folder
+    "rootDir": "./src", // TS source folder
+    "strict": true, // enable strict type checking
+    "esModuleInterop": true, // allow import of CommonJS modules
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "sourceMap": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

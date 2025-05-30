@@ -13,5 +13,21 @@
     "jsonc"
   ],
   "editor.formatOnSave": false,
-  "github.copilot.nextEditSuggestions.enabled": true
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "portal-db.c4jo46cagl0v.us-east-1.rds.amazonaws.com",
+      "port": 3306,
+      "driver": "MySQL",
+      "name": "Portal DB",
+      "database": "portal",
+      "username": "admin",
+      "password": "5HPjkr7eagHPrNisBKt4"
+    }
+  ]
 }
