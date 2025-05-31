@@ -41,5 +41,5 @@ jobs:
             --name portal-backend-container \
             portaljobs/portal-backend:latest
 
-      # - name: Cleanup .env file
-      #   run: rm -f .env
+      - name: Cleanup .env file
+        run: rm -f .env
