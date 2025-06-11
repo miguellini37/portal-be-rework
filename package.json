@@ -9,22 +9,26 @@
     "start": "node dist/index.js",
     "dev": "nodemon --watch src --exec ts-node --cwd . ./src/index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "yarn typeorm migration:generate -d src/config/db.ts",
+    "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/config/db.ts src/migrations/AutoMigration",
     "migration:run": "yarn typeorm migration:run -d src/config/db.ts",
     "migration:revert": "yarn typeorm migration:revert -d src/config/db.ts"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.1",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.24"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
     "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.18",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",

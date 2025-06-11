@@ -5,7 +5,8 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import 'reflect-metadata';
 import { db } from './config/db';
-import userRoutes from './routes/users';
+import { authRoutes } from './auth';
+import { routes } from './routes';
 
 const app: Application = express();
 app.use(cors({ origin: '*', credentials: true }));
@@ -22,7 +23,8 @@ db.initialize()
       res.status(200).json({ status: 'healthy' });
     });
 
-    app.use('/users', userRoutes); // ✅ DO NOT CALL userRoutes()
+    app.use('/auth', authRoutes);
+    app.use('', routes);
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
