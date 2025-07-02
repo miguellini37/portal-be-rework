@@ -1,8 +1,35 @@
-import { Column, ChildEntity } from 'typeorm';
-import { User } from './User';
+import {
+  Column,
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+  OneToMany,
+  ManyToMany,
+} from 'typeorm';
+import { SchoolEmployee } from './SchoolEmployee';
+import { CompanyEmployee } from './CompanyEmployee';
+import { Athlete } from './Athlete';
 
-@ChildEntity()
-export class School extends User {
-  @Column({ nullable: true })
+@Entity()
+export class School extends BaseEntity {
+@PrimaryGeneratedColumn('uuid')
+  id!: number;
+
+  @Column({ nullable: true, unique: true })
   schoolName?: string;
+
+  @OneToOne(() => SchoolEmployee, { nullable: true })
+  @JoinColumn() // necessary for @OneToOne owner side
+  ownerRef?: SchoolEmployee;
+
+  @OneToMany(() => SchoolEmployee, (employee) => employee.schoolRef)
+  employees?: SchoolEmployee[];
+
+  @ManyToMany(() => CompanyEmployee, (employee) => employee.schools)
+  companyEmployees?: CompanyEmployee[];
+
+  @ManyToMany(() => Athlete, (student) => student.schools)
+  athletes?: Athlete[];
 }

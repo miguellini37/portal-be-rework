@@ -4,7 +4,7 @@ import { School } from './School';
 
 @Entity()
 export class Post extends BaseEntity {
-  @PrimaryGeneratedColumn()
+@PrimaryGeneratedColumn('uuid')
   id!: number;
 
   @ManyToOne(() => User, { nullable: true })

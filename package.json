@@ -4,14 +4,15 @@
   "main": "index.js",
   "repository": "https://github.com/Portal-Jobs/portal-backend.git",
   "license": "MIT",
+  "type": "commonjs",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --watch src --exec ts-node --cwd . ./src/index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/config/db.ts src/migrations/AutoMigration",
-    "migration:run": "yarn typeorm migration:run -d src/config/db.ts",
-    "migration:revert": "yarn typeorm migration:revert -d src/config/db.ts"
+    "migration:generate": "typeorm migration:generate src/migrations/migration -d src/config/db.ts  --pretty",
+    "migration:run": "typeorm migration:run -d src/config/db.ts",
+    "migration:revert": "typeorm migration:revert -d src/config/db.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

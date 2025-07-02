@@ -12,8 +12,8 @@ import {
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ unique: true, nullable: true })
   email?: string;
@@ -32,4 +32,10 @@ export class User extends BaseEntity {
 
   @Column({ default: 'user', nullable: true })
   permission?: string;
+
+  @Column({ nullable: true })
+  firstName?: string;
+
+  @Column({ nullable: true })
+  lastName?: string;
 }

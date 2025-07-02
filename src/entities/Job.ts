@@ -3,7 +3,7 @@ import { Company } from './Company';
 
 @Entity()
 export class Job extends BaseEntity {
-  @PrimaryGeneratedColumn()
+@PrimaryGeneratedColumn('uuid')
   id!: number;
 
   @ManyToOne(() => Company, { nullable: true })

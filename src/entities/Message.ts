@@ -3,7 +3,7 @@ import { User } from './User';
 
 @Entity()
 export class Message extends BaseEntity {
-  @PrimaryGeneratedColumn()
+@PrimaryGeneratedColumn('uuid')
   id!: number;
 
   @ManyToOne(() => User, { nullable: true })

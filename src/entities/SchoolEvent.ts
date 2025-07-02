@@ -3,7 +3,7 @@ import { School } from './School';
 
 @Entity()
 export class SchoolEvent extends BaseEntity {
-  @PrimaryGeneratedColumn()
+@PrimaryGeneratedColumn('uuid')
   id!: number;
 
   @ManyToOne(() => School, { nullable: true })
