@@ -3,8 +3,8 @@ import { User } from './User';
 
 @Entity()
 export class Message extends BaseEntity {
-@PrimaryGeneratedColumn('uuid')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ManyToOne(() => User, { nullable: true })
   fromUser?: User;

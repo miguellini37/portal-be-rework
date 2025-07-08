@@ -6,6 +6,7 @@ import { companyRoutes } from './company';
 import { schoolRoutes } from './schools';
 import { companyEmployeeRoutes } from './companyEmployees';
 import { schoolEmployeeRoutes } from './schoolsEmployees';
+import { jobRoutes } from './jobs';
 
 export const routes = Router();
 
@@ -14,7 +15,9 @@ routes.use('/athlete', athleteRoutes);
 routes.use('/companyEmployee', companyEmployeeRoutes);
 routes.use('/schoolEmployee', schoolEmployeeRoutes);
 
-routes.use('/companies', companyRoutes);
-routes.use('/schools', schoolRoutes);
+routes.use('/company', companyRoutes);
+routes.use('/school', schoolRoutes);
+
+routes.use('/job', jobRoutes);
 
 routes.use('/messages', messageRoutes);

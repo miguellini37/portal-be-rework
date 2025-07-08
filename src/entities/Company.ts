@@ -6,13 +6,15 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
 import { CompanyEmployee } from './CompanyEmployee';
+import { Job } from './Job';
 
 @Entity()
 export class Company extends BaseEntity {
-@PrimaryGeneratedColumn('uuid')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ nullable: true, unique: true })
   companyName?: string;
@@ -21,9 +23,15 @@ export class Company extends BaseEntity {
   @JoinColumn()
   ownerRef?: CompanyEmployee;
 
+  @RelationId((company: Company) => company.ownerRef)
+  ownerRefId?: string;
+
   @OneToMany(() => CompanyEmployee, (employee) => employee.companyRef)
   employees?: CompanyEmployee[];
 
   @Column({ nullable: true })
   industry?: string;
+
+  @OneToMany(() => Job, (job) => job.company)
+  jobs?: Job[];
 }

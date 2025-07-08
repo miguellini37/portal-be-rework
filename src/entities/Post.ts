@@ -4,8 +4,8 @@ import { School } from './School';
 
 @Entity()
 export class Post extends BaseEntity {
-@PrimaryGeneratedColumn('uuid')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ManyToOne(() => User, { nullable: true })
   author?: User;

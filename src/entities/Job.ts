@@ -3,8 +3,8 @@ import { Company } from './Company';
 
 @Entity()
 export class Job extends BaseEntity {
-@PrimaryGeneratedColumn('uuid')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ManyToOne(() => Company, { nullable: true })
   company?: Company;

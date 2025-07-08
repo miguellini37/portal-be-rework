@@ -5,7 +5,7 @@ import { User } from './User';
 @Entity()
 export class Comment extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id!: number;
+  id!: string;
 
   @ManyToOne(() => Post, { nullable: true })
   post?: Post;

@@ -23,7 +23,10 @@ authRoutes.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required.' });
 
   try {
-    const user = await User.findOneBy({ email });
+    const user = await User.findOne({
+      where: { email },
+      relations: ['companyRef', 'schoolRef'],
+    });
 
     if (!user || !user.password) {
       return res.status(400).json({ error: 'Invalid credentials.' });
@@ -34,7 +37,7 @@ authRoutes.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials.' });
     }
 
-    const payload = { id: user.id, email: user.email, permission: user.permission };
+    const { password: _password, ...payload } = user;
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
