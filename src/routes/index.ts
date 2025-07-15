@@ -10,7 +10,7 @@ import { jobRoutes } from './jobs';
 
 export const routes = Router();
 
-routes.use('/users', userRoutes);
+routes.use('/user', userRoutes);
 routes.use('/athlete', athleteRoutes);
 routes.use('/companyEmployee', companyEmployeeRoutes);
 routes.use('/schoolEmployee', schoolEmployeeRoutes);

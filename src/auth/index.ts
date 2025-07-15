@@ -69,12 +69,7 @@ authRoutes.post('/refresh', (req, res) => {
         res.sendStatus(403);
       }
 
-      const userPaylod = user as User;
-      const payload = {
-        id: userPaylod.id,
-        email: userPaylod.email,
-        permission: userPaylod.permission,
-      };
+      const { password: _password, ...payload } = user as User;
       const accessToken = generateAccessToken(payload);
       res.json({ accessToken, expiresIn: 15 });
     }

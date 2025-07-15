@@ -2,48 +2,32 @@ import { Router } from 'express';
 import { Athlete } from '../entities/Athlete';
 import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
-import { School } from '../entities';
+import { School, User } from '../entities';
+import { USER_PERMISSIONS } from './users';
 
 export const athleteRoutes = Router();
 const athleteRepo = db.getRepository(Athlete);
 const schoolRepo = db.getRepository(School);
 
-athleteRoutes.post('/', async (req: AuthenticatedRequest, res) => {
-  try {
-    const athleteInput = req.body as Athlete;
+export const createAthlete = async (input: Athlete & { schoolName: string }): Promise<User> => {
+  const school = await findSchool(input.schoolName);
 
-    if (!athleteInput.email || !athleteInput.password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
-    }
+  const athlete = athleteRepo.create({
+    ...input,
+    schools: school ? [school] : [],
+    permission: USER_PERMISSIONS.ATHLETE,
+  });
 
-    const existing = await Athlete.findOneBy({ email: athleteInput.email });
-    if (existing) {
-      return res.status(400).json({ error: 'User with this email already exists.' });
-    }
-    const school = await findSchool(req.body.schoolName);
+  return await athlete.save();
+};
 
-    const athlete = athleteRepo.create({
-      ...athleteInput,
-      schools: school ? [school] : [],
-      permission: 'athlete',
-      graduationDate: athleteInput.graduationDate
-        ? new Date(athleteInput.graduationDate)
-        : undefined,
-    });
+const findSchool = async (schoolName?: string): Promise<School | null> => {
+  const existingSchool = await schoolRepo.findOne({
+    where: { schoolName },
+  });
 
-    await athlete.save();
-    res.status(201).json({
-      id: athlete.id,
-      email: athlete.email,
-      permission: athlete.permission,
-      firstName: athlete.firstName,
-      lastName: athlete.lastName,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create athlete' });
-  }
-});
+  return existingSchool;
+};
 
 athleteRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
@@ -87,7 +71,7 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid athlete ID' });
     }
 
-    const athlete = await athleteRepo.findOneBy({ id });
+    const athlete = await athleteRepo.findOne({ where: { id }, relations: ['schools'] });
     if (!athlete) {
       return res.status(404).json({ error: 'Athlete not found' });
     }
@@ -99,11 +83,3 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch athlete profile' });
   }
 });
-
-const findSchool = async (schoolName: string): Promise<School | null> => {
-  const existingSchool = await schoolRepo.findOne({
-    where: { schoolName },
-  });
-
-  return existingSchool;
-};

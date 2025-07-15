@@ -1,34 +1,52 @@
-import { Router, Request, Response } from 'express';
-import { db } from '../config/db';
-import { User } from '../entities/User';
+import { Router } from 'express';
+import { AuthenticatedRequest } from '../auth/authenticate';
+import { Athlete } from '../entities';
+import { createAthlete } from './athletes';
+import { createSchoolEmployee } from './schoolsEmployees';
+import { createCompanyEmployee } from './companyEmployees';
+
+export enum USER_PERMISSIONS {
+  ATHLETE = 'athlete',
+  COMPANY = 'company',
+  SCHOOL = 'school',
+}
 
 export const userRoutes = Router();
-const userRepo = db.getRepository(User);
 
-// POST /users - Create a new user
-userRoutes.post('/', async (req: Request, res: Response) => {
+userRoutes.post('/register', async (req: AuthenticatedRequest, res) => {
   try {
-    const { email, password, permission } = req.body;
+    const userInput = req.body;
 
-    if (!email || !password) {
+    if (!userInput.email || !userInput.password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    // Check for duplicate email
-    const existingUser = await userRepo.findOneBy({ email });
-    if (existingUser) {
-      return res.status(409).json({ error: 'Email already in use.' });
+    const existing = await Athlete.findOneBy({ email: userInput.email });
+    if (existing) {
+      return res.status(400).json({ error: 'User with this email already exists.' });
     }
 
-    // Create and save new user
-    const newUser = userRepo.create({ email, password, permission });
-    const savedUser = await userRepo.save(newUser);
+    let user;
+    switch (userInput.permission) {
+      case USER_PERMISSIONS.ATHLETE:
+        user = createAthlete(userInput);
+        break;
 
-    // Exclude password from the response
-    const { password: _, ...userWithoutPassword } = savedUser;
-    res.status(201).json(userWithoutPassword);
-  } catch (error) {
-    console.error('Failed to create user:', error);
-    res.status(500).json({ error: 'Server error while creating user.' });
+      case USER_PERMISSIONS.SCHOOL:
+        user = createSchoolEmployee(userInput);
+        break;
+
+      case USER_PERMISSIONS.COMPANY:
+        user = createCompanyEmployee(userInput);
+        break;
+
+      default:
+        throw new Error('User type not defined');
+    }
+
+    res.status(200).json({ message: 'Account created successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create account' });
   }
 });

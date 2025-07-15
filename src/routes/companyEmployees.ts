@@ -1,51 +1,28 @@
 import { Router } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
-import { Company, CompanyEmployee } from '../entities';
+import { Company, CompanyEmployee, User } from '../entities';
 
 export const companyEmployeeRoutes = Router();
 const companyEmployeeRepo = db.getRepository(CompanyEmployee);
 const companyRepo = db.getRepository(Company);
 
-companyEmployeeRoutes.post('/', async (req: AuthenticatedRequest, res) => {
-  try {
-    const employee = req.body as CompanyEmployee;
-    const companyName = req.body.companyName;
+export const createCompanyEmployee = async (input: CompanyEmployee): Promise<User> => {
+  const companyEmployee = companyEmployeeRepo.create({
+    ...input,
+    permission: 'company',
+  });
+  await companyEmployee.save();
 
-    if (!employee.email || !employee.password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
-    }
-
-    const existing = await companyEmployeeRepo.findOneBy({ email: employee.email });
-    if (existing) {
-      return res.status(400).json({ error: 'User with this email already exists.' });
-    }
-
-    const companyEmployee = companyEmployeeRepo.create({
-      ...employee,
-      permission: 'company',
-    });
-    await companyEmployee.save();
-
-    const company = await createOrJoinCompany(companyEmployee, companyName);
-    companyEmployee.companyRef = company;
-    companyEmployee.companyName = company.companyName;
-    await companyEmployee.save();
-
-    res.status(201).json({
-      id: companyEmployee.id,
-      email: companyEmployee.email,
-      permission: companyEmployee.permission,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create company employee' });
-  }
-});
+  const company = await createOrJoinCompany(companyEmployee, input.companyName);
+  companyEmployee.companyRef = company;
+  companyEmployee.companyName = company.companyName;
+  return await companyEmployee.save();
+};
 
 const createOrJoinCompany = async (
   employee: CompanyEmployee,
-  companyName: string
+  companyName?: string
 ): Promise<Company> => {
   if (!companyName) {
     throw new Error('Company is required on employee');

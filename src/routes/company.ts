@@ -46,3 +46,16 @@ companyRoutes.get('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch company profile' });
   }
 });
+
+companyRoutes.get('/', async (req, res) => {
+  try {
+    const companies = await companyRepo.find({
+      select: ['id', 'companyName'],
+    });
+
+    res.status(200).json(companies);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch companies' });
+  }
+});

@@ -1,51 +1,29 @@
 import { Router } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
-import { School, SchoolEmployee } from '../entities';
+import { School, SchoolEmployee, User } from '../entities';
+import { USER_PERMISSIONS } from './users';
 
 export const schoolEmployeeRoutes = Router();
 const schoolEmployeeRepo = db.getRepository(SchoolEmployee);
 const schoolRepo = db.getRepository(School);
 
-schoolEmployeeRoutes.post('/', async (req: AuthenticatedRequest, res) => {
-  try {
-    const employee = req.body as SchoolEmployee;
-    const schoolName = req.body.schoolName;
+export const createSchoolEmployee = async (input: SchoolEmployee): Promise<User> => {
+  const schoolEmployee = schoolEmployeeRepo.create({
+    ...input,
+    permission: USER_PERMISSIONS.SCHOOL,
+  });
+  await schoolEmployee.save();
 
-    if (!employee.email || !employee.password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
-    }
-
-    const existing = await schoolEmployeeRepo.findOneBy({ email: employee.email });
-    if (existing) {
-      return res.status(400).json({ error: 'User with this email already exists.' });
-    }
-
-    const schoolEmployee = schoolEmployeeRepo.create({
-      ...employee,
-      permission: 'school',
-    });
-    await schoolEmployee.save();
-
-    const school = await createOrJoinSchool(schoolEmployee, schoolName);
-    schoolEmployee.schoolRef = school;
-    schoolEmployee.schoolName = school.schoolName;
-    await schoolEmployee.save();
-
-    res.status(201).json({
-      id: schoolEmployee.id,
-      email: schoolEmployee.email,
-      permission: schoolEmployee.permission,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create school employee' });
-  }
-});
+  const school = await createOrJoinSchool(schoolEmployee, input.schoolName);
+  schoolEmployee.schoolRef = school;
+  schoolEmployee.schoolName = school.schoolName;
+  return await schoolEmployee.save();
+};
 
 const createOrJoinSchool = async (
   employee: SchoolEmployee,
-  schoolName: string
+  schoolName?: string
 ): Promise<School> => {
   if (!schoolName) {
     throw new Error('School is required on employee');

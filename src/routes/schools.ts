@@ -42,3 +42,16 @@ schoolRoutes.get('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch school profile' });
   }
 });
+
+schoolRoutes.get('/', async (req, res) => {
+  try {
+    const schools = await schoolRepo.find({
+      select: ['id', 'schoolName'],
+    });
+
+    res.status(200).json(schools);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch schools' });
+  }
+});
