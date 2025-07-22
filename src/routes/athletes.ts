@@ -10,23 +10,17 @@ const athleteRepo = db.getRepository(Athlete);
 const schoolRepo = db.getRepository(School);
 
 export const createAthlete = async (input: Athlete & { schoolName: string }): Promise<User> => {
-  const school = await findSchool(input.schoolName);
+  const school = await schoolRepo.findOne({
+    where: { schoolName: input.schoolName },
+  });
 
   const athlete = athleteRepo.create({
     ...input,
-    schools: school ? [school] : [],
+    schoolRef: school ?? undefined,
     permission: USER_PERMISSIONS.ATHLETE,
   });
 
   return await athlete.save();
-};
-
-const findSchool = async (schoolName?: string): Promise<School | null> => {
-  const existingSchool = await schoolRepo.findOne({
-    where: { schoolName },
-  });
-
-  return existingSchool;
 };
 
 athleteRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
@@ -38,12 +32,19 @@ athleteRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res)
       return res.status(404).json({ error: 'Athlete not found' });
     }
 
+    let school;
+    if (req.body.schoolId) {
+      school = await schoolRepo.findOne({
+        where: { id: req.body.schoolId },
+      });
+    }
+
     Object.assign(athlete, {
       firstName: req.body.firstName ?? athlete.firstName,
       lastName: req.body.lastName ?? athlete.lastName,
       sport: req.body.sport ?? athlete.sport,
       position: req.body.position ?? athlete.position,
-      // school: req.body.school ?? athlete.school,
+      schoolRef: school ? school : athlete.schoolRef,
       major: req.body.major ?? athlete.major,
       gpa: req.body.gpa ?? athlete.gpa,
       division: req.body.division ?? athlete.division,
@@ -71,7 +72,7 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid athlete ID' });
     }
 
-    const athlete = await athleteRepo.findOne({ where: { id }, relations: ['schools'] });
+    const athlete = await athleteRepo.findOne({ where: { id }, relations: ['schoolRef'] });
     if (!athlete) {
       return res.status(404).json({ error: 'Athlete not found' });
     }

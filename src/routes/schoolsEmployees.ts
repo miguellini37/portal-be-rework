@@ -78,7 +78,10 @@ schoolEmployeeRoutes.get('/:id', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid school employee ID' });
     }
 
-    const school = await schoolEmployeeRepo.findOneBy({ id });
+    const school = await schoolEmployeeRepo.findOne({
+      where: { id },
+      relations: ['schoolRef'],
+    });
     if (!school) {
       return res.status(404).json({ error: 'School employee not found' });
     }

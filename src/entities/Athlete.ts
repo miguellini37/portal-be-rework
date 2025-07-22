@@ -1,4 +1,4 @@
-import { Column, ChildEntity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, ChildEntity, ManyToOne } from 'typeorm';
 import { User } from './User';
 import { School } from './School';
 
@@ -34,7 +34,6 @@ export class Athlete extends User {
   @Column({ type: 'simple-array', nullable: true })
   internshipIds?: number[];
 
-  @ManyToMany(() => School, { nullable: true })
-  @JoinTable()
-  schools?: School[];
+  @ManyToOne(() => School, (school) => school.employees, { nullable: true })
+  schoolRef?: School;
 }

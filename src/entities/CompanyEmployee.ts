@@ -1,4 +1,4 @@
-import { ChildEntity, Column, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import { ChildEntity, Column, ManyToOne } from 'typeorm';
 import { User } from './User';
 import { Company } from './Company';
 import { School } from './School';
@@ -17,7 +17,6 @@ export class CompanyEmployee extends User {
   @Column({ nullable: true })
   companyName?: string;
 
-  @ManyToMany(() => School, { nullable: true })
-  @JoinTable()
-  schools?: School[];
+  @ManyToOne(() => School, (school) => school.employees, { nullable: true })
+  schoolRef?: School;
 }

@@ -31,9 +31,9 @@ export class School extends BaseEntity {
   @OneToMany(() => SchoolEmployee, (employee) => employee.schoolRef)
   employees?: SchoolEmployee[];
 
-  @ManyToMany(() => CompanyEmployee, (employee) => employee.schools)
+  @ManyToMany(() => CompanyEmployee, (employee) => employee.schoolRef)
   companyEmployees?: CompanyEmployee[];
 
-  @ManyToMany(() => Athlete, (student) => student.schools)
+  @ManyToMany(() => Athlete, (student) => student.schoolRef)
   athletes?: Athlete[];
 }

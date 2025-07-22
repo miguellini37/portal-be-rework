@@ -50,7 +50,8 @@ companyRoutes.get('/:id', authenticateToken, async (req, res) => {
 companyRoutes.get('/', async (req, res) => {
   try {
     const companies = await companyRepo.find({
-      select: ['id', 'companyName'],
+      select: ['id', 'companyName', 'industry'],
+      relations: ['jobs'],
     });
 
     res.status(200).json(companies);
