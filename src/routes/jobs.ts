@@ -98,8 +98,19 @@ jobRoutes.get('/:id', authenticateToken, async (req, res) => {
 jobRoutes.get('/', authenticateToken, async (req, res) => {
   try {
     const companyId = req.query.companyId as string | undefined;
+    const type = req.query.type as string | undefined;
 
-    const whereClause = companyId ? { company: { id: companyId } } : {};
+    // Build where clause step by step
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {};
+
+    if (companyId) {
+      whereClause.company = { id: companyId };
+    }
+
+    if (type) {
+      whereClause.type = type;
+    }
 
     const jobs = await jobRepo.find({
       where: whereClause,
