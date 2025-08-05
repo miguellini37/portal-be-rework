@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { Company } from './Company';
+import { CompanyEmployee } from './CompanyEmployee'; // assuming this is your owner employee entity
 
 @Entity()
 export class Job extends BaseEntity {
@@ -9,24 +17,51 @@ export class Job extends BaseEntity {
   @ManyToOne(() => Company, { nullable: true })
   company?: Company;
 
+  @ManyToOne(() => CompanyEmployee, { nullable: true })
+  owner?: CompanyEmployee; // the employee who created/owns this job
+
   @Column({ nullable: true })
   position?: string;
-
-  @Column({ nullable: true })
-  location?: string;
-
-  @Column({ nullable: true })
-  salary?: string;
-
-  @Column({ nullable: true })
-  benefit?: string;
 
   @Column({ nullable: true })
   description?: string;
 
   @Column({ nullable: true })
-  requirements?: string;
+  duration?: string;
 
   @Column({ nullable: true })
-  type?: string; // internship or job
+  industry?: string;
+
+  @Column({ nullable: true })
+  experience?: string;
+
+  @CreateDateColumn()
+  createdDate!: Date;
+
+  @Column({ type: 'date', nullable: true })
+  applicationDeadline?: Date;
+
+  @Column({ nullable: true })
+  benefits?: string;
+
+  @Column({ nullable: true })
+  athleteBenefits?: string;
+
+  @Column({ nullable: true })
+  type?: string; // 'internship' or 'job'
+
+  @Column({ nullable: true })
+  requirements?: string;
+
+  @Column({ type: 'simple-array', nullable: true })
+  tags?: string[];
+
+  @Column({ nullable: true })
+  location?: string;
+
+  @Column({ nullable: true })
+  payment?: string;
+
+  @Column({ nullable: true })
+  paymentType?: string; // e.g., hourly, stipend, unpaid
 }

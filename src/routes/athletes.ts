@@ -14,6 +14,8 @@ export const createAthlete = async (input: Athlete & { schoolName: string }): Pr
     where: { schoolName: input.schoolName },
   });
 
+  console.log('Found school', school);
+
   const athlete = athleteRepo.create({
     ...input,
     schoolRef: school ?? undefined,
@@ -32,28 +34,21 @@ athleteRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res)
       return res.status(404).json({ error: 'Athlete not found' });
     }
 
-    let school;
-    if (req.body.schoolId) {
-      school = await schoolRepo.findOne({
-        where: { id: req.body.schoolId },
-      });
-    }
-
     Object.assign(athlete, {
       firstName: req.body.firstName ?? athlete.firstName,
       lastName: req.body.lastName ?? athlete.lastName,
-      sport: req.body.sport ?? athlete.sport,
-      position: req.body.position ?? athlete.position,
-      schoolRef: school ? school : athlete.schoolRef,
-      major: req.body.major ?? athlete.major,
-      gpa: req.body.gpa ?? athlete.gpa,
-      division: req.body.division ?? athlete.division,
-      accolades: req.body.accolades ?? athlete.accolades,
-      teamRole: req.body.teamRole ?? athlete.teamRole,
-      graduationDate: req.body.graduationDate
-        ? new Date(req.body.graduationDate)
-        : athlete.graduationDate,
-      statistics: req.body.points ?? athlete.statistics,
+      phone: req.body.phone ?? athlete.phone,
+      location: req.body.location ?? athlete.location,
+      bio: req.body.bio ?? athlete.bio,
+      schoolRefId: req.body.schoolId ?? athlete.schoolRef?.id,
+      academics: {
+        ...athlete.academics,
+        ...req.body.academics,
+      },
+      athletics: {
+        ...athlete.athletics,
+        ...req.body.athletics,
+      },
     });
 
     await athlete.save();
@@ -77,7 +72,7 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Athlete not found' });
     }
 
-    const { email, password, permission, ...athleteData } = athlete;
+    const { password, permission, ...athleteData } = athlete;
     res.status(200).json(athleteData);
   } catch (err) {
     console.error(err);

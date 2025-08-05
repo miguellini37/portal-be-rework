@@ -56,8 +56,8 @@ jobRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res) => 
     Object.assign(job, {
       position: req.body.position ?? job.position,
       location: req.body.location ?? job.location,
-      salary: req.body.salary ?? job.salary,
-      benefit: req.body.benefit ?? job.benefit,
+      // salary: req.body.salary ?? job.salary,
+      // benefit: req.body.benefit ?? job.benefit,
       description: req.body.description ?? job.description,
       requirements: req.body.requirements ?? job.requirements,
       type: req.body.type ?? job.type,

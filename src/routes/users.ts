@@ -26,6 +26,8 @@ userRoutes.post('/register', async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'User with this email already exists.' });
     }
 
+    console.log('Creating user with input:', userInput);
+
     let user;
     switch (userInput.permission) {
       case USER_PERMISSIONS.ATHLETE:

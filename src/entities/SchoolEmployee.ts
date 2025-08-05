@@ -9,7 +9,4 @@ export class SchoolEmployee extends User {
 
   @ManyToOne(() => School, (school) => school.employees, { nullable: true })
   schoolRef?: School;
-
-  @Column({ nullable: true })
-  schoolName?: string;
 }

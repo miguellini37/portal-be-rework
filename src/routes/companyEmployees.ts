@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
 import { Company, CompanyEmployee, User } from '../entities';
+import { USER_PERMISSIONS } from './users';
 
 export const companyEmployeeRoutes = Router();
 const companyEmployeeRepo = db.getRepository(CompanyEmployee);
@@ -10,13 +11,14 @@ const companyRepo = db.getRepository(Company);
 export const createCompanyEmployee = async (input: CompanyEmployee): Promise<User> => {
   const companyEmployee = companyEmployeeRepo.create({
     ...input,
-    permission: 'company',
+    permission: USER_PERMISSIONS.COMPANY,
   });
   await companyEmployee.save();
 
-  const company = await createOrJoinCompany(companyEmployee, input.companyName);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const company = await createOrJoinCompany(companyEmployee, (input as any).companyName);
   companyEmployee.companyRef = company;
-  companyEmployee.companyName = company.companyName;
+
   return await companyEmployee.save();
 };
 

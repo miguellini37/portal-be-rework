@@ -4,13 +4,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToOne,
-  JoinColumn,
-  OneToMany,
   ManyToMany,
-  RelationId,
+  JoinColumn,
 } from 'typeorm';
 import { SchoolEmployee } from './SchoolEmployee';
-import { CompanyEmployee } from './CompanyEmployee';
 import { Athlete } from './Athlete';
 
 @Entity()
@@ -25,14 +22,8 @@ export class School extends BaseEntity {
   @JoinColumn() // necessary for @OneToOne owner side
   ownerRef?: SchoolEmployee;
 
-  @RelationId((school: School) => school.ownerRef)
-  ownerRefId?: string;
-
-  @OneToMany(() => SchoolEmployee, (employee) => employee.schoolRef)
+  @ManyToMany(() => SchoolEmployee, (employee) => employee.schoolRef)
   employees?: SchoolEmployee[];
-
-  @ManyToMany(() => CompanyEmployee, (employee) => employee.schoolRef)
-  companyEmployees?: CompanyEmployee[];
 
   @ManyToMany(() => Athlete, (student) => student.schoolRef)
   athletes?: Athlete[];

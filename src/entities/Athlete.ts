@@ -2,8 +2,27 @@ import { Column, ChildEntity, ManyToOne } from 'typeorm';
 import { User } from './User';
 import { School } from './School';
 
-@ChildEntity()
-export class Athlete extends User {
+class Academics {
+  @Column({ nullable: true })
+  major?: string;
+
+  @Column({ nullable: true })
+  minor?: string;
+
+  @Column({ type: 'float', nullable: true })
+  gpa?: number;
+
+  @Column({ type: 'date', nullable: true })
+  graduationDate?: Date;
+
+  @Column({ nullable: true })
+  awards?: string;
+
+  @Column({ nullable: true })
+  coursework?: string;
+}
+
+class Athletics {
   @Column({ nullable: true })
   sport?: string;
 
@@ -11,29 +30,32 @@ export class Athlete extends User {
   position?: string;
 
   @Column({ nullable: true })
-  major?: string;
-
-  @Column({ type: 'float', nullable: true })
-  gpa?: number;
-
-  @Column({ nullable: true })
   division?: string;
 
   @Column({ nullable: true })
-  accolades?: string;
+  conference?: string;
 
   @Column({ nullable: true })
-  teamRole?: string;
+  yearsPlayed?: string;
 
-  @Column({ type: 'date', nullable: true })
-  graduationDate?: Date;
+  @Column({ nullable: true })
+  leadershipRoles?: string;
+
+  @Column({ nullable: true })
+  achievements?: string;
 
   @Column({ nullable: true })
   statistics?: string;
+}
 
-  @Column({ type: 'simple-array', nullable: true })
-  internshipIds?: number[];
+@ChildEntity()
+export class Athlete extends User {
+  @Column(() => Academics)
+  academics?: Academics;
 
-  @ManyToOne(() => School, (school) => school.employees, { nullable: true })
+  @Column(() => Athletics)
+  athletics?: Athletics;
+
+  @ManyToOne(() => School, { nullable: true })
   schoolRef?: School;
 }
