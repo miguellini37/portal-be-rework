@@ -14,8 +14,6 @@ export const createAthlete = async (input: Athlete & { schoolName: string }): Pr
     where: { schoolName: input.schoolName },
   });
 
-  console.log('Found school', school);
-
   const athlete = athleteRepo.create({
     ...input,
     schoolRef: school ?? undefined,

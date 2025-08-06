@@ -2,18 +2,40 @@ import { Router } from 'express';
 import { User } from '../entities/User';
 import { compare } from 'bcrypt';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
+import { Athlete, CompanyEmployee } from '../entities';
 
 export const authRoutes = Router();
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
+const getPayloadFromUser = (
+  user: User
+): Partial<User> & {
+  companyRefId?: string;
+  schoolRefId?: string;
+} => {
+  return {
+    id: user.id,
+    email: user.email,
+    permission: user.permission,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    companyRefId: (user as CompanyEmployee).companyRef?.id,
+    schoolRefId: (user as Athlete).schoolRef?.id,
+  };
+};
+
 const generateAccessToken = (user: Partial<User>) => {
-  return sign(user, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  // Only include minimal fields in the JWT payload
+  const payload = getPayloadFromUser(user as User);
+  return sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
 };
 
 const generateRefreshToken = (user: Partial<User>) => {
-  return sign(user, REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+  // Only include minimal fields in the JWT payload
+  const payload = getPayloadFromUser(user as User);
+  return sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
 };
 
 authRoutes.post('/login', async (req, res) => {
@@ -37,9 +59,8 @@ authRoutes.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials.' });
     }
 
-    const { password: _password, ...payload } = user;
-    const accessToken = generateAccessToken(payload);
-    const refreshToken = generateRefreshToken(payload);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     res.json({
       accessToken,
@@ -47,7 +68,7 @@ authRoutes.post('/login', async (req, res) => {
       expiresIn: 15,
       refreshTokenExpireIn: 1440,
       tokenType: 'Bearer',
-      authState: payload,
+      authState: getPayloadFromUser(user),
     });
   } catch (err) {
     console.error(err);
@@ -69,8 +90,7 @@ authRoutes.post('/refresh', (req, res) => {
         res.sendStatus(403);
       }
 
-      const { password: _password, ...payload } = user as User;
-      const accessToken = generateAccessToken(payload);
+      const accessToken = generateAccessToken(user as User);
       res.json({ accessToken, expiresIn: 15 });
     }
   );

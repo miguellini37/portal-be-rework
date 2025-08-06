@@ -18,7 +18,6 @@ export const createSchoolEmployee = async (input: SchoolEmployee): Promise<User>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const school = await createOrJoinSchool(schoolEmployee, (input as any).schoolName);
   schoolEmployee.schoolRef = school;
-  console.log('Set school ref', schoolEmployee);
 
   return await schoolEmployee.save();
 };
@@ -37,16 +36,13 @@ const createOrJoinSchool = async (
   });
 
   if (existingSchool) {
-    console.log(`Found school`, existingSchool);
     return existingSchool;
   }
-  console.log(`Didn't Found school`, existingSchool);
 
   const newSchool = schoolRepo.create({
     schoolName,
     ownerRef: employee,
   });
-  console.log('Created school', existingSchool);
   await newSchool.save();
 
   return newSchool;
