@@ -79,7 +79,7 @@ authRoutes.post('/login', async (req, res) => {
 authRoutes.post('/refresh', (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
-    res.sendStatus(401);
+    return res.sendStatus(401);
   }
 
   verify(
@@ -87,11 +87,19 @@ authRoutes.post('/refresh', (req, res) => {
     REFRESH_TOKEN_SECRET,
     (err: Error | null, user: string | JwtPayload | undefined) => {
       if (err || !user) {
-        res.sendStatus(403);
+        return res.sendStatus(403);
       }
 
+      // Generate new tokens
       const accessToken = generateAccessToken(user as User);
-      res.json({ accessToken, expiresIn: 15 });
+      const newRefreshToken = generateRefreshToken(user as User);
+
+      res.json({
+        accessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 15, // access token expiration (minutes)
+        refreshTokenExpireIn: 1440, // refresh token expiration (minutes)
+      });
     }
   );
 });
