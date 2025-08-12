@@ -9,12 +9,11 @@ export const authRoutes = Router();
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
-const getPayloadFromUser = (
-  user: User
-): Partial<User> & {
+type UserTokenPayload = Pick<User, 'id' | 'email' | 'permission' | 'firstName' | 'lastName'> & {
   companyRefId?: string;
   schoolRefId?: string;
-} => {
+};
+const getPayloadFromUser = (user: User): UserTokenPayload => {
   return {
     id: user.id,
     email: user.email,
@@ -26,15 +25,11 @@ const getPayloadFromUser = (
   };
 };
 
-const generateAccessToken = (user: Partial<User>) => {
-  // Only include minimal fields in the JWT payload
-  const payload = getPayloadFromUser(user as User);
+const generateAccessToken = (payload: UserTokenPayload) => {
   return sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
 };
 
-const generateRefreshToken = (user: Partial<User>) => {
-  // Only include minimal fields in the JWT payload
-  const payload = getPayloadFromUser(user as User);
+const generateRefreshToken = (payload: UserTokenPayload) => {
   return sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
 };
 
@@ -59,8 +54,9 @@ authRoutes.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials.' });
     }
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const payload = getPayloadFromUser(user);
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
 
     res.json({
       accessToken,
@@ -85,14 +81,18 @@ authRoutes.post('/refresh', (req, res) => {
   verify(
     refreshToken,
     REFRESH_TOKEN_SECRET,
-    (err: Error | null, user: string | JwtPayload | undefined) => {
-      if (err || !user) {
+    (err: Error | null, payload: string | JwtPayload | undefined) => {
+      if (err || !payload) {
         return res.sendStatus(403);
       }
 
+      // Remove exp, iat, nbf if present
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { exp, iat, nbf, ...cleanPayload } = payload as any;
+
       // Generate new tokens
-      const accessToken = generateAccessToken(user as User);
-      const newRefreshToken = generateRefreshToken(user as User);
+      const accessToken = generateAccessToken(cleanPayload as UserTokenPayload);
+      const newRefreshToken = generateRefreshToken(cleanPayload as UserTokenPayload);
 
       res.json({
         accessToken,
