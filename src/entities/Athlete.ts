@@ -59,3 +59,7 @@ export class Athlete extends User {
   @ManyToOne(() => School, { nullable: true })
   schoolRef?: School;
 }
+
+export class GetAthletesFilter {
+  wildcardTerm?: string;
+}

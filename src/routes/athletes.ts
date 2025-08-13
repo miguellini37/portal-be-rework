@@ -4,6 +4,7 @@ import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
 import { School, User } from '../entities';
 import { USER_PERMISSIONS } from './users';
+import { SelectQueryBuilder } from 'typeorm';
 
 export const athleteRoutes = Router();
 const athleteRepo = db.getRepository(Athlete);
@@ -75,5 +76,56 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch athlete profile' });
+  }
+});
+
+function addWildcardFilterToQuery(
+  query: SelectQueryBuilder<Athlete>,
+  fields: string[],
+  term: string
+) {
+  fields.forEach((field, idx) => {
+    if (idx === 0) {
+      query.where(`${field} LIKE :term`, { term: `%${term}%` });
+    } else {
+      query.orWhere(`${field} LIKE :term`, { term: `%${term}%` });
+    }
+  });
+  return query;
+}
+
+athleteRoutes.get('/', authenticateToken, async (req, res) => {
+  try {
+    const { wildcardTerm } = req.query;
+
+    let query = athleteRepo
+      .createQueryBuilder('athlete')
+      .leftJoinAndSelect('athlete.schoolRef', 'schoolRef');
+
+    if (wildcardTerm) {
+      query = addWildcardFilterToQuery(
+        query,
+        [
+          'athlete.firstName',
+          'athlete.lastName',
+          'athlete.email',
+          'athlete.location',
+          'athlete.academicsMajor',
+          'athlete.academicsGpa',
+          'athlete.academicsGraduationdate',
+          'athlete.athleticsSport',
+          'athlete.athleticsPosition',
+          'athlete.athleticsDivision',
+          'schoolRef.schoolName',
+        ],
+        wildcardTerm as string
+      );
+    }
+
+    const athletes = await query.getMany();
+    res.status(200).json(athletes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch athletes' });
   }
 });
