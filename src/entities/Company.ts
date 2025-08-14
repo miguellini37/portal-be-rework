@@ -34,4 +34,12 @@ export class Company extends BaseEntity {
 
   @OneToMany(() => Job, (job) => job.company)
   jobs?: Job[];
+
+  // Company.ts
+  @Column({ type: 'json', nullable: true })
+  culture?: {
+    valueKeys: string[];
+    environmentKeys: string[];
+    thrivePoints: string[];
+  } | null;
 }
