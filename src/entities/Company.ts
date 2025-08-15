@@ -21,6 +21,30 @@ export class Culture {
   @Column({ type: 'json', nullable: true })
   thrivePoints?: string[] | null;
 }
+
+export class Benefits {
+  @Column({ nullable: true })
+  baseSalary?: string;
+
+  @Column({ nullable: true })
+  commission?: string;
+
+  @Column({ nullable: true })
+  totalComp?: string;
+
+  @Column({ type: 'json', nullable: true })
+  healthWellness?: string[] | null;
+
+  @Column({ type: 'json', nullable: true })
+  flexibleScheduling?: string[] | null;
+
+  @Column({ type: 'json', nullable: true })
+  careerDevelopment?: string[] | null;
+
+  @Column({ type: 'json', nullable: true })
+  nilOpportunities?: string[] | null;
+}
+
 @Entity()
 export class Company extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -47,4 +71,7 @@ export class Company extends BaseEntity {
 
   @Column(() => Culture)
   culture?: Culture;
+
+  @Column(() => Benefits)
+  benefits?: Benefits;
 }
