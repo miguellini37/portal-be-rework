@@ -13,10 +13,10 @@ import { Job } from './Job';
 
 export class Culture {
   @Column({ type: 'json', nullable: true })
-  valueKeys?: string[] | null;
+  cultureValues?: string[] | null;
 
   @Column({ type: 'json', nullable: true })
-  environmentKeys?: string[] | null;
+  environmentTiles?: string[] | null;
 
   @Column({ type: 'json', nullable: true })
   thrivePoints?: string[] | null;
