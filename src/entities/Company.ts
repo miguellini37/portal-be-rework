@@ -11,6 +11,16 @@ import {
 import { CompanyEmployee } from './CompanyEmployee';
 import { Job } from './Job';
 
+export class Culture {
+  @Column({ type: 'json', nullable: true })
+  valueKeys?: string[] | null;
+
+  @Column({ type: 'json', nullable: true })
+  environmentKeys?: string[] | null;
+
+  @Column({ type: 'json', nullable: true })
+  thrivePoints?: string[] | null;
+}
 @Entity()
 export class Company extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -37,15 +47,4 @@ export class Company extends BaseEntity {
 
   @Column(() => Culture)
   culture?: Culture;
-}
-
-export class Culture {
-  @Column({ type: 'json', nullable: true })
-  valueKeys?: string[] | null;
-
-  @Column({ type: 'json', nullable: true })
-  environmentKeys?: string[] | null;
-
-  @Column({ type: 'json', nullable: true })
-  thrivePoints?: string[] | null;
 }
