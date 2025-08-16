@@ -16,6 +16,10 @@ companyRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res)
     Object.assign(company, {
       companyName: req.body.companyName ?? company.companyName,
       industry: req.body.industry ?? company.industry,
+      culture: {
+        ...company.culture,
+        ...req.body.culture,
+      },
     });
     await company.save();
     res.status(200).json({ message: 'Company updated successfully' });
