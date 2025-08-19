@@ -21,30 +21,29 @@ export class Culture {
   @Column({ type: 'json', nullable: true })
   thrivePoints?: string[] | null;
 }
-
-export class Benefits {
-  @Column({ nullable: true })
-  baseSalary?: string;
-
-  @Column({ nullable: true })
-  commission?: string;
-
-  @Column({ nullable: true })
-  totalComp?: string;
+export class SpecficBenefits {
+  @Column({ type: 'string', nullable: true })
+  title?: string;
 
   @Column({ type: 'json', nullable: true })
-  healthWellness?: string[] | null;
+  description?: string[];
 
-  @Column({ type: 'json', nullable: true })
-  flexibleScheduling?: string[] | null;
-
-  @Column({ type: 'json', nullable: true })
-  careerDevelopment?: string[] | null;
-
-  @Column({ type: 'json', nullable: true })
-  nilOpportunities?: string[] | null;
+  @Column({ type: 'string', nullable: true })
+  icon?: string;
 }
+export class Benefits {
+  @Column({ type: 'json', nullable: true }) 
+  baseSalary?: number[]; //if len = 1 than avg salary if len = 2 range
 
+  @Column({ type: 'json', nullable: true })
+  commission?: number[]; //if len = 1 than avg salary if len = 2 range
+
+  @Column({ type: 'json', nullable: true })
+  totalComp?: number[]; //if len = 1 than avg salary if len = 2 range
+ 
+  @Column({ type: 'json', nullable: true })
+  specficBenefits?: SpecficBenefits[] | null;
+}
 @Entity()
 export class Company extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
