@@ -21,7 +21,7 @@ export class Culture {
   @Column({ type: 'json', nullable: true })
   thrivePoints?: string[] | null;
 }
-export class SpecficBenefits {
+export class SpecificBenefits {
   @Column({ type: 'string', nullable: true })
   title?: string;
 
@@ -32,17 +32,28 @@ export class SpecficBenefits {
   icon?: string;
 }
 export class Benefits {
-  @Column({ type: 'json', nullable: true }) 
-  baseSalary?: number[]; //if len = 1 than avg salary if len = 2 range
+  @Column({ type: 'integer', nullable: true })
+  baseSalaryMin?: number;
 
-  @Column({ type: 'json', nullable: true })
-  commission?: number[]; //if len = 1 than avg salary if len = 2 range
+  @Column({ type: 'integer', nullable: true })
+  baseSalaryMax?: number;
 
-  @Column({ type: 'json', nullable: true })
-  totalComp?: number[]; //if len = 1 than avg salary if len = 2 range
+  // Commission
+  @Column({ type: 'integer', nullable: true })
+  commissionMin?: number;
+
+  @Column({ type: 'integer', nullable: true })
+  commissionMax?: number;
+
+  // Total comp
+  @Column({ type: 'integer', nullable: true })
+  totalCompMin?: number;
+
+  @Column({ type: 'integer', nullable: true })
+  totalCompMax?: number;
  
   @Column({ type: 'json', nullable: true })
-  specficBenefits?: SpecficBenefits[] | null;
+  specificBenefits?: SpecificBenefits[] | null;
 }
 @Entity()
 export class Company extends BaseEntity {
