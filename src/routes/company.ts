@@ -20,6 +20,10 @@ companyRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res)
         ...company.culture,
         ...req.body.culture,
       },
+      benefits: {
+        ...company.benefits,
+        ...req.body.benefits,
+      },
     });
     await company.save();
     res.status(200).json({ message: 'Company updated successfully' });
