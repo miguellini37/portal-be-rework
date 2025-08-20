@@ -24,11 +24,17 @@ jobs:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} 
 
+      - name: Free disk space before pull
+        run: |
+          docker system prune -af || true
+          docker volume prune -f || true
+          df -h
+
       - name: Pull image from docker hub
         run: docker pull portaljobs/portal-backend:latest
 
       - name: Delete old container
-        run: docker rm -f portal-backend-container
+        run: docker rm -f portal-backend-container || true
 
       - name: Write .env file from secret
         run: echo "${{ secrets.ENV_FILE }}" > .env
