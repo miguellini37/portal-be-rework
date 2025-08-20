@@ -3,7 +3,7 @@ import { Job } from '../entities/Job';
 import { db } from '../config/db';
 import { AuthenticatedRequest, authenticateToken } from '../auth/authenticate';
 import { Company, CompanyEmployee } from '../entities';
-import { FindOptionsWhere } from 'typeorm';
+import { FindOptionsWhere, In } from 'typeorm';
 
 export const jobRoutes = Router();
 const jobRepo = db.getRepository(Job);
@@ -124,7 +124,7 @@ jobRoutes.get('/:id', authenticateToken, async (req, res) => {
 jobRoutes.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const companyId = req.user?.companyRefId;
-    const type = req.query.type as string | undefined;
+    const type = req.query.type as string | string[] | undefined;
 
     const whereClause: FindOptionsWhere<Job> | FindOptionsWhere<Job>[] = [];
 
@@ -132,8 +132,14 @@ jobRoutes.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => 
       whereClause.push({ company: { id: companyId } });
     }
 
+    let typeFilter;
+    if (Array.isArray(type)) {
+      typeFilter = In(type);
+    } else if (typeof type === 'string') {
+      typeFilter = type;
+    }
     if (type) {
-      whereClause.push({ type });
+      whereClause.push({ type: typeFilter });
     }
 
     const jobs = await jobRepo.find({
