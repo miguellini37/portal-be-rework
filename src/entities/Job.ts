@@ -27,9 +27,6 @@ export class Job extends BaseEntity {
   description?: string;
 
   @Column({ nullable: true })
-  duration?: string;
-
-  @Column({ nullable: true })
   industry?: string;
 
   @Column({ nullable: true })
@@ -45,23 +42,27 @@ export class Job extends BaseEntity {
   benefits?: string;
 
   @Column({ nullable: true })
-  athleteBenefits?: string;
-
-  @Column({ nullable: true })
   type?: string; // 'internship' or 'job'
 
   @Column({ nullable: true })
   requirements?: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  tags?: string[];
-
   @Column({ nullable: true })
   location?: string;
 
   @Column({ nullable: true })
-  payment?: string;
+  salary?: number;
+
+  // Not yet implemented
+  @Column({ type: 'simple-array', nullable: true })
+  tags?: string[];
 
   @Column({ nullable: true })
   paymentType?: string; // e.g., hourly, stipend, unpaid
+
+  @Column({ nullable: true })
+  duration?: string;
+
+  @Column({ nullable: true })
+  athleteBenefits?: string;
 }

@@ -2,20 +2,22 @@ import { Router } from 'express';
 import { Job } from '../entities/Job';
 import { db } from '../config/db';
 import { AuthenticatedRequest, authenticateToken } from '../auth/authenticate';
-import { Company } from '../entities';
+import { Company, CompanyEmployee } from '../entities';
+import { FindOptionsWhere } from 'typeorm';
 
 export const jobRoutes = Router();
 const jobRepo = db.getRepository(Job);
 const companyRepo = db.getRepository(Company);
+const companyEmployeeRepo = db.getRepository(CompanyEmployee);
 
 jobRoutes.post('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const jobData = req.body as Partial<Job>;
 
-    const company = await findCompany(req.body.companyId);
-
     const job = jobRepo.create(jobData);
-    job.company = company;
+    job.company = await findCompany(req.user?.companyRefId);
+    job.owner = await findCompanyEmployee(req.user?.id);
+
     await jobRepo.save(job);
 
     res.status(201).json({ message: 'Job created successfully', job });
@@ -25,7 +27,7 @@ jobRoutes.post('/', authenticateToken, async (req: AuthenticatedRequest, res) =>
   }
 });
 
-const findCompany = async (companyId: string): Promise<Company> => {
+const findCompany = async (companyId?: string): Promise<Company> => {
   if (!companyId) {
     throw new Error('Company is required on job');
   }
@@ -39,6 +41,22 @@ const findCompany = async (companyId: string): Promise<Company> => {
   }
 
   return existingCompany;
+};
+
+const findCompanyEmployee = async (employeeId?: string): Promise<CompanyEmployee> => {
+  if (!employeeId) {
+    throw new Error('Job owner is required');
+  }
+
+  const existingEmployee = await companyEmployeeRepo.findOne({
+    where: { id: employeeId },
+  });
+
+  if (!existingEmployee) {
+    throw new Error('Job owner is required');
+  }
+
+  return existingEmployee;
 };
 
 jobRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
@@ -56,11 +74,19 @@ jobRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res) => 
     Object.assign(job, {
       position: req.body.position ?? job.position,
       location: req.body.location ?? job.location,
-      // salary: req.body.salary ?? job.salary,
-      // benefit: req.body.benefit ?? job.benefit,
       description: req.body.description ?? job.description,
-      requirements: req.body.requirements ?? job.requirements,
+      duration: req.body.duration ?? job.duration,
+      industry: req.body.industry ?? job.industry,
+      experience: req.body.experience ?? job.experience,
+      applicationDeadline: req.body.applicationDeadline ?? job.applicationDeadline,
+      benefits: req.body.benefits ?? job.benefits,
+      athleteBenefits: req.body.athleteBenefits ?? job.athleteBenefits,
       type: req.body.type ?? job.type,
+      requirements: req.body.requirements ?? job.requirements,
+      tags: req.body.tags ?? job.tags,
+      payment: req.body.payment ?? job.salary,
+      paymentType: req.body.paymentType ?? job.paymentType,
+      salary: req.body.salary ?? job.salary,
     });
 
     await job.save();
@@ -95,21 +121,19 @@ jobRoutes.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-jobRoutes.get('/', authenticateToken, async (req, res) => {
+jobRoutes.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const companyId = req.query.companyId as string | undefined;
+    const companyId = req.user?.companyRefId;
     const type = req.query.type as string | undefined;
 
-    // Build where clause step by step
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const whereClause: any = {};
+    const whereClause: FindOptionsWhere<Job> | FindOptionsWhere<Job>[] = [];
 
     if (companyId) {
-      whereClause.company = { id: companyId };
+      whereClause.push({ company: { id: companyId } });
     }
 
     if (type) {
-      whereClause.type = type;
+      whereClause.push({ type });
     }
 
     const jobs = await jobRepo.find({
