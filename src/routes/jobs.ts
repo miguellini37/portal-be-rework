@@ -125,11 +125,10 @@ jobRoutes.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => 
   try {
     const companyId = req.user?.companyRefId;
     const type = req.query.type as string | string[] | undefined;
-
-    const whereClause: FindOptionsWhere<Job> | FindOptionsWhere<Job>[] = [];
+    const whereClause: FindOptionsWhere<Job> = {};
 
     if (companyId) {
-      whereClause.push({ company: { id: companyId } });
+      whereClause.company = { id: companyId };
     }
 
     let typeFilter;
@@ -139,7 +138,7 @@ jobRoutes.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => 
       typeFilter = type;
     }
     if (type) {
-      whereClause.push({ type: typeFilter });
+      whereClause.type = typeFilter;
     }
 
     const jobs = await jobRepo.find({
