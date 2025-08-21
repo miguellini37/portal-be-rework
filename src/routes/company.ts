@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { Company } from '../entities/Company';
 import { db } from '../config/db';
 import { AuthenticatedRequest, authenticateToken } from '../auth/authenticate';
-import {stripUsers} from '../auth/utils';
+import {sanitizeUser} from '../auth/utils';
 
 export const companyRoutes = Router();
 const companyRepo = db.getRepository(Company);
@@ -56,7 +56,7 @@ companyRoutes.get('/:id', authenticateToken, async (req, res) => {
     // strip password and permission from employees only
     const safeCompany = {
       ...company,
-      companyEmployees: stripUsers(company.companyEmployees),
+      companyEmployees: company.companyEmployees?.map(employee => sanitizeUser(employee,['password', 'permission'])),
     };
 
     res.status(200).json(safeCompany);

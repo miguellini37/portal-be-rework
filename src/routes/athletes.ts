@@ -5,7 +5,7 @@ import { db } from '../config/db';
 import { School, User } from '../entities';
 import { USER_PERMISSIONS } from './users';
 import { SelectQueryBuilder } from 'typeorm';
-import { stripUser, stripUsers } from '../auth/utils';
+import { sanitizeUser } from '../auth/utils';
 
 export const athleteRoutes = Router();
 const athleteRepo = db.getRepository(Athlete);
@@ -71,7 +71,7 @@ athleteRoutes.get('/:id', authenticateToken, async (req, res) => {
     if (!athlete) {
       return res.status(404).json({ error: 'Athlete not found' });
     }
-    const athleteData = stripUser(athlete);
+    const athleteData = sanitizeUser(athlete);
     res.status(200).json(athleteData);
   } catch (err) {
     console.error(err);
