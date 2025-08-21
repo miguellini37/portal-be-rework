@@ -3,6 +3,7 @@ import { authenticateToken, AuthenticatedRequest } from '../auth/authenticate';
 import { db } from '../config/db';
 import { Company, CompanyEmployee, User } from '../entities';
 import { USER_PERMISSIONS } from './users';
+import { sanitizeUser } from '../auth/utils';
 
 export const companyEmployeeRoutes = Router();
 const companyEmployeeRepo = db.getRepository(CompanyEmployee);
@@ -84,8 +85,7 @@ companyEmployeeRoutes.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Company employee not found' });
     }
 
-    const { email, password, permission, ...rest } = company;
-    res.status(200).json(rest);
+    res.status(200).json(sanitizeUser(company));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch company employee profile' });

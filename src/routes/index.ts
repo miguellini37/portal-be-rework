@@ -7,6 +7,7 @@ import { schoolRoutes } from './schools';
 import { companyEmployeeRoutes } from './companyEmployees';
 import { schoolEmployeeRoutes } from './schoolsEmployees';
 import { jobRoutes } from './jobs';
+import { applicationRoutes } from './application';
 
 export const routes = Router();
 
@@ -19,5 +20,6 @@ routes.use('/company', companyRoutes);
 routes.use('/school', schoolRoutes);
 
 routes.use('/job', jobRoutes);
+routes.use('/application', applicationRoutes);
 
 routes.use('/messages', messageRoutes);
