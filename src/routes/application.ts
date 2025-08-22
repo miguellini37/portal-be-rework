@@ -25,6 +25,14 @@ applicationRoutes.post('/', authenticateToken, async (req: AuthenticatedRequest,
       return res.status(404).json({ error: 'Job or Athlete not found' });
     }
 
+    // Prevent duplicate applications
+    const existing = await applicationRepo.findOne({
+      where: { job: { id: jobId }, athlete: { id: athleteId } },
+    });
+    if (existing) {
+      return res.status(409).json({ error: 'You have already applied to this job.' });
+    }
+
     const application = applicationRepo.create({
       job,
       athlete,
