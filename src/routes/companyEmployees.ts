@@ -5,6 +5,7 @@ import { Company, CompanyEmployee, User } from '../entities';
 import { USER_PERMISSIONS } from './users';
 import { sanitizeUser } from '../auth/utils';
 
+
 export const companyEmployeeRoutes = Router();
 const companyEmployeeRepo = db.getRepository(CompanyEmployee);
 const companyRepo = db.getRepository(Company);
@@ -84,7 +85,6 @@ companyEmployeeRoutes.get('/:id', authenticateToken, async (req, res) => {
     if (!company) {
       return res.status(404).json({ error: 'Company employee not found' });
     }
-
     res.status(200).json(sanitizeUser(company));
   } catch (err) {
     console.error(err);

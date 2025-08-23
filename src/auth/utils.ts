@@ -1,6 +1,9 @@
 import { User } from '../entities';
 
-export const sanitizeUser = (user: User) => {
-  const { email, permission, password, ...rest } = user;
-  return rest;
+export const sanitizeUser = (user: User, dropFields: (keyof User)[] = ['password', 'permission','email']) => {
+  for (const field of dropFields) {
+    if (field in user) delete user[field];
+  }
+  return user;
 };
+

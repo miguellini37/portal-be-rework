@@ -11,6 +11,18 @@ import {
 import { CompanyEmployee } from './CompanyEmployee';
 import { Job } from './Job';
 
+export interface SpecificRecruitingStrategy {
+  icon?: string;
+  title: string;
+  description?: string;
+}
+
+export interface Recruiting {
+  strategy: SpecificRecruitingStrategy[];
+  processSteps: string[];
+  recruiterIds: string[]; // CompanyEmployee IDs
+}
+
 export class Culture {
   @Column({ type: 'json', nullable: true })
   cultureValues?: string[] | null;
@@ -71,7 +83,7 @@ export class Company extends BaseEntity {
   ownerRefId?: string;
 
   @OneToMany(() => CompanyEmployee, (employee) => employee.companyRef)
-  employees?: CompanyEmployee[];
+  companyEmployees?: CompanyEmployee[];
 
   @Column({ nullable: true })
   industry?: string;
@@ -84,4 +96,7 @@ export class Company extends BaseEntity {
 
   @Column(() => Benefits)
   benefits?: Benefits;
+
+  @Column({ type: 'json', nullable: true })
+  recruiting?: Recruiting | null;
 }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Company } from '../entities/Company';
 import { db } from '../config/db';
 import { AuthenticatedRequest, authenticateToken } from '../auth/authenticate';
+import {sanitizeUser} from '../auth/utils';
 
 export const companyRoutes = Router();
 const companyRepo = db.getRepository(Company);
@@ -24,6 +25,10 @@ companyRoutes.put('/', authenticateToken, async (req: AuthenticatedRequest, res)
         ...company.benefits,
         ...req.body.benefits,
       },
+      recruiting: {
+        ...company.recruiting,
+        ...req.body.recruiting,
+      },
     });
     await company.save();
     res.status(200).json({ message: 'Company updated successfully' });
@@ -42,13 +47,19 @@ companyRoutes.get('/:id', authenticateToken, async (req, res) => {
 
     const company = await companyRepo.findOne({
       where: { id },
-      relations: ['jobs'],
+      relations: ['jobs', 'companyEmployees'],
     });
     if (!company) {
       return res.status(404).json({ error: 'Company not found' });
     }
 
-    res.status(200).json(company);
+    // strip password and permission from employees only
+    const safeCompany = {
+      ...company,
+      companyEmployees: company.companyEmployees?.map(employee => sanitizeUser(employee,['password', 'permission'])),
+    };
+
+    res.status(200).json(safeCompany);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch company profile' });
