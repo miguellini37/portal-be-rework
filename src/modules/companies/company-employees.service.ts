@@ -33,5 +33,6 @@ export const createCompanyEmployee = async (input: any): Promise<User> => {
     permission: USER_PERMISSIONS.COMPANY,
   });
 
-  return await companyEmployeeRepo.save(companyEmployee);
+  const saved = await companyEmployeeRepo.save(companyEmployee);
+  return saved as unknown as User;
 };

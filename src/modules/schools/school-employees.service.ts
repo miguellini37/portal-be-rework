@@ -33,5 +33,6 @@ export const createSchoolEmployee = async (input: any): Promise<User> => {
     permission: USER_PERMISSIONS.SCHOOL,
   });
 
-  return await schoolEmployeeRepo.save(schoolEmployee);
+  const saved = await schoolEmployeeRepo.save(schoolEmployee);
+  return saved as unknown as User;
 };

@@ -7,8 +7,11 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
+    "build:nestjs": "tsc -p tsconfig.nestjs.json",
     "start": "node dist/index.js",
-    "dev": "nodemon --watch src --exec ts-node --cwd . ./src/index.ts",
+    "start:nestjs": "ts-node --transpile-only src/index.ts",
+    "dev": "nodemon --watch src --exec ts-node --transpile-only ./src/index.ts",
+    "dev:express": "nodemon --watch src --exec ts-node --cwd . ./src/index.express.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "typeorm migration:generate src/migrations/migration -d src/config/db.ts  --pretty",
     "migration:run": "typeorm migration:run -d src/config/db.ts",
