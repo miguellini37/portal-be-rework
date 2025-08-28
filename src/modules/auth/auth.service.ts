@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign, verify, JwtPayload as JWT } from 'jsonwebtoken';
 import { User, Athlete, CompanyEmployee } from '../../entities';
-import { LoginDto, RefreshTokenDto, RegisterDto, AuthResponseDto, UserTokenPayload } from '../../dto/auth.dto';
+import { ILoginInput, IRefreshTokenInput, IRegisterInput, IAuthResponse, IUserTokenPayload } from '../../models/auth.models';
 import { createAthlete } from '../athletes/athletes.service';
 import { createSchoolEmployee } from '../schools/school-employees.service';
 import { createCompanyEmployee } from '../companies/company-employees.service';
@@ -21,7 +21,7 @@ export class AuthService {
     private userRepository: Repository<User>,
   ) {}
 
-  private getPayloadFromUser(user: User): UserTokenPayload {
+  private getPayloadFromUser(user: User): IUserTokenPayload {
     return {
       id: user.id!,
       email: user.email!,
@@ -33,15 +33,15 @@ export class AuthService {
     };
   }
 
-  private generateAccessToken(payload: UserTokenPayload) {
+  private generateAccessToken(payload: IUserTokenPayload) {
     return sign(payload, this.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
   }
 
-  private generateRefreshToken(payload: UserTokenPayload) {
+  private generateRefreshToken(payload: IUserTokenPayload) {
     return sign(payload, this.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: ILoginInput): Promise<IAuthResponse> {
     const { email, password } = loginDto;
 
     if (!email || !password) {
@@ -76,7 +76,7 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refreshToken(refreshTokenDto: IRefreshTokenInput): Promise<IAuthResponse> {
     const { refreshToken } = refreshTokenDto;
     
     if (!refreshToken) {
@@ -90,8 +90,8 @@ export class AuthService {
       const { exp, iat, nbf, ...cleanPayload } = payload as any;
 
       // Generate new tokens
-      const accessToken = this.generateAccessToken(cleanPayload as UserTokenPayload);
-      const newRefreshToken = this.generateRefreshToken(cleanPayload as UserTokenPayload);
+      const accessToken = this.generateAccessToken(cleanPayload as IUserTokenPayload);
+      const newRefreshToken = this.generateRefreshToken(cleanPayload as IUserTokenPayload);
 
       return {
         accessToken,
@@ -99,14 +99,14 @@ export class AuthService {
         expiresIn: 15,
         refreshTokenExpireIn: 1440,
         tokenType: 'Bearer',
-        authState: cleanPayload as UserTokenPayload,
+        authState: cleanPayload as IUserTokenPayload,
       };
     } catch (err) {
       throw new UnauthorizedException();
     }
   }
 
-  async register(registerDto: RegisterDto): Promise<{ message: string }> {
+  async register(registerDto: IRegisterInput): Promise<{ message: string }> {
     const userInput = registerDto;
 
     if (!userInput.email || !userInput.password) {

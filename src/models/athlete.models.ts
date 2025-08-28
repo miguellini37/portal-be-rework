@@ -1,11 +1,11 @@
 import { IsString, IsOptional, IsUUID } from 'class-validator';
 
-export class CreateApplicationDto {
+export class ICreateApplicationInput {
   @IsUUID()
   jobId!: string;
 }
 
-export class UpdateAthleteDto {
+export class IUpdateAthleteInput {
   @IsOptional()
   @IsString()
   firstName?: string;
@@ -37,7 +37,7 @@ export class UpdateAthleteDto {
   athletics?: any;
 }
 
-export class AthleteQueryDto {
+export class IAthleteQueryInput {
   @IsOptional()
   @IsString()
   wildcardTerm?: string;

@@ -20,6 +20,12 @@ import {
 import { AuthModule } from './modules/auth/auth.module';
 import { AthletesModule } from './modules/athletes/athletes.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
+import { CompaniesModule } from './modules/companies/companies.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { SchoolsModule } from './modules/schools/schools.module';
+import { SchoolEventsModule } from './modules/school-events/school-events.module';
+import { SchoolEmployeesModule } from './modules/school-employees/school-employees.module';
 
 @Module({
   imports: [
@@ -57,6 +63,12 @@ import { ApplicationsModule } from './modules/applications/applications.module';
     AuthModule,
     AthletesModule,
     ApplicationsModule,
+    CompaniesModule,
+    JobsModule,
+    MessagesModule,
+    SchoolsModule,
+    SchoolEventsModule,
+    SchoolEmployeesModule,
   ],
   controllers: [],
   providers: [],

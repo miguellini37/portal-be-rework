@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompanyEmployee, Company, User } from '../../entities';
-import { USER_PERMISSIONS } from '../../routes/users';
+import { USER_PERMISSIONS } from '../../constants/user-permissions';
 
 @Injectable()
 export class CompanyEmployeesService {

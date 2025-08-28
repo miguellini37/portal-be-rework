@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsDateString, IsArray } from 'class-validator';
 
-export class CreateJobDto {
+export class ICreateJobInput {
   @IsString()
   position!: string;
 
@@ -29,7 +29,7 @@ export class CreateJobDto {
   benefits?: string;
 }
 
-export class UpdateJobDto {
+export class IUpdateJobInput {
   @IsOptional()
   @IsString()
   position?: string;
@@ -59,7 +59,7 @@ export class UpdateJobDto {
   benefits?: string;
 }
 
-export class JobQueryDto {
+export class IJobQueryInput {
   @IsOptional()
   @IsString()
   wildcardTerm?: string;

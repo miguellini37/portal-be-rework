@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Athlete } from '../../entities/Athlete';
-import { UpdateAthleteDto, AthleteQueryDto } from '../../dto/athlete.dto';
+import { IUpdateAthleteInput, IAthleteQueryInput } from '../../models/athlete.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('athlete')
@@ -27,7 +27,7 @@ export class AthletesController {
 
   @Put()
   @HttpCode(HttpStatus.OK)
-  async updateAthlete(@Request() req: any, @Body() updateAthleteDto: UpdateAthleteDto) {
+  async updateAthlete(@Request() req: any, @Body() updateAthleteDto: IUpdateAthleteInput) {
     const tokenEmail = req.user?.email;
     const athlete = await this.athleteRepository.findOneBy({ email: tokenEmail });
     
@@ -75,7 +75,7 @@ export class AthletesController {
   }
 
   @Get()
-  async getAthletes(@Query() query: AthleteQueryDto) {
+  async getAthletes(@Query() query: IAthleteQueryInput) {
     const { wildcardTerm } = query;
 
     let queryBuilder = this.athleteRepository

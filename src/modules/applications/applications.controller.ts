@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Application } from '../../entities/Application';
 import { Job } from '../../entities/Job';
 import { Athlete } from '../../entities/Athlete';
-import { CreateApplicationDto } from '../../dto/athlete.dto';
+import { ICreateApplicationInput } from '../../models/athlete.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('application')
@@ -34,7 +34,7 @@ export class ApplicationsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createApplication(@Request() req: any, @Body() createApplicationDto: CreateApplicationDto) {
+  async createApplication(@Request() req: any, @Body() createApplicationDto: ICreateApplicationInput) {
     const athleteId = req.user?.id;
     const { jobId } = createApplicationDto;
 

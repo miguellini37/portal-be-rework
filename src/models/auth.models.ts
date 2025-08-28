@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
-export class LoginDto {
+export class ILoginInput {
   @IsEmail()
   email!: string;
 
@@ -9,12 +9,12 @@ export class LoginDto {
   password!: string;
 }
 
-export class RefreshTokenDto {
+export class IRefreshTokenInput {
   @IsString()
   refreshToken!: string;
 }
 
-export class RegisterDto {
+export class IRegisterInput {
   @IsEmail()
   email!: string;
 
@@ -40,16 +40,16 @@ export class RegisterDto {
   companyName?: string;
 }
 
-export class AuthResponseDto {
+export class IAuthResponse {
   accessToken!: string;
   refreshToken!: string;
   expiresIn!: number;
   refreshTokenExpireIn!: number;
   tokenType!: string;
-  authState!: UserTokenPayload;
+  authState!: IUserTokenPayload;
 }
 
-export type UserTokenPayload = {
+export type IUserTokenPayload = {
   id: string;
   email: string;
   permission: string;

@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2020", // modern JS target
-    "module": "CommonJS", // Node uses CommonJS modules
-    "outDir": "./dist", // compiled JS output folder
-    "rootDir": "./src", // TS source folder
-    "strict": true, // enable strict type checking
-    "esModuleInterop": true, // allow import of CommonJS modules
+    "target": "ES2020",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
@@ -15,5 +15,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "src/routes/**/*", "src/auth/index.ts", "src/auth/authenticate.ts"]
+  "exclude": ["node_modules"]
 }

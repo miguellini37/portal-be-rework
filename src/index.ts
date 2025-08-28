@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import * as ms from 'ms';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -13,10 +14,22 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true })
   );
 
-  // Enable CORS
+  // Register Fastify plugins
   await app.register(require('@fastify/cors'), {
     origin: '*',
     credentials: true,
+  });
+
+  await app.register(require('@fastify/sensible'));
+
+  await app.register(require('@fastify/rate-limit'), {
+    max: 1000,
+    timeWindow: ms.default('1s'),
+  });
+
+  await app.register(require('@fastify/under-pressure'), {
+    exposeStatusRoute: '/health',
+    exposeUptime: true,
   });
 
   // Enable validation globally
@@ -26,7 +39,7 @@ async function bootstrap() {
     transform: true,
   }));
 
-  // Add a health check endpoint
+  // Add a simple health check endpoint
   app.getHttpAdapter().get('/', (req, reply) => {
     reply.send({ status: 'healthy' });
   });
