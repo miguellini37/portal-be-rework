@@ -1,36 +1,52 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express, { Application } from 'express';
-import cors from 'cors';
 import 'reflect-metadata';
-import { db } from './config/db';
-import { authRoutes } from './auth';
-import { routes } from './routes';
+import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import cors from '@fastify/cors';
+import fastifySensible from '@fastify/sensible';
+import rateLimit from '@fastify/rate-limit';
+import fastifyPressure from '@fastify/under-pressure';
+import ms from 'ms';
 
-const app: Application = express();
-app.use(cors({ origin: '*', credentials: true }));
-app.use(express.json());
+async function bootstrap() {
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({ logger: true })
+  );
 
-const PORT = process.env.PORT || 3000;
-
-// Start DB and server
-db.initialize()
-  .then(() => {
-    console.log('✅ Data Source has been initialized');
-
-    app.get('/', (_req, res) => {
-      res.status(200).json({ status: 'healthy' });
-    });
-
-    app.use('/auth', authRoutes);
-    app.use('', routes);
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error('❌ Error during Data Source initialization:', error);
-    process.exit(1);
+  // Register Fastify plugins
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   });
+
+  await app.register(fastifySensible);
+
+  await app.register(rateLimit, {
+    max: 1000,
+    timeWindow: ms('1s'),
+  });
+
+  await app.register(fastifyPressure, {
+    exposeStatusRoute: '/health',
+  });
+
+  // Enable validation globally
+  app.useGlobalPipes(new ValidationPipe());
+
+  const PORT = process.env.PORT || 3000;
+
+  await app.listen(PORT, '0.0.0.0');
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+}
+
+bootstrap().catch((error) => {
+  console.error('❌ Error during application startup:', error);
+  process.exit(1);
+});

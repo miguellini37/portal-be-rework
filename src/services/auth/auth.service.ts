@@ -1,0 +1,160 @@
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { compare } from 'bcrypt';
+import { sign, verify, JwtPayload as JWT } from 'jsonwebtoken';
+import { User, Athlete, CompanyEmployee } from '../../entities';
+import {
+  ILoginInput,
+  IRefreshTokenInput,
+  IRegisterInput,
+  IAuthResponse,
+  IUserTokenPayload,
+} from '../../models/auth.models';
+import { ICreateSchoolEmployeeInput } from '../../models/school-employee.models';
+import { ICreateCompanyEmployeeInput } from '../../models/company-employee.models';
+import { AthleteService } from '../athlete.service';
+import { SchoolEmployeeService } from '../school-employee.service';
+import { CompanyEmployeeService } from '../company-employee.service';
+
+@Injectable()
+export class AuthService {
+  private readonly ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
+  private readonly REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
+
+  constructor(
+    private jwtService: JwtService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private athleteService: AthleteService,
+    private schoolEmployeeService: SchoolEmployeeService,
+    private companyEmployeeService: CompanyEmployeeService
+  ) {}
+
+  private getPayloadFromUser(user: User): IUserTokenPayload {
+    return {
+      id: user.id!,
+      email: user.email!,
+      permission: user.permission!,
+      firstName: user.firstName!,
+      lastName: user.lastName!,
+      companyRefId: (user as CompanyEmployee).companyRef?.id,
+      schoolRefId: (user as Athlete).schoolRef?.id,
+    };
+  }
+
+  private generateAccessToken(payload: IUserTokenPayload) {
+    return sign(payload, this.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  }
+
+  private generateRefreshToken(payload: IUserTokenPayload) {
+    return sign(payload, this.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+  }
+
+  async login(loginDto: ILoginInput): Promise<IAuthResponse> {
+    const { email, password } = loginDto;
+
+    if (!email || !password) {
+      throw new BadRequestException('Email and password are required.');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['companyRef', 'schoolRef'],
+    });
+
+    if (!user || !user.password) {
+      throw new BadRequestException('Invalid credentials.');
+    }
+
+    const isAuthenticated = await compare(password, user.password);
+    if (!isAuthenticated) {
+      throw new BadRequestException('Invalid credentials.');
+    }
+
+    const payload = this.getPayloadFromUser(user);
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: 15,
+      refreshTokenExpireIn: 1440,
+      tokenType: 'Bearer',
+      authState: payload,
+    };
+  }
+
+  async refreshToken(refreshTokenDto: IRefreshTokenInput): Promise<IAuthResponse> {
+    const { refreshToken } = refreshTokenDto;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    try {
+      const payload = verify(refreshToken, this.REFRESH_TOKEN_SECRET) as JWT;
+
+      // Remove exp, iat, nbf if present - using underscore prefix to indicate unused
+      const {
+        exp: _exp,
+        iat: _iat,
+        nbf: _nbf,
+        ...cleanPayload
+      } = payload as JWT & IUserTokenPayload;
+
+      // Generate new tokens
+      const accessToken = this.generateAccessToken(cleanPayload as IUserTokenPayload);
+      const newRefreshToken = this.generateRefreshToken(cleanPayload as IUserTokenPayload);
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 15,
+        refreshTokenExpireIn: 1440,
+        tokenType: 'Bearer',
+        authState: cleanPayload as IUserTokenPayload,
+      };
+    } catch (_err) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  async register(registerDto: IRegisterInput): Promise<{ message: string }> {
+    const userInput = registerDto;
+
+    if (!userInput.email || !userInput.password) {
+      throw new BadRequestException('Email and password are required.');
+    }
+
+    const existing = await this.userRepository.findOne({ where: { email: userInput.email } });
+    if (existing) {
+      throw new BadRequestException('User with this email already exists.');
+    }
+
+    let _user;
+    switch (userInput.permission) {
+      case 'athlete':
+        _user = await this.athleteService.createAthlete(
+          userInput as IRegisterInput & Athlete & { schoolName: string }
+        );
+        break;
+      case 'school':
+        _user = await this.schoolEmployeeService.createSchoolEmployee(
+          userInput as ICreateSchoolEmployeeInput
+        );
+        break;
+      case 'company':
+        _user = await this.companyEmployeeService.createCompanyEmployee(
+          userInput as ICreateCompanyEmployeeInput
+        );
+        break;
+      default:
+        throw new BadRequestException('User type not defined');
+    }
+
+    return { message: 'Account created successfully' };
+  }
+}
