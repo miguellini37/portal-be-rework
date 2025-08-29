@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import {
   User,
   Athlete,
@@ -17,21 +19,30 @@ import {
   JobNote,
   Interview,
 } from './entities';
-import { AuthModule } from './modules/auth/auth.module';
-import { AthletesModule } from './modules/athletes/athletes.module';
-import { ApplicationsModule } from './modules/applications/applications.module';
-import { CompaniesModule } from './modules/companies/companies.module';
-import { CompanyEmployeesModule } from './modules/company-employees/company-employees.module';
-import { JobsModule } from './modules/jobs/jobs.module';
-import { MessagesModule } from './modules/messages/messages.module';
-import { SchoolsModule } from './modules/schools/schools.module';
-import { SchoolEventsModule } from './modules/school-events/school-events.module';
-import { SchoolEmployeesModule } from './modules/school-employees/school-employees.module';
+import { AppController } from './app.controller';
+import { AuthService } from './modules/auth/auth.service';
+import { JwtStrategy } from './modules/auth/jwt.strategy';
+import {
+  AthleteService,
+  ApplicationService,
+  CompanyService,
+  CompanyEmployeeService,
+  JobService,
+  MessageService,
+  SchoolService,
+  SchoolEventService,
+  SchoolEmployeeService,
+} from './services';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      signOptions: { expiresIn: '15m' },
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -61,18 +72,32 @@ import { SchoolEmployeesModule } from './modules/school-employees/school-employe
       migrations: ['src/migrations/**/*.ts'],
       subscribers: [],
     }),
-    AuthModule,
-    AthletesModule,
-    ApplicationsModule,
-    CompaniesModule,
-    CompanyEmployeesModule,
-    JobsModule,
-    MessagesModule,
-    SchoolsModule,
-    SchoolEventsModule,
-    SchoolEmployeesModule,
+    TypeOrmModule.forFeature([
+      User,
+      Athlete,
+      Company,
+      CompanyEmployee,
+      SchoolEmployee,
+      Job,
+      Message,
+      School,
+      SchoolEvent,
+      Application,
+    ]),
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    AthleteService,
+    ApplicationService,
+    CompanyService,
+    CompanyEmployeeService,
+    JobService,
+    MessageService,
+    SchoolService,
+    SchoolEventService,
+    SchoolEmployeeService,
+  ],
 })
 export class AppModule {}
