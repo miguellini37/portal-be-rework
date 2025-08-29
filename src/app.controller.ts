@@ -12,8 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
-import { AuthService } from './modules/auth/auth.service';
+import { JwtAuthGuard } from './services/auth/jwt-auth.guard';
 import {
   AthleteService,
   ApplicationService,
@@ -24,6 +23,7 @@ import {
   SchoolService,
   SchoolEventService,
   SchoolEmployeeService,
+  AuthService,
 } from './services';
 import {
   ILoginInput,
@@ -71,19 +71,19 @@ export class AppController {
    * Auth Routes
    */
 
-  @Post('auth/login')
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: ILoginInput): Promise<IAuthResponse> {
     return this.authService.login(loginDto);
   }
 
-  @Post('auth/refresh')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refreshToken(@Body() refreshTokenDto: IRefreshTokenInput): Promise<IAuthResponse> {
     return this.authService.refreshToken(refreshTokenDto);
   }
 
-  @Post('auth/register')
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: IRegisterInput): Promise<{ message: string }> {
     return this.authService.register(registerDto);
@@ -93,7 +93,7 @@ export class AppController {
    * Athlete Routes
    */
 
-  @Put('athlete/updateAthlete')
+  @Put('updateAthlete')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async updateAthlete(
@@ -107,13 +107,13 @@ export class AppController {
     return this.athleteService.updateAthlete(email, updateAthleteDto);
   }
 
-  @Get('athlete/getAthlete/:id')
+  @Get('getAthlete/:id')
   @UseGuards(JwtAuthGuard)
   async getAthlete(@Param('id') id: string) {
     return this.athleteService.getAthlete(id);
   }
 
-  @Get('athlete/getAllAthletes')
+  @Get('getAllAthletes')
   @UseGuards(JwtAuthGuard)
   async getAllAthletes(@Query() query: IAthleteQueryInput) {
     return this.athleteService.getAthletes(query);
@@ -123,7 +123,7 @@ export class AppController {
    * Application Routes
    */
 
-  @Post('application/createApplication')
+  @Post('createApplication')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createApplication(
@@ -137,33 +137,34 @@ export class AppController {
     return this.applicationService.createApplication(userId, createApplicationDto);
   }
 
-  @Get('application/getAllApplications')
+  @Get('getAllApplications')
   @UseGuards(JwtAuthGuard)
   async getAllApplications(@Request() req: IAuthenticatedRequest) {
     const userId = req.user?.id;
+    const companyRefId = req.user?.companyRefId;
     if (!userId) {
       throw new Error('User ID is required');
     }
-    return this.applicationService.getApplications(userId);
+    return this.applicationService.getApplications(userId, companyRefId);
   }
 
   /*
    * Company Routes
    */
 
-  @Put('company/updateCompany')
+  @Put('updateCompany')
   @UseGuards(JwtAuthGuard)
   async updateCompany(@Body() updateCompanyDto: IUpdateCompanyInput) {
     return this.companyService.updateCompany(updateCompanyDto);
   }
 
-  @Get('company/getCompany/:id')
+  @Get('getCompany/:id')
   @UseGuards(JwtAuthGuard)
   async getCompany(@Param('id') id: string) {
     return this.companyService.getCompany(id);
   }
 
-  @Get('company/getAllCompanies')
+  @Get('getAllCompanies')
   async getAllCompanies(@Query() query: ICompanyQueryInput) {
     return this.companyService.getCompanies(query);
   }
@@ -172,7 +173,7 @@ export class AppController {
    * Company Employee Routes
    */
 
-  @Put('companyEmployee/updateCompanyEmployee')
+  @Put('updateCompanyEmployee')
   @UseGuards(JwtAuthGuard)
   async updateCompanyEmployee(
     @Request() req: IAuthenticatedRequest,
@@ -185,7 +186,7 @@ export class AppController {
     return this.companyEmployeeService.updateCompanyEmployee(email, updateDto);
   }
 
-  @Get('companyEmployee/getCompanyEmployee/:id')
+  @Get('getCompanyEmployee/:id')
   @UseGuards(JwtAuthGuard)
   async getCompanyEmployee(@Param('id') id: string) {
     return this.companyEmployeeService.getCompanyEmployee(id);
@@ -195,7 +196,7 @@ export class AppController {
    * Job Routes
    */
 
-  @Post('jobs/createJob')
+  @Post('createJob')
   @UseGuards(JwtAuthGuard)
   async createJob(@Request() req: IAuthenticatedRequest, @Body() createJobDto: ICreateJobInput) {
     const userId = req.user?.id;
@@ -205,25 +206,25 @@ export class AppController {
     return this.jobService.createJob(userId, createJobDto);
   }
 
-  @Put('jobs/updateJob/:id')
+  @Put('updateJob/:id')
   @UseGuards(JwtAuthGuard)
   async updateJob(@Param('id') id: string, @Body() updateJobDto: IUpdateJobInput) {
     return this.jobService.updateJob(id, updateJobDto);
   }
 
-  @Delete('jobs/deleteJob/:id')
+  @Delete('deleteJob/:id')
   @UseGuards(JwtAuthGuard)
   async deleteJob(@Param('id') id: string) {
     return this.jobService.deleteJob(id);
   }
 
-  @Get('jobs/getJob/:id')
+  @Get('getJob/:id')
   @UseGuards(JwtAuthGuard)
   async getJob(@Param('id') id: string) {
     return this.jobService.getJob(id);
   }
 
-  @Get('jobs/getAllJobs')
+  @Get('getAllJobs')
   @UseGuards(JwtAuthGuard)
   async getAllJobs(@Query() query: IJobQueryInput) {
     return this.jobService.getJobs(query);
@@ -233,7 +234,7 @@ export class AppController {
    * Message Routes
    */
 
-  @Get('messages/getAllMessages')
+  @Get('getAllMessages')
   @UseGuards(JwtAuthGuard)
   async getAllMessages(@Request() req: IAuthenticatedRequest, @Query() query: IMessageQueryInput) {
     const userId = req.user?.id;
@@ -243,7 +244,7 @@ export class AppController {
     return this.messageService.getMessages(userId, query);
   }
 
-  @Post('messages/createMessage')
+  @Post('createMessage')
   @UseGuards(JwtAuthGuard)
   async createMessage(
     @Request() req: IAuthenticatedRequest,
@@ -260,19 +261,19 @@ export class AppController {
    * School Routes
    */
 
-  @Put('schools/updateSchool')
+  @Put('updateSchool')
   @UseGuards(JwtAuthGuard)
   async updateSchool(@Body() updateSchoolDto: IUpdateSchoolInput) {
     return this.schoolService.updateSchool(updateSchoolDto);
   }
 
-  @Get('schools/getSchool/:id')
+  @Get('getSchool/:id')
   @UseGuards(JwtAuthGuard)
   async getSchool(@Param('id') id: string) {
     return this.schoolService.getSchool(id);
   }
 
-  @Get('schools/getAllSchools')
+  @Get('getAllSchools')
   @UseGuards(JwtAuthGuard)
   async getAllSchools(@Query() query: ISchoolQueryInput) {
     return this.schoolService.getSchools(query);
@@ -282,7 +283,7 @@ export class AppController {
    * School Event Routes
    */
 
-  @Post('school-events/createSchoolEvent')
+  @Post('createSchoolEvent')
   @UseGuards(JwtAuthGuard)
   async createSchoolEvent(
     @Request() req: IAuthenticatedRequest,
@@ -295,19 +296,19 @@ export class AppController {
     return this.schoolEventService.createSchoolEvent(userId, createDto);
   }
 
-  @Put('school-events/updateSchoolEvent/:id')
+  @Put('updateSchoolEvent/:id')
   @UseGuards(JwtAuthGuard)
   async updateSchoolEvent(@Param('id') id: string, @Body() updateDto: IUpdateSchoolEventInput) {
     return this.schoolEventService.updateSchoolEvent(id, updateDto);
   }
 
-  @Delete('school-events/deleteSchoolEvent/:id')
+  @Delete('deleteSchoolEvent/:id')
   @UseGuards(JwtAuthGuard)
   async deleteSchoolEvent(@Param('id') id: string) {
     return this.schoolEventService.deleteSchoolEvent(id);
   }
 
-  @Get('school-events/getAllSchoolEvents')
+  @Get('getAllSchoolEvents')
   @UseGuards(JwtAuthGuard)
   async getAllSchoolEvents(
     @Request() req: IAuthenticatedRequest,
@@ -324,7 +325,7 @@ export class AppController {
    * School Employee Routes
    */
 
-  @Put('school-employees/updateSchoolEmployee')
+  @Put('updateSchoolEmployee')
   @UseGuards(JwtAuthGuard)
   async updateSchoolEmployee(
     @Request() req: IAuthenticatedRequest,
@@ -337,7 +338,7 @@ export class AppController {
     return this.schoolEmployeeService.updateSchoolEmployee(userId, updateDto);
   }
 
-  @Get('school-employees/getAllSchoolEmployees')
+  @Get('getAllSchoolEmployees')
   @UseGuards(JwtAuthGuard)
   async getAllSchoolEmployees(
     @Request() req: IAuthenticatedRequest,
@@ -350,7 +351,7 @@ export class AppController {
     return this.schoolEmployeeService.getSchoolEmployees(userId, query);
   }
 
-  @Get('school-employees/getSchoolEmployee/:id')
+  @Get('getSchoolEmployee/:id')
   @UseGuards(JwtAuthGuard)
   async getSchoolEmployee(@Param('id') id: string) {
     return this.schoolEmployeeService.getSchoolEmployee(id);

@@ -10,7 +10,7 @@ import { Application } from '../entities/Application';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
 import { ICreateApplicationInput } from '../models/athlete.models';
-import { sanitizeUser } from '../auth/utils';
+import { sanitizeUser } from './auth/utils';
 
 @Injectable()
 export class ApplicationService {
@@ -55,16 +55,25 @@ export class ApplicationService {
     return { message: 'Application created successfully' };
   }
 
-  async getApplications(userId: string) {
+  async getApplications(userId: string, companyRefId?: string) {
     const athleteId = userId;
-    const companyRefId = userId; // Simplified since we're using the authenticated user ID
 
     if (!athleteId && !companyRefId) {
       throw new BadRequestException('Missing user id');
     }
 
+    const whereCondition: { athlete?: { id: string }; job?: { company: { id: string } } } = {};
+
+    if (athleteId) {
+      whereCondition.athlete = { id: athleteId };
+    }
+
+    if (companyRefId) {
+      whereCondition.job = { company: { id: companyRefId } };
+    }
+
     const applications = await this.applicationRepository.find({
-      where: { athlete: { id: athleteId }, job: { company: { id: companyRefId } } },
+      where: whereCondition,
       relations: ['job', 'job.company', 'athlete'],
       order: { creationDate: 'DESC' },
     });

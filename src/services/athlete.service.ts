@@ -5,7 +5,7 @@ import { Athlete } from '../entities/Athlete';
 import { School } from '../entities/School';
 import { User } from '../entities/User';
 import { IUpdateAthleteInput, IAthleteQueryInput } from '../models/athlete.models';
-import { sanitizeUser } from '../auth/utils';
+import { sanitizeUser } from './auth/utils';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()

@@ -14,9 +14,9 @@ import {
 } from '../../models/auth.models';
 import { ICreateSchoolEmployeeInput } from '../../models/school-employee.models';
 import { ICreateCompanyEmployeeInput } from '../../models/company-employee.models';
-import { AthleteService } from '../../services/athlete.service';
-import { SchoolEmployeeService } from '../../services/school-employee.service';
-import { CompanyEmployeeService } from '../../services/company-employee.service';
+import { AthleteService } from '../athlete.service';
+import { SchoolEmployeeService } from '../school-employee.service';
+import { CompanyEmployeeService } from '../company-employee.service';
 
 @Injectable()
 export class AuthService {

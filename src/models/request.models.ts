@@ -5,6 +5,8 @@ export interface IAuthenticatedRequest {
     firstName?: string;
     lastName?: string;
     permission?: string;
+    companyRefId?: string;
+    schoolRefId?: string;
   };
 }
 

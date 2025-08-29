@@ -20,8 +20,8 @@ import {
   Interview,
 } from './entities';
 import { AppController } from './app.controller';
-import { AuthService } from './modules/auth/auth.service';
-import { JwtStrategy } from './modules/auth/jwt.strategy';
+import { AuthService } from './services/auth/auth.service';
+import { JwtStrategy } from './services/auth/jwt.strategy';
 import {
   AthleteService,
   ApplicationService,

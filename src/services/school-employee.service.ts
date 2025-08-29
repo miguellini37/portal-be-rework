@@ -9,7 +9,7 @@ import {
   ISchoolEmployeeQueryInput,
   ICreateSchoolEmployeeInput,
 } from '../models/school-employee.models';
-import { sanitizeUser } from '../auth/utils';
+import { sanitizeUser } from './auth/utils';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()
