@@ -20,8 +20,10 @@ async function bootstrap() {
 
   // Register Fastify plugins
   await app.register(cors, {
-    origin: '*',
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   });
 
   await app.register(fastifySensible);

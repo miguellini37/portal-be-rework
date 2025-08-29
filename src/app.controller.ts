@@ -113,9 +113,9 @@ export class AppController {
     return this.athleteService.getAthlete(id);
   }
 
-  @Get('getAllAthletes')
+  @Get('getAthletes')
   @UseGuards(JwtAuthGuard)
-  async getAllAthletes(@Query() query: IAthleteQueryInput) {
+  async getAthletes(@Query() query: IAthleteQueryInput) {
     return this.athleteService.getAthletes(query);
   }
 
@@ -137,9 +137,9 @@ export class AppController {
     return this.applicationService.createApplication(userId, createApplicationDto);
   }
 
-  @Get('getAllApplications')
+  @Get('getApplications')
   @UseGuards(JwtAuthGuard)
-  async getAllApplications(@Request() req: IAuthenticatedRequest) {
+  async getApplications(@Request() req: IAuthenticatedRequest) {
     const userId = req.user?.id;
     const companyRefId = req.user?.companyRefId;
     if (!userId) {
@@ -164,8 +164,8 @@ export class AppController {
     return this.companyService.getCompany(id);
   }
 
-  @Get('getAllCompanies')
-  async getAllCompanies(@Query() query: ICompanyQueryInput) {
+  @Get('getCompanies')
+  async getCompanies(@Query() query: ICompanyQueryInput) {
     return this.companyService.getCompanies(query);
   }
 
@@ -203,13 +203,13 @@ export class AppController {
     if (!userId) {
       throw new Error('User ID is required');
     }
-    return this.jobService.createJob(userId, createJobDto);
+    return this.jobService.createJob(userId, req.user.companyRefId, createJobDto);
   }
 
-  @Put('updateJob/:id')
+  @Put('updateJob')
   @UseGuards(JwtAuthGuard)
-  async updateJob(@Param('id') id: string, @Body() updateJobDto: IUpdateJobInput) {
-    return this.jobService.updateJob(id, updateJobDto);
+  async updateJob(@Body() updateJobDto: IUpdateJobInput) {
+    return this.jobService.updateJob(updateJobDto.id, updateJobDto);
   }
 
   @Delete('deleteJob/:id')
@@ -224,9 +224,9 @@ export class AppController {
     return this.jobService.getJob(id);
   }
 
-  @Get('getAllJobs')
+  @Get('getJobs')
   @UseGuards(JwtAuthGuard)
-  async getAllJobs(@Query() query: IJobQueryInput) {
+  async getJobs(@Query() query: IJobQueryInput) {
     return this.jobService.getJobs(query);
   }
 
@@ -234,9 +234,9 @@ export class AppController {
    * Message Routes
    */
 
-  @Get('getAllMessages')
+  @Get('getMessages')
   @UseGuards(JwtAuthGuard)
-  async getAllMessages(@Request() req: IAuthenticatedRequest, @Query() query: IMessageQueryInput) {
+  async getMessages(@Request() req: IAuthenticatedRequest, @Query() query: IMessageQueryInput) {
     const userId = req.user?.id;
     if (!userId) {
       throw new Error('User ID is required');
@@ -273,9 +273,8 @@ export class AppController {
     return this.schoolService.getSchool(id);
   }
 
-  @Get('getAllSchools')
-  @UseGuards(JwtAuthGuard)
-  async getAllSchools(@Query() query: ISchoolQueryInput) {
+  @Get('getSchools')
+  async getSchools(@Query() query: ISchoolQueryInput) {
     return this.schoolService.getSchools(query);
   }
 
@@ -308,9 +307,9 @@ export class AppController {
     return this.schoolEventService.deleteSchoolEvent(id);
   }
 
-  @Get('getAllSchoolEvents')
+  @Get('getSchoolEvents')
   @UseGuards(JwtAuthGuard)
-  async getAllSchoolEvents(
+  async getSchoolEvents(
     @Request() req: IAuthenticatedRequest,
     @Query() query: ISchoolEventQueryInput
   ) {
@@ -338,9 +337,9 @@ export class AppController {
     return this.schoolEmployeeService.updateSchoolEmployee(userId, updateDto);
   }
 
-  @Get('getAllSchoolEmployees')
+  @Get('getSchoolEmployees')
   @UseGuards(JwtAuthGuard)
-  async getAllSchoolEmployees(
+  async getSchoolEmployees(
     @Request() req: IAuthenticatedRequest,
     @Query() query: ISchoolEmployeeQueryInput
   ) {

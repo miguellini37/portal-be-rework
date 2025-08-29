@@ -17,11 +17,11 @@ export class JobService {
     private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
-  async createJob(userId: string, createJobDto: ICreateJobInput) {
+  async createJob(userId: string, companyRefId: string | undefined, createJobDto: ICreateJobInput) {
     try {
       const job = this.jobRepository.create(createJobDto);
 
-      const company = await this.findCompany(userId);
+      const company = await this.findCompany(companyRefId);
       const owner = await this.findCompanyEmployee(userId);
 
       job.company = company;
@@ -81,6 +81,10 @@ export class JobService {
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.owner', 'owner');
+
+    if (query.type) {
+      queryBuilder.where('job.type LIKE :term', { term: `%${query.type}%` });
+    }
 
     if (query.wildcardTerm) {
       queryBuilder.where(

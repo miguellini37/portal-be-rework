@@ -30,6 +30,9 @@ export class ICreateJobInput {
 }
 
 export class IUpdateJobInput {
+  @IsString()
+  id!: string;
+
   @IsOptional()
   @IsString()
   position?: string;
@@ -79,4 +82,8 @@ export class IJobQueryInput {
   @IsOptional()
   @IsArray()
   durations?: string[];
+
+  @IsOptional()
+  @IsString()
+  type?: string;
 }

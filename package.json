@@ -14,7 +14,8 @@
     "migration:run": "typeorm migration:run -d src/config/db.ts",
     "migration:revert": "typeorm migration:revert -d src/config/db.ts",
     "lint": "eslint src --ext .ts,.js",
-    "lint:fix": "eslint src --ext .ts,.js --fix"
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "prepare": "husky"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
@@ -66,6 +67,12 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "yarn lint:fix",
+      "git add"
+    ]
   },
   "typeorm": {
     "cli": {
