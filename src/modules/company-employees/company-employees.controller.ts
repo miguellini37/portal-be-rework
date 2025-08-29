@@ -24,7 +24,10 @@ export class CompanyEmployeesController {
 
   @Put('/')
   @UseGuards(JwtAuthGuard)
-  async updateCompanyEmployee(@Request() req: { user?: { email: string } }, @Body() updateDto: IUpdateCompanyEmployeeInput) {
+  async updateCompanyEmployee(
+    @Request() req: { user?: { email: string } },
+    @Body() updateDto: IUpdateCompanyEmployeeInput
+  ) {
     try {
       const tokenEmail = req.user?.email;
 

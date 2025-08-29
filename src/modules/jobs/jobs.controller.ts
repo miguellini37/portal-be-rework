@@ -17,6 +17,7 @@ import { Company } from '../../entities/Company';
 import { CompanyEmployee } from '../../entities/CompanyEmployee';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from '../../models/job.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 
 @Controller('jobs')
 @UseGuards(JwtAuthGuard)
@@ -31,11 +32,11 @@ export class JobsController {
   ) {}
 
   @Post('/')
-  async createJob(@Request() req: any, @Body() createJobDto: ICreateJobInput) {
+  async createJob(@Request() req: IAuthenticatedRequest, @Body() createJobDto: ICreateJobInput) {
     try {
       const job = this.jobRepository.create(createJobDto);
 
-      const company = await this.findCompany(req.user?.companyRefId);
+      const company = await this.findCompany(req.user?.id);
       const owner = await this.findCompanyEmployee(req.user?.id);
 
       job.company = company;

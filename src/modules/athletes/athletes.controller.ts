@@ -15,6 +15,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Athlete } from '../../entities/Athlete';
 import { IUpdateAthleteInput, IAthleteQueryInput } from '../../models/athlete.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('athlete')
@@ -27,7 +28,10 @@ export class AthletesController {
 
   @Put()
   @HttpCode(HttpStatus.OK)
-  async updateAthlete(@Request() req: any, @Body() updateAthleteDto: IUpdateAthleteInput) {
+  async updateAthlete(
+    @Request() req: IAuthenticatedRequest,
+    @Body() updateAthleteDto: IUpdateAthleteInput
+  ) {
     const tokenEmail = req.user?.email;
     const athlete = await this.athleteRepository.findOneBy({ email: tokenEmail });
 

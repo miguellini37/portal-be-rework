@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { School } from '../../entities/School';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IUpdateSchoolInput, ISchoolQueryInput } from '../../models/school.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 
 @Controller('schools')
 @UseGuards(JwtAuthGuard)
@@ -14,7 +15,10 @@ export class SchoolsController {
   ) {}
 
   @Put('/')
-  async updateSchool(@Request() req: any, @Body() updateSchoolDto: IUpdateSchoolInput) {
+  async updateSchool(
+    @Request() req: IAuthenticatedRequest,
+    @Body() updateSchoolDto: IUpdateSchoolInput
+  ) {
     try {
       const schoolId = updateSchoolDto.id;
       const school = await this.schoolRepository.findOneBy({ id: schoolId });

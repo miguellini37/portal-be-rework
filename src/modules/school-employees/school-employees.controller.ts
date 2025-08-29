@@ -8,6 +8,7 @@ import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from '../../models/school-employee.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('school-employees')
@@ -21,7 +22,10 @@ export class SchoolEmployeesController {
   ) {}
 
   @Put('/')
-  async updateSchoolEmployee(@Request() req: any, @Body() updateDto: IUpdateSchoolEmployeeInput) {
+  async updateSchoolEmployee(
+    @Request() req: IAuthenticatedRequest,
+    @Body() updateDto: IUpdateSchoolEmployeeInput
+  ) {
     const userId = req.user?.id;
 
     try {
@@ -47,15 +51,19 @@ export class SchoolEmployeesController {
   }
 
   @Get('/')
-  async getSchoolEmployees(@Request() req: any, @Query() query: ISchoolEmployeeQueryInput) {
+  async getSchoolEmployees(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: ISchoolEmployeeQueryInput
+  ) {
     const queryBuilder = this.schoolEmployeeRepository
       .createQueryBuilder('schoolEmployee')
       .leftJoinAndSelect('schoolEmployee.schoolRef', 'school');
 
     if (query.schoolId) {
       queryBuilder.where('school.id = :schoolId', { schoolId: query.schoolId });
-    } else if (req.user?.schoolRefId) {
-      queryBuilder.where('school.id = :schoolId', { schoolId: req.user.schoolRefId });
+    } else if (req.user?.id) {
+      // Use user ID to filter by associated school
+      queryBuilder.where('school.id = :schoolId', { schoolId: req.user.id });
     }
 
     if (query.wildcardTerm) {

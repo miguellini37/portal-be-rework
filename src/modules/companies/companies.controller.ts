@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Company } from '../../entities/Company';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IUpdateCompanyInput, ICompanyQueryInput } from '../../models/company.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 
 @Controller('company')
 export class CompaniesController {
@@ -14,7 +15,10 @@ export class CompaniesController {
 
   @Put('/')
   @UseGuards(JwtAuthGuard)
-  async updateCompany(@Request() req: { user?: { email: string } }, @Body() updateCompanyDto: IUpdateCompanyInput) {
+  async updateCompany(
+    @Request() req: IAuthenticatedRequest,
+    @Body() updateCompanyDto: IUpdateCompanyInput
+  ) {
     try {
       const companyId = updateCompanyDto.id;
       const company = await this.companyRepository.findOneBy({ id: companyId });
@@ -63,7 +67,7 @@ export class CompaniesController {
       const safeCompany = {
         ...company,
         companyEmployees: company.companyEmployees?.map((employee) => {
-          const { password, permission, ...safeEmployee } = employee;
+          const { password: _password, permission: _permission, ...safeEmployee } = employee;
           return safeEmployee;
         }),
       };

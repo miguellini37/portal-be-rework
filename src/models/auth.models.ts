@@ -38,6 +38,10 @@ export class IRegisterInput {
   @IsOptional()
   @IsString()
   companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  position?: string;
 }
 
 export class IAuthResponse {

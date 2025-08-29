@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsObject } from 'class-validator';
+import { ICulture, IBenefits, IRecruiting } from './request.models';
 
 export class IUpdateCompanyInput {
   @IsOptional()
@@ -15,15 +16,15 @@ export class IUpdateCompanyInput {
 
   @IsOptional()
   @IsObject()
-  culture?: any;
+  culture?: ICulture;
 
   @IsOptional()
   @IsObject()
-  benefits?: any;
+  benefits?: IBenefits;
 
   @IsOptional()
   @IsObject()
-  recruiting?: any;
+  recruiting?: IRecruiting;
 }
 
 export class ICompanyQueryInput {

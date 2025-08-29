@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SchoolEmployee, School, User } from '../../entities';
 import { USER_PERMISSIONS } from '../../constants/user-permissions';
+import { ICreateSchoolEmployeeInput } from '../../models/school-employee.models';
 
 @Injectable()
 export class SchoolEmployeesService {
@@ -16,7 +17,7 @@ export class SchoolEmployeesService {
   // Add other school employee-related methods here as needed
 }
 
-export const createSchoolEmployee = async (input: any): Promise<User> => {
+export const createSchoolEmployee = async (input: ICreateSchoolEmployeeInput): Promise<User> => {
   // This is a temporary export to maintain compatibility
   // This should be moved to the service class
   const { db } = await import('../../config/db');

@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsObject } from 'class-validator';
+import { IAcademics, IAthletics } from './request.models';
 
 export class ICreateApplicationInput {
   @IsUUID()
@@ -31,10 +32,12 @@ export class IUpdateAthleteInput {
   schoolId?: string;
 
   @IsOptional()
-  academics?: any;
+  @IsObject()
+  academics?: IAcademics;
 
   @IsOptional()
-  athletics?: any;
+  @IsObject()
+  athletics?: IAthletics;
 }
 
 export class IAthleteQueryInput {

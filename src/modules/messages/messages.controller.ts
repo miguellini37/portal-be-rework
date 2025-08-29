@@ -5,6 +5,7 @@ import { Message } from '../../entities/Message';
 import { User } from '../../entities/User';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ICreateMessageInput, IMessageQueryInput } from '../../models/message.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
@@ -17,7 +18,7 @@ export class MessagesController {
   ) {}
 
   @Get('/')
-  async getMessages(@Request() req: any, @Query() query: IMessageQueryInput) {
+  async getMessages(@Request() req: IAuthenticatedRequest, @Query() query: IMessageQueryInput) {
     const userId = req.user?.id;
 
     try {
@@ -42,7 +43,10 @@ export class MessagesController {
   }
 
   @Post('/')
-  async createMessage(@Request() req: any, @Body() createMessageDto: ICreateMessageInput) {
+  async createMessage(
+    @Request() req: IAuthenticatedRequest,
+    @Body() createMessageDto: ICreateMessageInput
+  ) {
     const fromUserId = req.user?.id;
     const { toUserId, message } = createMessageDto;
 

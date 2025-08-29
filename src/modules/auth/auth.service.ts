@@ -12,6 +12,8 @@ import {
   IAuthResponse,
   IUserTokenPayload,
 } from '../../models/auth.models';
+import { ICreateSchoolEmployeeInput } from '../../models/school-employee.models';
+import { ICreateCompanyEmployeeInput } from '../../models/company-employee.models';
 import { createAthlete } from '../athletes/athletes.service';
 import { createSchoolEmployee } from '../schools/school-employees.service';
 import { createCompanyEmployee } from '../companies/company-employees.service';
@@ -92,8 +94,13 @@ export class AuthService {
     try {
       const payload = verify(refreshToken, this.REFRESH_TOKEN_SECRET) as JWT;
 
-      // Remove exp, iat, nbf if present
-      const { exp, iat, nbf, ...cleanPayload } = payload as any;
+      // Remove exp, iat, nbf if present - using underscore prefix to indicate unused
+      const {
+        exp: _exp,
+        iat: _iat,
+        nbf: _nbf,
+        ...cleanPayload
+      } = payload as JWT & IUserTokenPayload;
 
       // Generate new tokens
       const accessToken = this.generateAccessToken(cleanPayload as IUserTokenPayload);
@@ -107,7 +114,7 @@ export class AuthService {
         tokenType: 'Bearer',
         authState: cleanPayload as IUserTokenPayload,
       };
-    } catch (err) {
+    } catch (_err) {
       throw new UnauthorizedException();
     }
   }
@@ -124,16 +131,16 @@ export class AuthService {
       throw new BadRequestException('User with this email already exists.');
     }
 
-    let user;
+    let _user;
     switch (userInput.permission) {
       case 'athlete':
-        user = await createAthlete(userInput as any);
+        _user = await createAthlete(userInput as IRegisterInput & Athlete & { schoolName: string });
         break;
       case 'school':
-        user = await createSchoolEmployee(userInput as any);
+        _user = await createSchoolEmployee(userInput as ICreateSchoolEmployeeInput);
         break;
       case 'company':
-        user = await createCompanyEmployee(userInput as any);
+        _user = await createCompanyEmployee(userInput as ICreateCompanyEmployeeInput);
         break;
       default:
         throw new BadRequestException('User type not defined');

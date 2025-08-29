@@ -20,6 +20,7 @@ import {
   IUpdateSchoolEventInput,
   ISchoolEventQueryInput,
 } from '../../models/school-event.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 
 @Controller('school-events')
 @UseGuards(JwtAuthGuard)
@@ -32,9 +33,12 @@ export class SchoolEventsController {
   ) {}
 
   @Post('/')
-  async createSchoolEvent(@Request() req: any, @Body() createDto: ICreateSchoolEventInput) {
+  async createSchoolEvent(
+    @Request() req: IAuthenticatedRequest,
+    @Body() createDto: ICreateSchoolEventInput
+  ) {
     try {
-      const schoolId = req.user?.schoolRefId;
+      const schoolId = req.user?.id; // Using the authenticated user's ID to find associated school
       if (!schoolId) {
         throw new Error('School ID is required');
       }
@@ -86,15 +90,19 @@ export class SchoolEventsController {
   }
 
   @Get('/')
-  async getSchoolEvents(@Request() req: any, @Query() query: ISchoolEventQueryInput) {
+  async getSchoolEvents(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: ISchoolEventQueryInput
+  ) {
     const queryBuilder = this.schoolEventRepository
       .createQueryBuilder('schoolEvent')
       .leftJoinAndSelect('schoolEvent.school', 'school');
 
     if (query.schoolId) {
       queryBuilder.where('school.id = :schoolId', { schoolId: query.schoolId });
-    } else if (req.user?.schoolRefId) {
-      queryBuilder.where('school.id = :schoolId', { schoolId: req.user.schoolRefId });
+    } else if (req.user?.id) {
+      // Use user ID to filter events
+      queryBuilder.where('school.id = :schoolId', { schoolId: req.user.id });
     }
 
     if (query.fromDate) {

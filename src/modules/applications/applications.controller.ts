@@ -18,6 +18,7 @@ import { Application } from '../../entities/Application';
 import { Job } from '../../entities/Job';
 import { Athlete } from '../../entities/Athlete';
 import { ICreateApplicationInput } from '../../models/athlete.models';
+import { IAuthenticatedRequest } from '../../models/request.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('application')
@@ -35,7 +36,7 @@ export class ApplicationsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createApplication(
-    @Request() req: any,
+    @Request() req: IAuthenticatedRequest,
     @Body() createApplicationDto: ICreateApplicationInput
   ) {
     const athleteId = req.user?.id;
@@ -71,8 +72,8 @@ export class ApplicationsController {
   }
 
   @Get()
-  async getApplications(@Request() req: any) {
-    const companyRefId = req.user?.companyRefId;
+  async getApplications(@Request() req: IAuthenticatedRequest) {
+    const companyRefId = req.user?.id; // Simplified since we're using the authenticated user ID
     const athleteId = req.user?.id;
 
     if (!athleteId && !companyRefId) {
