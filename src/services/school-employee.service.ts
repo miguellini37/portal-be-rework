@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SchoolEmployee } from '../entities/SchoolEmployee';
 import { School } from '../entities/School';
+import { User } from '../entities/User';
 import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
+  ICreateSchoolEmployeeInput,
 } from '../models/school-employee.models';
 import { sanitizeUser } from '../auth/utils';
+import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()
 export class SchoolEmployeeService {
@@ -79,5 +82,20 @@ export class SchoolEmployeeService {
     } catch (error) {
       throw new Error('School employee not found');
     }
+  }
+
+  async createSchoolEmployee(input: ICreateSchoolEmployeeInput): Promise<User> {
+    const school = await this.schoolRepository.findOne({
+      where: { schoolName: input.schoolName },
+    });
+
+    const schoolEmployee = this.schoolEmployeeRepository.create({
+      ...input,
+      schoolRef: school ?? undefined,
+      permission: USER_PERMISSIONS.SCHOOL,
+    });
+
+    const saved = await this.schoolEmployeeRepository.save(schoolEmployee);
+    return saved as unknown as User;
   }
 }

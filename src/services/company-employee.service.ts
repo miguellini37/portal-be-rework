@@ -2,13 +2,21 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompanyEmployee } from '../entities';
-import { IUpdateCompanyEmployeeInput } from '../models/company-employee.models';
+import { Company } from '../entities/Company';
+import { User } from '../entities/User';
+import {
+  IUpdateCompanyEmployeeInput,
+  ICreateCompanyEmployeeInput,
+} from '../models/company-employee.models';
+import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()
 export class CompanyEmployeeService {
   constructor(
     @InjectRepository(CompanyEmployee)
-    private companyEmployeeRepository: Repository<CompanyEmployee>
+    private companyEmployeeRepository: Repository<CompanyEmployee>,
+    @InjectRepository(Company)
+    private companyRepository: Repository<Company>
   ) {}
 
   async updateCompanyEmployee(userEmail: string, updateDto: IUpdateCompanyEmployeeInput) {
@@ -61,5 +69,20 @@ export class CompanyEmployeeService {
       }
       throw new HttpException('Failed to fetch company employee', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async createCompanyEmployee(input: ICreateCompanyEmployeeInput): Promise<User> {
+    const company = await this.companyRepository.findOne({
+      where: { companyName: input.companyName },
+    });
+
+    const companyEmployee = this.companyEmployeeRepository.create({
+      ...input,
+      companyRef: company ?? undefined,
+      permission: USER_PERMISSIONS.COMPANY,
+    });
+
+    const saved = await this.companyEmployeeRepository.save(companyEmployee);
+    return saved as unknown as User;
   }
 }

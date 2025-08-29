@@ -14,9 +14,9 @@ import {
 } from '../../models/auth.models';
 import { ICreateSchoolEmployeeInput } from '../../models/school-employee.models';
 import { ICreateCompanyEmployeeInput } from '../../models/company-employee.models';
-import { createAthlete } from '../athletes/athletes.service';
-import { createSchoolEmployee } from '../schools/school-employees.service';
-import { createCompanyEmployee } from '../companies/company-employees.service';
+import { AthleteService } from '../../services/athlete.service';
+import { SchoolEmployeeService } from '../../services/school-employee.service';
+import { CompanyEmployeeService } from '../../services/company-employee.service';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +26,10 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User)
-    private userRepository: Repository<User>
+    private userRepository: Repository<User>,
+    private athleteService: AthleteService,
+    private schoolEmployeeService: SchoolEmployeeService,
+    private companyEmployeeService: CompanyEmployeeService
   ) {}
 
   private getPayloadFromUser(user: User): IUserTokenPayload {
@@ -134,13 +137,19 @@ export class AuthService {
     let _user;
     switch (userInput.permission) {
       case 'athlete':
-        _user = await createAthlete(userInput as IRegisterInput & Athlete & { schoolName: string });
+        _user = await this.athleteService.createAthlete(
+          userInput as IRegisterInput & Athlete & { schoolName: string }
+        );
         break;
       case 'school':
-        _user = await createSchoolEmployee(userInput as ICreateSchoolEmployeeInput);
+        _user = await this.schoolEmployeeService.createSchoolEmployee(
+          userInput as ICreateSchoolEmployeeInput
+        );
         break;
       case 'company':
-        _user = await createCompanyEmployee(userInput as ICreateCompanyEmployeeInput);
+        _user = await this.companyEmployeeService.createCompanyEmployee(
+          userInput as ICreateCompanyEmployeeInput
+        );
         break;
       default:
         throw new BadRequestException('User type not defined');

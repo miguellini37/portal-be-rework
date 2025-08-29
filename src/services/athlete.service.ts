@@ -2,14 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Athlete } from '../entities/Athlete';
+import { School } from '../entities/School';
+import { User } from '../entities/User';
 import { IUpdateAthleteInput, IAthleteQueryInput } from '../models/athlete.models';
 import { sanitizeUser } from '../auth/utils';
+import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()
 export class AthleteService {
   constructor(
     @InjectRepository(Athlete)
-    private athleteRepository: Repository<Athlete>
+    private athleteRepository: Repository<Athlete>,
+    @InjectRepository(School)
+    private schoolRepository: Repository<School>
   ) {}
 
   async updateAthlete(userEmail: string, updateAthleteDto: IUpdateAthleteInput) {
@@ -74,6 +79,20 @@ export class AthleteService {
 
     const athletes = await queryBuilder.getMany();
     return athletes.map((athlete) => sanitizeUser(athlete));
+  }
+
+  async createAthlete(input: Athlete & { schoolName: string }): Promise<User> {
+    const school = await this.schoolRepository.findOne({
+      where: { schoolName: input.schoolName },
+    });
+
+    const athlete = this.athleteRepository.create({
+      ...input,
+      schoolRef: school ?? undefined,
+      permission: USER_PERMISSIONS.ATHLETE,
+    });
+
+    return await this.athleteRepository.save(athlete);
   }
 
   private addWildcardFilterToQuery(
