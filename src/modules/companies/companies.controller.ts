@@ -6,19 +6,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IUpdateCompanyInput, ICompanyQueryInput } from '../../models/company.models';
 
 @Controller('company')
-@UseGuards(JwtAuthGuard)
 export class CompaniesController {
   constructor(
     @InjectRepository(Company)
-    private companyRepository: Repository<Company>,
+    private companyRepository: Repository<Company>
   ) {}
 
   @Put('/')
-  async updateCompany(@Request() req: any, @Body() updateCompanyDto: IUpdateCompanyInput) {
+  @UseGuards(JwtAuthGuard)
+  async updateCompany(@Request() req: { user?: { email: string } }, @Body() updateCompanyDto: IUpdateCompanyInput) {
     try {
       const companyId = updateCompanyDto.id;
       const company = await this.companyRepository.findOneBy({ id: companyId });
-      
+
       if (!company) {
         throw new Error('Company not found');
       }
@@ -42,33 +42,49 @@ export class CompaniesController {
 
       await this.companyRepository.save(company);
       return { message: 'Company updated successfully' };
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Failed to update company');
     }
   }
 
   @Get('/:id')
+  @UseGuards(JwtAuthGuard)
   async getCompany(@Param('id') id: string) {
     try {
-      const company = await this.companyRepository.findOneBy({ id });
+      const company = await this.companyRepository.findOne({
+        where: { id },
+        relations: ['jobs', 'companyEmployees'],
+      });
       if (!company) {
         throw new Error('Company not found');
       }
-      return company;
-    } catch (error) {
+
+      // Strip password and permission from employees
+      const safeCompany = {
+        ...company,
+        companyEmployees: company.companyEmployees?.map((employee) => {
+          const { password, permission, ...safeEmployee } = employee;
+          return safeEmployee;
+        }),
+      };
+
+      return safeCompany;
+    } catch (_error) {
       throw new Error('Company not found');
     }
   }
 
   @Get('/')
   async getCompanies(@Query() query: ICompanyQueryInput) {
-    const queryBuilder = this.companyRepository.createQueryBuilder('company');
+    const queryBuilder = this.companyRepository
+      .createQueryBuilder('company')
+      .select(['company.id', 'company.companyName', 'company.industry'])
+      .leftJoinAndSelect('company.jobs', 'jobs');
 
     if (query.wildcardTerm) {
-      queryBuilder.where(
-        'company.companyName LIKE :term OR company.industry LIKE :term',
-        { term: `%${query.wildcardTerm}%` }
-      );
+      queryBuilder.where('company.companyName LIKE :term OR company.industry LIKE :term', {
+        term: `%${query.wildcardTerm}%`,
+      });
     }
 
     if (query.industry) {

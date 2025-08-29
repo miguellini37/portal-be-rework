@@ -63,7 +63,7 @@ export class Benefits {
 
   @Column({ type: 'integer', nullable: true })
   totalCompMax?: number;
- 
+
   @Column({ type: 'json', nullable: true })
   specificBenefits?: SpecificBenefits[] | null;
 }

@@ -10,7 +10,7 @@ import { IUpdateSchoolInput, ISchoolQueryInput } from '../../models/school.model
 export class SchoolsController {
   constructor(
     @InjectRepository(School)
-    private schoolRepository: Repository<School>,
+    private schoolRepository: Repository<School>
   ) {}
 
   @Put('/')
@@ -18,7 +18,7 @@ export class SchoolsController {
     try {
       const schoolId = updateSchoolDto.id;
       const school = await this.schoolRepository.findOneBy({ id: schoolId });
-      
+
       if (!school) {
         throw new Error('School not found');
       }

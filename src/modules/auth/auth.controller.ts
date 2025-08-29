@@ -1,6 +1,11 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ILoginInput, IRefreshTokenInput, IRegisterInput, IAuthResponse } from '../../models/auth.models';
+import {
+  ILoginInput,
+  IRefreshTokenInput,
+  IRegisterInput,
+  IAuthResponse,
+} from '../../models/auth.models';
 
 @Controller('auth')
 export class AuthController {

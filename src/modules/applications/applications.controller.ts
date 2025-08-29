@@ -29,12 +29,15 @@ export class ApplicationsController {
     @InjectRepository(Job)
     private jobRepository: Repository<Job>,
     @InjectRepository(Athlete)
-    private athleteRepository: Repository<Athlete>,
+    private athleteRepository: Repository<Athlete>
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createApplication(@Request() req: any, @Body() createApplicationDto: ICreateApplicationInput) {
+  async createApplication(
+    @Request() req: any,
+    @Body() createApplicationDto: ICreateApplicationInput
+  ) {
     const athleteId = req.user?.id;
     const { jobId } = createApplicationDto;
 

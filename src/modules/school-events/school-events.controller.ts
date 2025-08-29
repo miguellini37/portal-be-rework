@@ -1,10 +1,25 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SchoolEvent } from '../../entities/SchoolEvent';
 import { School } from '../../entities/School';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ICreateSchoolEventInput, IUpdateSchoolEventInput, ISchoolEventQueryInput } from '../../models/school-event.models';
+import {
+  ICreateSchoolEventInput,
+  IUpdateSchoolEventInput,
+  ISchoolEventQueryInput,
+} from '../../models/school-event.models';
 
 @Controller('school-events')
 @UseGuards(JwtAuthGuard)
@@ -13,7 +28,7 @@ export class SchoolEventsController {
     @InjectRepository(SchoolEvent)
     private schoolEventRepository: Repository<SchoolEvent>,
     @InjectRepository(School)
-    private schoolRepository: Repository<School>,
+    private schoolRepository: Repository<School>
   ) {}
 
   @Post('/')

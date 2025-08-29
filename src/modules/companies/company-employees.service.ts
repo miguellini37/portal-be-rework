@@ -10,7 +10,7 @@ export class CompanyEmployeesService {
     @InjectRepository(CompanyEmployee)
     private companyEmployeeRepository: Repository<CompanyEmployee>,
     @InjectRepository(Company)
-    private companyRepository: Repository<Company>,
+    private companyRepository: Repository<Company>
   ) {}
 
   // Add other company employee-related methods here as needed

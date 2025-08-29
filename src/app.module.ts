@@ -21,6 +21,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AthletesModule } from './modules/athletes/athletes.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
 import { CompaniesModule } from './modules/companies/companies.module';
+import { CompanyEmployeesModule } from './modules/company-employees/company-employees.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { SchoolsModule } from './modules/schools/schools.module';
@@ -64,6 +65,7 @@ import { SchoolEmployeesModule } from './modules/school-employees/school-employe
     AthletesModule,
     ApplicationsModule,
     CompaniesModule,
+    CompanyEmployeesModule,
     JobsModule,
     MessagesModule,
     SchoolsModule,

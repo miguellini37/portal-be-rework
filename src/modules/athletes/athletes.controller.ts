@@ -1,14 +1,14 @@
-import { 
-  Controller, 
-  Get, 
-  Put, 
-  Body, 
-  Param, 
-  Query, 
-  UseGuards, 
+import {
+  Controller,
+  Get,
+  Put,
+  Body,
+  Param,
+  Query,
+  UseGuards,
   Request,
   HttpStatus,
-  HttpCode 
+  HttpCode,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
@@ -22,7 +22,7 @@ import { sanitizeUser } from '../../auth/utils';
 export class AthletesController {
   constructor(
     @InjectRepository(Athlete)
-    private athleteRepository: Repository<Athlete>,
+    private athleteRepository: Repository<Athlete>
   ) {}
 
   @Put()
@@ -30,7 +30,7 @@ export class AthletesController {
   async updateAthlete(@Request() req: any, @Body() updateAthleteDto: IUpdateAthleteInput) {
     const tokenEmail = req.user?.email;
     const athlete = await this.athleteRepository.findOneBy({ email: tokenEmail });
-    
+
     if (!athlete) {
       throw new Error('Athlete not found');
     }
@@ -62,11 +62,11 @@ export class AthletesController {
       throw new Error('Invalid athlete ID');
     }
 
-    const athlete = await this.athleteRepository.findOne({ 
-      where: { id }, 
-      relations: ['schoolRef'] 
+    const athlete = await this.athleteRepository.findOne({
+      where: { id },
+      relations: ['schoolRef'],
     });
-    
+
     if (!athlete) {
       throw new Error('Athlete not found');
     }
@@ -78,7 +78,7 @@ export class AthletesController {
   async getAthletes(@Query() query: IAthleteQueryInput) {
     const { wildcardTerm } = query;
 
-    let queryBuilder = this.athleteRepository
+    const queryBuilder = this.athleteRepository
       .createQueryBuilder('athlete')
       .leftJoinAndSelect('athlete.schoolRef', 'schoolRef');
 
@@ -91,7 +91,7 @@ export class AthletesController {
     }
 
     const athletes = await queryBuilder.getMany();
-    return athletes.map(athlete => sanitizeUser(athlete));
+    return athletes.map((athlete) => sanitizeUser(athlete));
   }
 
   private addWildcardFilterToQuery(

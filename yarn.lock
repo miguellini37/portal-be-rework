@@ -205,14 +205,14 @@
     fastify-plugin "^5.0.0"
     toad-cache "^3.7.0"
 
-"@fastify/sensible@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@fastify/sensible/-/sensible-6.0.3.tgz#8a40cb5cd4deb537bb18bea9dc4a9d594bf24ae7"
-  integrity sha512-Iyn8698hp/e5+v8SNBBruTa7UfrMEP52R16dc9jMpqSyEcPsvWFQo+R6WwHCUnJiLIsuci2ZoEZ7ilrSSCPIVg==
+"@fastify/sensible@6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@fastify/sensible/-/sensible-6.0.1.tgz#08fea6a687e10cbcc0fe5bc0deb052cfa23fa530"
+  integrity sha512-D0rN0kMeZKP23f4w9MoCI9e4+n7vASFAsGoRNn9bondSbplLeIfR2HcjCbyElAM04jGrPRLi/edyThEPOyC9cQ==
   dependencies:
     "@lukeed/ms" "^2.0.2"
     dequal "^2.0.3"
-    fastify-plugin "^5.0.0"
+    fastify-plugin "^5.0.0-pre.fv5.1"
     forwarded "^0.2.0"
     http-errors "^2.0.0"
     type-is "^1.6.18"
@@ -1311,7 +1311,7 @@ fast-uri@^3.0.0, fast-uri@^3.0.1:
   resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.0.tgz#66eecff6c764c0df9b762e62ca7edcfb53b4edfa"
   integrity sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA==
 
-fastify-plugin@^5.0.0:
+fastify-plugin@^5.0.0, fastify-plugin@^5.0.0-pre.fv5.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-5.0.1.tgz#82d44e6fe34d1420bb5a4f7bee434d501e41939f"
   integrity sha512-HCxs+YnRaWzCl+cWRYFnHmeRFyR5GVnJTAaCJQiYzQSDwK9MgJdyAsuL3nh0EWRCYMgQ5MeziymvmAhUHYHDUQ==
@@ -1320,27 +1320,6 @@ fastify@5.4.0:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/fastify/-/fastify-5.4.0.tgz#82bf56e0bc36ba8dfb0bd372a0de8b62ccf3287c"
   integrity sha512-I4dVlUe+WNQAhKSyv15w+dwUh2EPiEl4X2lGYMmNSgF83WzTMAPKGdWEv5tPsCQOb+SOZwz8Vlta2vF+OeDgRw==
-  dependencies:
-    "@fastify/ajv-compiler" "^4.0.0"
-    "@fastify/error" "^4.0.0"
-    "@fastify/fast-json-stringify-compiler" "^5.0.0"
-    "@fastify/proxy-addr" "^5.0.0"
-    abstract-logging "^2.0.1"
-    avvio "^9.0.0"
-    fast-json-stringify "^6.0.0"
-    find-my-way "^9.0.0"
-    light-my-request "^6.0.0"
-    pino "^9.0.0"
-    process-warning "^5.0.0"
-    rfdc "^1.3.1"
-    secure-json-parse "^4.0.0"
-    semver "^7.6.0"
-    toad-cache "^3.7.0"
-
-fastify@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/fastify/-/fastify-5.5.0.tgz#a1cf7bbfad7e4021f042e6f78942d3c3dd511a5d"
-  integrity sha512-ZWSWlzj3K/DcULCnCjEiC2zn2FBPdlZsSA/pnPa/dbUfLvxkD/Nqmb0XXMXLrWkeM4uQPUvjdJpwtXmTfriXqw==
   dependencies:
     "@fastify/ajv-compiler" "^4.0.0"
     "@fastify/error" "^4.0.0"

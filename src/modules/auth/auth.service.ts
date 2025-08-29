@@ -5,7 +5,13 @@ import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign, verify, JwtPayload as JWT } from 'jsonwebtoken';
 import { User, Athlete, CompanyEmployee } from '../../entities';
-import { ILoginInput, IRefreshTokenInput, IRegisterInput, IAuthResponse, IUserTokenPayload } from '../../models/auth.models';
+import {
+  ILoginInput,
+  IRefreshTokenInput,
+  IRegisterInput,
+  IAuthResponse,
+  IUserTokenPayload,
+} from '../../models/auth.models';
 import { createAthlete } from '../athletes/athletes.service';
 import { createSchoolEmployee } from '../schools/school-employees.service';
 import { createCompanyEmployee } from '../companies/company-employees.service';
@@ -18,7 +24,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private userRepository: Repository<User>
   ) {}
 
   private getPayloadFromUser(user: User): IUserTokenPayload {
@@ -78,14 +84,14 @@ export class AuthService {
 
   async refreshToken(refreshTokenDto: IRefreshTokenInput): Promise<IAuthResponse> {
     const { refreshToken } = refreshTokenDto;
-    
+
     if (!refreshToken) {
       throw new UnauthorizedException();
     }
 
     try {
       const payload = verify(refreshToken, this.REFRESH_TOKEN_SECRET) as JWT;
-      
+
       // Remove exp, iat, nbf if present
       const { exp, iat, nbf, ...cleanPayload } = payload as any;
 

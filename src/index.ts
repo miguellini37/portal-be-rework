@@ -6,7 +6,11 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import * as ms from 'ms';
+import cors from '@fastify/cors';
+import fastifySensible from '@fastify/sensible';
+import rateLimit from '@fastify/rate-limit';
+import fastifyPressure from '@fastify/under-pressure';
+import ms from 'ms';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -15,37 +19,33 @@ async function bootstrap() {
   );
 
   // Register Fastify plugins
-  await app.register(require('@fastify/cors'), {
+  await app.register(cors, {
     origin: '*',
     credentials: true,
   });
 
-  await app.register(require('@fastify/sensible'));
+  await app.register(fastifySensible);
 
-  await app.register(require('@fastify/rate-limit'), {
+  await app.register(rateLimit, {
     max: 1000,
-    timeWindow: ms.default('1s'),
+    timeWindow: ms('1s'),
   });
 
-  await app.register(require('@fastify/under-pressure'), {
+  await app.register(fastifyPressure, {
     exposeStatusRoute: '/health',
-    exposeUptime: true,
   });
 
   // Enable validation globally
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
-
-  // Add a simple health check endpoint
-  app.getHttpAdapter().get('/', (req, reply) => {
-    reply.send({ status: 'healthy' });
-  });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
 
   const PORT = process.env.PORT || 3000;
-  
+
   await app.listen(PORT, '0.0.0.0');
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 }

@@ -10,7 +10,7 @@ export class AthletesService {
     @InjectRepository(Athlete)
     private athleteRepository: Repository<Athlete>,
     @InjectRepository(School)
-    private schoolRepository: Repository<School>,
+    private schoolRepository: Repository<School>
   ) {}
 
   // Add other athlete-related methods here as needed

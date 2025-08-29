@@ -13,7 +13,7 @@ export class MessagesController {
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private userRepository: Repository<User>
   ) {}
 
   @Get('/')

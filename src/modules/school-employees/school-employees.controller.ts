@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { SchoolEmployee } from '../../entities/SchoolEmployee';
 import { School } from '../../entities/School';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IUpdateSchoolEmployeeInput, ISchoolEmployeeQueryInput } from '../../models/school-employee.models';
+import {
+  IUpdateSchoolEmployeeInput,
+  ISchoolEmployeeQueryInput,
+} from '../../models/school-employee.models';
 import { sanitizeUser } from '../../auth/utils';
 
 @Controller('school-employees')
@@ -14,7 +17,7 @@ export class SchoolEmployeesController {
     @InjectRepository(SchoolEmployee)
     private schoolEmployeeRepository: Repository<SchoolEmployee>,
     @InjectRepository(School)
-    private schoolRepository: Repository<School>,
+    private schoolRepository: Repository<School>
   ) {}
 
   @Put('/')
@@ -63,7 +66,7 @@ export class SchoolEmployeesController {
     }
 
     const employees = await queryBuilder.getMany();
-    return employees.map(employee => sanitizeUser(employee));
+    return employees.map((employee) => sanitizeUser(employee));
   }
 
   @Get('/:id')

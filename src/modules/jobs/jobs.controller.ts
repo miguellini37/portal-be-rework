@@ -1,6 +1,17 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Job } from '../../entities/Job';
 import { Company } from '../../entities/Company';
 import { CompanyEmployee } from '../../entities/CompanyEmployee';
@@ -16,14 +27,14 @@ export class JobsController {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
     @InjectRepository(CompanyEmployee)
-    private companyEmployeeRepository: Repository<CompanyEmployee>,
+    private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
   @Post('/')
   async createJob(@Request() req: any, @Body() createJobDto: ICreateJobInput) {
     try {
       const job = this.jobRepository.create(createJobDto);
-      
+
       const company = await this.findCompany(req.user?.companyRefId);
       const owner = await this.findCompanyEmployee(req.user?.id);
 

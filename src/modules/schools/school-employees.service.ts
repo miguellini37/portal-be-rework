@@ -10,7 +10,7 @@ export class SchoolEmployeesService {
     @InjectRepository(SchoolEmployee)
     private schoolEmployeeRepository: Repository<SchoolEmployee>,
     @InjectRepository(School)
-    private schoolRepository: Repository<School>,
+    private schoolRepository: Repository<School>
   ) {}
 
   // Add other school employee-related methods here as needed
