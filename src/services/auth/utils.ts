@@ -1,4 +1,5 @@
 import { User } from '../../entities';
+import { Application } from '../../entities';
 
 export const sanitizeUser = (
   user: User,
@@ -8,4 +9,15 @@ export const sanitizeUser = (
     if (field in user) delete user[field];
   }
   return user;
+};
+
+export const sanitizeApplication = (
+  application: Application,
+  dropFields: (keyof Application)[] = ['job']
+) => {
+  const copy = { ...application } as Application;
+  for (const field of dropFields) {
+    if (field in copy) delete copy[field];
+  }
+  return copy;
 };

@@ -14,7 +14,7 @@ import {
 } from '../entities/Application';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
-import { sanitizeUser } from './auth/utils';
+import { sanitizeUser, sanitizeApplication } from './auth/utils';
 
 @Injectable()
 export class ApplicationService {
@@ -76,11 +76,17 @@ export class ApplicationService {
       relations: ['job', 'job.company', 'athlete'],
       order: { creationDate: 'DESC' },
     });
+    const mapSanitize = (app: Application, dropJob = false) => {
+      const sanitized = dropJob ? sanitizeApplication(app) : { ...app };
+      sanitized.athlete = sanitizeUser(sanitized.athlete);
+      return sanitized;
+    };
 
-    return applications.map((app) => ({
-      ...app,
-      athlete: sanitizeUser(app.athlete),
-    }));
+    if (jobId) {
+      return applications.map((app) => mapSanitize(app, true));
+    }
+
+    return applications.map((app) => mapSanitize(app, false));
   }
 
   async updateApplicationStatus(
