@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch, // add
   Delete,
   Body,
   Param,
@@ -11,6 +12,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from './services/auth/jwt-auth.guard';
 import {
@@ -50,6 +52,7 @@ import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from './models/school-employee.models';
+import { IUpdateApplicationStatusInput } from './services/application.models';
 import { IAuthenticatedRequest } from './models/request.models';
 
 @Controller()
@@ -139,13 +142,30 @@ export class AppController {
 
   @Get('getApplications')
   @UseGuards(JwtAuthGuard)
-  async getApplications(@Request() req: IAuthenticatedRequest) {
+  async getApplications(
+    @Request() req: IAuthenticatedRequest,
+    @Query('jobId', new ParseUUIDPipe({ version: '4', optional: true })) jobId?: string
+  ) {
     const userId = req.user?.id;
     const companyRefId = req.user?.companyRefId;
     if (!userId) {
       throw new Error('User ID is required');
     }
-    return this.applicationService.getApplications(userId, companyRefId);
+    return this.applicationService.getApplications(userId, companyRefId, jobId);
+  }
+
+  @Patch('updateApplicationStatus')
+  @UseGuards(JwtAuthGuard)
+  async updateApplicationStatus(
+    @Request() req: IAuthenticatedRequest,
+    @Body() body: IUpdateApplicationStatusInput
+  ) {
+    const userId = req.user?.id;
+    const companyRefId = req.user?.companyRefId;
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return this.applicationService.updateApplicationStatus(userId, companyRefId, body);
   }
 
   /*
