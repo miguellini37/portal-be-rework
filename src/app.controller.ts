@@ -52,7 +52,7 @@ import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from './models/school-employee.models';
-import { IUpdateApplicationStatusInput } from './services/application.models';
+import { IUpdateApplicationStatusInput } from './entities/Application';
 import { IAuthenticatedRequest } from './models/request.models';
 
 @Controller()

@@ -9,6 +9,12 @@ import {
 import { Company } from './Company';
 import { CompanyEmployee } from './CompanyEmployee'; // assuming this is your owner employee entity
 
+export enum JobStatus {
+  open = 'open',
+  closed = 'closed',
+  filled = 'filled',
+}
+
 @Entity()
 export class Job extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -65,4 +71,7 @@ export class Job extends BaseEntity {
 
   @Column({ nullable: true })
   athleteBenefits?: string;
+
+  @Column({ nullable: true })
+  status?: JobStatus;
 }
