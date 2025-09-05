@@ -135,21 +135,23 @@ export class JobService {
         .from(Application, 'app')
         .where('app.jobId = job.id')
         .andWhere('app.athleteId = :athleteId')
+        // Optional: exclude withdrawn applications
+        // .andWhere('app.status <> :withdrawn', { withdrawn: 'withdrawn' })
         .getQuery();
 
-      queryBuilder.addSelect(
-        `CASE WHEN EXISTS (${existsSub}) THEN TRUE ELSE FALSE END`,
-        'job_hasApplied'
-      );
+      queryBuilder.addSelect(`CASE WHEN EXISTS (${existsSub}) THEN 1 ELSE 0 END`, 'job_hasApplied');
 
       const { entities: jobs, raw } = await queryBuilder
         .setParameters({ athleteId: userId })
         .getRawAndEntities();
 
-      return jobs.map((job, i) => ({
-        ...job,
-        hasApplied: !!raw[i]['job_hasApplied'],
-      }));
+      return jobs.map((job, i) => {
+        const flag = raw[i]['job_hasApplied'];
+        return {
+          ...job,
+          hasApplied: flag === 1 || flag === '1', // avoid !! on string "0"
+        };
+      });
     }
 
     // Non-athletes: regular list (no flag)
