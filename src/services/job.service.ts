@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Job } from '../entities/Job';
 import { Company } from '../entities/Company';
 import { CompanyEmployee } from '../entities/CompanyEmployee';
+import { Application } from '../entities/Application';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from '../models/job.models';
 
 @Injectable()
@@ -76,7 +77,7 @@ export class JobService {
     }
   }
 
-  async getJobs(query: IJobQueryInput) {
+  async getJobs(query: IJobQueryInput, userId?: string, userPermission?: string) {
     const queryBuilder = this.jobRepository
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
@@ -87,10 +88,18 @@ export class JobService {
     }
 
     if (query.wildcardTerm) {
-      queryBuilder.where(
-        'job.position LIKE :term OR job.description LIKE :term OR company.companyName LIKE :term',
-        { term: `%${query.wildcardTerm}%` }
-      );
+      // if both type and wildcard are provided, chain with AND
+      if (query.type) {
+        queryBuilder.andWhere(
+          '(job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc)',
+          { wc: `%${query.wildcardTerm}%` }
+        );
+      } else {
+        queryBuilder.where(
+          'job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc',
+          { wc: `%${query.wildcardTerm}%` }
+        );
+      }
     }
 
     if (query.companies?.length) {
@@ -117,6 +126,33 @@ export class JobService {
       });
     }
 
+    // For athletes, attach hasApplied boolean using an EXISTS subquery
+    if (userPermission === 'athlete' && userId) {
+      const existsSub = this.jobRepository
+        .createQueryBuilder()
+        .subQuery()
+        .select('1')
+        .from(Application, 'app')
+        .where('app.jobId = job.id')
+        .andWhere('app.athleteId = :athleteId')
+        .getQuery();
+
+      queryBuilder.addSelect(
+        `CASE WHEN EXISTS (${existsSub}) THEN TRUE ELSE FALSE END`,
+        'job_hasApplied'
+      );
+
+      const { entities: jobs, raw } = await queryBuilder
+        .setParameters({ athleteId: userId })
+        .getRawAndEntities();
+
+      return jobs.map((job, i) => ({
+        ...job,
+        hasApplied: !!raw[i]['job_hasApplied'],
+      }));
+    }
+
+    // Non-athletes: regular list (no flag)
     return await queryBuilder.getMany();
   }
 
