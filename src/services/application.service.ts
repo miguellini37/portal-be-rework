@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, FindOptionsWhere } from 'typeorm';
-import {
-  Application,
-  ApplicationStatus,
-  IUpdateApplicationStatusInput,
-} from '../entities/Application';
+import { Application, ApplicationStatus, IApplicationInput } from '../entities/Application';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
 import { sanitizeUser, sanitizeApplication } from './auth/utils';
@@ -29,7 +25,9 @@ export class ApplicationService {
 
   async createApplication(athleteId: string, createApplicationDto: { jobId: string }) {
     const { jobId } = createApplicationDto;
-    if (!jobId || !athleteId) throw new BadRequestException('jobId and athleteId are required');
+    if (!jobId || !athleteId) {
+      throw new BadRequestException('jobId and athleteId are required');
+    }
 
     const job = await this.jobRepository.findOneBy({ id: jobId });
     const athlete = await this.athleteRepository.findOneBy({ id: athleteId });
@@ -48,34 +46,16 @@ export class ApplicationService {
   async getApplications(userId: string, companyRefId?: string, jobId?: string) {
     if (!userId && !companyRefId) throw new BadRequestException('Missing user id');
 
-    if (companyRefId && jobId) {
-      const job = await this.jobRepository.findOne({
-        where: { id: jobId },
-        relations: ['company'],
-      });
-      if (!job) throw new NotFoundException('Job not found');
-      if (job.company?.id !== companyRefId)
-        throw new ForbiddenException('Job does not belong to your company');
-    }
-
-    let whereCondition: FindOptionsWhere<Application>;
-    if (companyRefId) {
-      whereCondition = {
-        job: { ...(jobId ? { id: jobId } : {}), company: { id: companyRefId } },
-        status: Not(ApplicationStatus.withdrawn),
-      };
-    } else {
-      whereCondition = {
-        athlete: { id: userId } as Athlete,
-        ...(jobId ? { job: { id: jobId } as Job } : {}),
-      };
-    }
+    const whereCondition: FindOptionsWhere<Application> = companyRefId
+      ? await this.buildJobQueryForCompany(companyRefId, jobId)
+      : this.buildJobQueryForAthlete(userId, jobId);
 
     const applications = await this.applicationRepository.find({
       where: whereCondition,
       relations: ['job', 'job.company', 'athlete'],
       order: { creationDate: 'DESC' },
     });
+
     const mapSanitize = (app: Application, dropJob = false) => {
       const sanitized = dropJob ? sanitizeApplication(app) : { ...app };
       sanitized.athlete = sanitizeUser(sanitized.athlete);
@@ -92,7 +72,7 @@ export class ApplicationService {
   async updateApplicationStatus(
     userId: string,
     companyRefId: string | undefined,
-    input: IUpdateApplicationStatusInput
+    input: IApplicationInput
   ) {
     const { id, status } = input;
     if (!id) throw new BadRequestException('application id is required');
@@ -134,5 +114,47 @@ export class ApplicationService {
       ...application,
       athlete: sanitizeUser(application.athlete),
     };
+  }
+
+  // Company: validate job ownership when jobId provided and filter withdrawn
+  private async buildJobQueryForCompany(
+    companyRefId: string,
+    jobId?: string
+  ): Promise<FindOptionsWhere<Application>> {
+    if (!companyRefId) throw new BadRequestException('Company id is required');
+
+    if (jobId) {
+      const job = await this.jobRepository.findOne({
+        where: { id: jobId },
+        relations: ['company'],
+      });
+      if (!job) throw new NotFoundException('Job not found');
+      if (job.company?.id !== companyRefId) {
+        throw new ForbiddenException('Job does not belong to your company');
+      }
+    }
+
+    return {
+      job: { ...(jobId ? { id: jobId } : {}), company: { id: companyRefId } },
+      status: Not(ApplicationStatus.withdrawn),
+    } as FindOptionsWhere<Application>;
+  }
+
+  // Athlete: filter by athlete (and optional jobId)
+  private buildJobQueryForAthlete(
+    athleteId: string,
+    jobId?: string
+  ): FindOptionsWhere<Application> {
+    if (!athleteId) throw new BadRequestException('User id is required');
+
+    const where: FindOptionsWhere<Application> = {
+      athlete: { id: athleteId } as Athlete,
+    };
+
+    if (jobId) {
+      Object.assign(where, { job: { id: jobId } as Job });
+    }
+
+    return where;
   }
 }

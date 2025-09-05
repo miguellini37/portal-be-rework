@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm'; // added SelectQueryBuilder
 import { Job } from '../entities/Job';
 import { Company } from '../entities/Company';
 import { CompanyEmployee } from '../entities/CompanyEmployee';
 import { Application } from '../entities/Application';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from '../models/job.models';
+import { USER_PERMISSIONS } from '../constants/user-permissions';
+import { sanitizeUser } from './auth/utils';
 
 @Injectable()
 export class JobService {
@@ -71,7 +73,8 @@ export class JobService {
       if (!job) {
         throw new Error('Job not found');
       }
-      return job;
+      const sanitizedOwner = job.owner ? sanitizeUser(job.owner) : undefined;
+      return { ...job, owner: sanitizedOwner };
     } catch (error) {
       throw new Error('Job not found');
     }
@@ -87,19 +90,17 @@ export class JobService {
       queryBuilder.where('job.type LIKE :term', { term: `%${query.type}%` });
     }
 
-    if (query.wildcardTerm) {
-      // if both type and wildcard are provided, chain with AND
-      if (query.type) {
-        queryBuilder.andWhere(
-          '(job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc)',
-          { wc: `%${query.wildcardTerm}%` }
-        );
-      } else {
-        queryBuilder.where(
-          'job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc',
-          { wc: `%${query.wildcardTerm}%` }
-        );
-      }
+    // if both type and wildcard are provided, chain with AND
+    if (query.wildcardTerm && query.type) {
+      queryBuilder.andWhere(
+        '(job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc)',
+        { wc: `%${query.wildcardTerm}%` }
+      );
+    } else if (query.wildcardTerm) {
+      queryBuilder.where(
+        'job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc',
+        { wc: `%${query.wildcardTerm}%` }
+      );
     }
 
     if (query.companies?.length) {
@@ -127,31 +128,8 @@ export class JobService {
     }
 
     // For athletes, attach hasApplied boolean using an EXISTS subquery
-    if (userPermission === 'athlete' && userId) {
-      const existsSub = this.jobRepository
-        .createQueryBuilder()
-        .subQuery()
-        .select('1')
-        .from(Application, 'app')
-        .where('app.jobId = job.id')
-        .andWhere('app.athleteId = :athleteId')
-        // Optional: exclude withdrawn applications
-        // .andWhere('app.status <> :withdrawn', { withdrawn: 'withdrawn' })
-        .getQuery();
-
-      queryBuilder.addSelect(`CASE WHEN EXISTS (${existsSub}) THEN 1 ELSE 0 END`, 'job_hasApplied');
-
-      const { entities: jobs, raw } = await queryBuilder
-        .setParameters({ athleteId: userId })
-        .getRawAndEntities();
-
-      return jobs.map((job, i) => {
-        const flag = raw[i]['job_hasApplied'];
-        return {
-          ...job,
-          hasApplied: flag === 1 || flag === '1', // avoid !! on string "0"
-        };
-      });
+    if (userPermission === USER_PERMISSIONS.ATHLETE && userId) {
+      return await this.getJobsWithHasAppliedFlag(queryBuilder, userId);
     }
 
     // Non-athletes: regular list (no flag)
@@ -178,5 +156,49 @@ export class JobService {
       throw new Error('Company employee not found');
     }
     return employee;
+  }
+
+  // Returns the EXISTS subquery that checks if the current athlete applied to the job row
+  private buildHasAppliedExistsSql(queryBuilder: SelectQueryBuilder<Job>): string {
+    return queryBuilder
+      .subQuery()
+      .select('1')
+      .from(Application, 'app')
+      .where('app.jobId = job.id')
+      .andWhere('app.athleteId = :athleteId')
+      .getQuery();
+  }
+
+  // Adds selection for hasApplied and maps results to include the boolean flag
+  private async getJobsWithHasAppliedFlag(
+    queryBuilder: SelectQueryBuilder<Job>,
+    athleteId: string
+  ): Promise<Array<Omit<Job, keyof Job> & Partial<Job> & { hasApplied: boolean }>> {
+    /* Explanation:
+      We add a selection that uses the EXISTS subquery to determine if the athlete has applied.
+      The result is aliased as 'job_hasApplied' which will be '1' if true, else '0'.
+      After executing the query, we map over the results to convert '1'/'0' to boolean true/false.
+      This avoids front end erroring where user apply to jobs they have already applied to.
+      Also allows filtering in the future if needed.
+    */
+    const hasAppliedExistsSql = this.buildHasAppliedExistsSql(queryBuilder);
+
+    queryBuilder.addSelect(
+      `CASE WHEN EXISTS (${hasAppliedExistsSql}) THEN 1 ELSE 0 END`,
+      'job_hasApplied'
+    );
+
+    const { entities: jobs, raw: rawRows } = await queryBuilder
+      .setParameters({ athleteId })
+      .getRawAndEntities();
+
+    return jobs.map((job, i) => {
+      const hasAppliedRaw = rawRows[i]['job_hasApplied'];
+      const hasApplied = hasAppliedRaw === '1';
+      return {
+        ...job,
+        hasApplied,
+      };
+    });
   }
 }

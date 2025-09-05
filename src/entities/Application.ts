@@ -19,9 +19,10 @@ export enum ApplicationStatus {
   withdrawn = 'withdrawn',
 }
 
-export interface IUpdateApplicationStatusInput {
+export interface IApplicationInput {
   id: string;
-  status?: ApplicationStatus; // company-only
+  status?: ApplicationStatus;
+  jobId?: string;
 }
 
 @Entity()
