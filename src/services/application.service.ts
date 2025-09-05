@@ -81,34 +81,35 @@ export class ApplicationService {
       where: { id },
       relations: ['job', 'job.company', 'athlete'],
     });
-    if (!application) throw new NotFoundException('Application not found');
-
-    if (typeof status !== 'undefined') {
-      // Basic validators
-      if (!Object.values(ApplicationStatus).includes(status)) {
-        throw new BadRequestException('Invalid application status');
-      }
-
-      const isApplicant = application.athlete?.id === userId;
-      const isCompanyOwner = Boolean(companyRefId && application.job?.company?.id === companyRefId);
-
-      if (status === ApplicationStatus.withdrawn) {
-        // Allow athlete (applicant) or company owner to withdraw
-        if (!isApplicant && !isCompanyOwner) {
-          throw new ForbiddenException(
-            'Only the applicant or the company can withdraw this application'
-          );
-        }
-      } else {
-        // Other status transitions are company-only
-        if (!isCompanyOwner) {
-          throw new ForbiddenException('Company account required to update status');
-        }
-      }
-
-      application.status = status;
-      await this.applicationRepository.save(application);
+    if (!application) {
+      throw new NotFoundException('Application not found');
     }
+    if (!status) {
+      throw new BadRequestException('Application status is required');
+    }
+    if (!Object.values(ApplicationStatus).includes(status)) {
+      throw new BadRequestException('Invalid application status');
+    }
+
+    const isApplicant = application.athlete?.id === userId;
+    const isCompanyOwner = Boolean(companyRefId && application.job?.company?.id === companyRefId);
+
+    if (status === ApplicationStatus.withdrawn) {
+      // Allow athlete (applicant) or company owner to withdraw
+      if (!isApplicant && !isCompanyOwner) {
+        throw new ForbiddenException(
+          'Only the applicant or the company can withdraw this application'
+        );
+      }
+    } else {
+      // Other status transitions are company-only
+      if (!isCompanyOwner) {
+        throw new ForbiddenException('Company account required to update status');
+      }
+    }
+
+    application.status = status;
+    await this.applicationRepository.save(application);
 
     return {
       ...application,
@@ -128,7 +129,9 @@ export class ApplicationService {
         where: { id: jobId },
         relations: ['company'],
       });
-      if (!job) throw new NotFoundException('Job not found');
+      if (!job) {
+        throw new NotFoundException('Job not found');
+      }
       if (job.company?.id !== companyRefId) {
         throw new ForbiddenException('Job does not belong to your company');
       }
@@ -145,8 +148,9 @@ export class ApplicationService {
     athleteId: string,
     jobId?: string
   ): FindOptionsWhere<Application> {
-    if (!athleteId) throw new BadRequestException('User id is required');
-
+    if (!athleteId) {
+      throw new BadRequestException('User id is required');
+    }
     const where: FindOptionsWhere<Application> = {
       athlete: { id: athleteId } as Athlete,
     };
