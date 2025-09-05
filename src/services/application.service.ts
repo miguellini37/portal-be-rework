@@ -11,6 +11,7 @@ import { Application, ApplicationStatus, IApplicationInput } from '../entities/A
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
 import { sanitizeUser, sanitizeApplication } from './auth/utils';
+import { ICreateApplicationInput } from '../models/athlete.models';
 
 @Injectable()
 export class ApplicationService {
@@ -23,7 +24,7 @@ export class ApplicationService {
     private athleteRepository: Repository<Athlete>
   ) {}
 
-  async createApplication(athleteId: string, createApplicationDto: { jobId: string }) {
+  async createApplication(athleteId: string, createApplicationDto: ICreateApplicationInput) {
     const { jobId } = createApplicationDto;
     if (!jobId || !athleteId) {
       throw new BadRequestException('jobId and athleteId are required');
