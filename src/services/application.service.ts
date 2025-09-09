@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, FindOptionsWhere } from 'typeorm';
-import { Application, ApplicationStatus, IApplicationInput } from '../entities/Application';
+import { Application, ApplicationStatus } from '../entities/Application';
+import { IApplicationInput } from '../models/application.model';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
 import { sanitizeUser, sanitizeApplication } from './auth/utils';
@@ -32,12 +33,16 @@ export class ApplicationService {
 
     const job = await this.jobRepository.findOneBy({ id: jobId });
     const athlete = await this.athleteRepository.findOneBy({ id: athleteId });
-    if (!job || !athlete) throw new NotFoundException('Job or Athlete not found');
+    if (!job || !athlete) {
+      throw new NotFoundException('Job or Athlete not found');
+    }
 
     const existing = await this.applicationRepository.findOne({
-      where: { job: { id: jobId } as Job, athlete: { id: athleteId } as Athlete },
+      where: { job: { id: jobId }, athlete: { id: athleteId } },
     });
-    if (existing) throw new ConflictException('You have already applied to this job.');
+    if (existing) {
+      throw new ConflictException('You have already applied to this job.');
+    }
 
     const application = this.applicationRepository.create({ job, athlete });
     await this.applicationRepository.save(application);
@@ -45,7 +50,9 @@ export class ApplicationService {
   }
 
   async getApplications(userId: string, companyRefId?: string, jobId?: string) {
-    if (!userId && !companyRefId) throw new BadRequestException('Missing user id');
+    if (!userId && !companyRefId) {
+      throw new BadRequestException('Missing user id');
+    }
 
     const whereCondition: FindOptionsWhere<Application> = companyRefId
       ? await this.buildJobQueryForCompany(companyRefId, jobId)
@@ -97,10 +104,8 @@ export class ApplicationService {
 
     if (status === ApplicationStatus.withdrawn) {
       // Allow athlete (applicant) or company owner to withdraw
-      if (!isApplicant && !isCompanyOwner) {
-        throw new ForbiddenException(
-          'Only the applicant or the company can withdraw this application'
-        );
+      if (!isApplicant) {
+        throw new ForbiddenException('Only the applicant can withdraw this application');
       }
     } else {
       // Other status transitions are company-only
@@ -119,29 +124,23 @@ export class ApplicationService {
   }
 
   // Company: validate job ownership when jobId provided and filter withdrawn
-  private async buildJobQueryForCompany(
+  private buildJobQueryForCompany(
     companyRefId: string,
     jobId?: string
-  ): Promise<FindOptionsWhere<Application>> {
-    if (!companyRefId) throw new BadRequestException('Company id is required');
-
-    if (jobId) {
-      const job = await this.jobRepository.findOne({
-        where: { id: jobId },
-        relations: ['company'],
-      });
-      if (!job) {
-        throw new NotFoundException('Job not found');
-      }
-      if (job.company?.id !== companyRefId) {
-        throw new ForbiddenException('Job does not belong to your company');
-      }
+  ): FindOptionsWhere<Application> {
+    if (!companyRefId) {
+      throw new BadRequestException('Company id is required');
     }
 
-    return {
-      job: { ...(jobId ? { id: jobId } : {}), company: { id: companyRefId } },
+    const where: FindOptionsWhere<Application> = {
+      job: {
+        ...(jobId ? { id: jobId } : {}),
+        company: { id: companyRefId },
+      },
       status: Not(ApplicationStatus.withdrawn),
-    } as FindOptionsWhere<Application>;
+    };
+
+    return where;
   }
 
   // Athlete: filter by athlete (and optional jobId)

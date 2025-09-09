@@ -51,7 +51,7 @@ import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from './models/school-employee.models';
-import { IApplicationInput } from './entities/Application';
+import { IApplicationInput } from './models/application.model';
 import { IAuthenticatedRequest } from './models/request.models';
 
 @Controller()

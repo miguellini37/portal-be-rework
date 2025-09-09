@@ -19,12 +19,6 @@ export enum ApplicationStatus {
   withdrawn = 'withdrawn',
 }
 
-export interface IApplicationInput {
-  id: string;
-  status?: ApplicationStatus;
-  jobId?: string;
-}
-
 @Entity()
 export class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
