@@ -152,7 +152,7 @@ export class ApplicationService {
       throw new BadRequestException('User id is required');
     }
     const where: FindOptionsWhere<Application> = {
-      athlete: { id: athleteId } as Athlete,
+      athlete: { id: athleteId },
     };
 
     if (jobId) {
