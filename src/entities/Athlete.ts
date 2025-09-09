@@ -46,6 +46,9 @@ class Athletics {
 
   @Column({ nullable: true })
   statistics?: string;
+
+  @Column({ type: 'json', nullable: true })
+  skills?: string[];
 }
 
 @ChildEntity()
