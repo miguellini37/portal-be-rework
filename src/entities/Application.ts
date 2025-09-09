@@ -10,6 +10,15 @@ import { Job } from './Job';
 import { Athlete } from './Athlete';
 import { Interview } from './Interview';
 
+export enum ApplicationStatus {
+  applied = 'applied',
+  under_review = 'under_review',
+  interview_requested = 'interview_requested',
+  accepted = 'accepted',
+  rejected = 'rejected',
+  withdrawn = 'withdrawn',
+}
+
 @Entity()
 export class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -29,4 +38,7 @@ export class Application extends BaseEntity {
 
   @ManyToOne(() => Interview, { nullable: true })
   interview?: Interview;
+
+  @Column({ type: 'enum', enum: ApplicationStatus, default: ApplicationStatus.applied })
+  status!: ApplicationStatus;
 }

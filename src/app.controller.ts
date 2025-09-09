@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch, // add
   Delete,
   Body,
   Param,
@@ -50,6 +51,7 @@ import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from './models/school-employee.models';
+import { IApplicationInput } from './models/application.model';
 import { IAuthenticatedRequest } from './models/request.models';
 
 @Controller()
@@ -139,13 +141,27 @@ export class AppController {
 
   @Get('getApplications')
   @UseGuards(JwtAuthGuard)
-  async getApplications(@Request() req: IAuthenticatedRequest) {
+  async getApplications(@Request() req: IAuthenticatedRequest, @Query() query: IApplicationInput) {
     const userId = req.user?.id;
     const companyRefId = req.user?.companyRefId;
     if (!userId) {
       throw new Error('User ID is required');
     }
-    return this.applicationService.getApplications(userId, companyRefId);
+    return this.applicationService.getApplications(userId, companyRefId, query.jobId);
+  }
+
+  @Patch('updateApplicationStatus')
+  @UseGuards(JwtAuthGuard)
+  async updateApplicationStatus(
+    @Request() req: IAuthenticatedRequest,
+    @Body() body: IApplicationInput
+  ) {
+    const userId = req.user?.id;
+    const companyRefId = req.user?.companyRefId;
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return this.applicationService.updateApplicationStatus(userId, companyRefId, body);
   }
 
   /*
@@ -226,8 +242,10 @@ export class AppController {
 
   @Get('getJobs')
   @UseGuards(JwtAuthGuard)
-  async getJobs(@Query() query: IJobQueryInput) {
-    return this.jobService.getJobs(query);
+  async getJobs(@Request() req: IAuthenticatedRequest, @Query() query: IJobQueryInput) {
+    const userId = req.user?.id;
+    const userPermission = req.user?.permission;
+    return this.jobService.getJobs(query, userId, userPermission);
   }
 
   /*
