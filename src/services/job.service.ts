@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm'; // added SelectQueryBuilder
-import { Job } from '../entities/Job';
+import { Job, JobStatus } from '../entities/Job';
 import { Company } from '../entities/Company';
 import { CompanyEmployee } from '../entities/CompanyEmployee';
 import { Application } from '../entities/Application';
@@ -187,6 +187,7 @@ export class JobService {
       `CASE WHEN EXISTS (${hasAppliedExistsSql}) THEN 1 ELSE 0 END`,
       'job_hasApplied'
     );
+    queryBuilder.andWhere('job.status <> :closedStatus', { closedStatus: JobStatus.closed });
 
     const { entities: jobs, raw: rawRows } = await queryBuilder
       .setParameters({ athleteId })
