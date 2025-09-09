@@ -38,6 +38,10 @@ export class IUpdateAthleteInput {
   @IsOptional()
   @IsObject()
   athletics?: IAthletics;
+
+  @IsOptional()
+  @IsString({ each: true })
+  skills?: string[];
 }
 
 export class IAthleteQueryInput {
