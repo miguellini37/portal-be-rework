@@ -5,8 +5,13 @@ export const sanitizeUser = (
   user: User,
   dropFields: (keyof User)[] = ['password', 'permission', 'email']
 ) => {
+  if (!user) {
+    return user;
+  }
   for (const field of dropFields) {
-    if (field in user) delete user[field];
+    if (field in user) {
+      delete user[field];
+    }
   }
   return user;
 };
@@ -17,7 +22,9 @@ export const sanitizeApplication = (
 ) => {
   const copy = { ...application } as Application;
   for (const field of dropFields) {
-    if (field in copy) delete copy[field];
+    if (field in copy) {
+      delete copy[field];
+    }
   }
   return copy;
 };

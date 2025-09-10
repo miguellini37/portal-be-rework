@@ -37,7 +37,7 @@ export class SchoolEventService {
 
       await this.schoolEventRepository.save(event);
       return { message: 'School event created successfully', event };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to create school event');
     }
   }
@@ -52,7 +52,7 @@ export class SchoolEventService {
       Object.assign(event, updateDto);
       await this.schoolEventRepository.save(event);
       return { message: 'School event updated successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to update school event');
     }
   }
@@ -64,7 +64,7 @@ export class SchoolEventService {
         throw new Error('School event not found');
       }
       return { message: 'School event deleted successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to delete school event');
     }
   }

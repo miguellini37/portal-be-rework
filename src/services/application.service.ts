@@ -60,7 +60,7 @@ export class ApplicationService {
 
     const applications = await this.applicationRepository.find({
       where: whereCondition,
-      relations: ['job', 'job.company', 'athlete'],
+      relations: ['job', 'job.company', 'athlete', 'interview'],
       order: { creationDate: 'DESC' },
     });
 
@@ -83,7 +83,9 @@ export class ApplicationService {
     input: IApplicationInput
   ) {
     const { id, status } = input;
-    if (!id) throw new BadRequestException('application id is required');
+    if (!id) {
+      throw new BadRequestException('application id is required');
+    }
 
     const application = await this.applicationRepository.findOne({
       where: { id },

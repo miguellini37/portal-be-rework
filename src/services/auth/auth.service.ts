@@ -117,7 +117,7 @@ export class AuthService {
         tokenType: 'Bearer',
         authState: cleanPayload as IUserTokenPayload,
       };
-    } catch (_err) {
+    } catch {
       throw new UnauthorizedException();
     }
   }
@@ -134,20 +134,19 @@ export class AuthService {
       throw new BadRequestException('User with this email already exists.');
     }
 
-    let _user;
     switch (userInput.permission) {
       case 'athlete':
-        _user = await this.athleteService.createAthlete(
+        await this.athleteService.createAthlete(
           userInput as IRegisterInput & Athlete & { schoolName: string }
         );
         break;
       case 'school':
-        _user = await this.schoolEmployeeService.createSchoolEmployee(
+        await this.schoolEmployeeService.createSchoolEmployee(
           userInput as ICreateSchoolEmployeeInput
         );
         break;
       case 'company':
-        _user = await this.companyEmployeeService.createCompanyEmployee(
+        await this.companyEmployeeService.createCompanyEmployee(
           userInput as ICreateCompanyEmployeeInput
         );
         break;

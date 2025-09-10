@@ -31,7 +31,7 @@ export class MessageService {
       }
 
       return await queryBuilder.getMany();
-    } catch (error) {
+    } catch {
       throw new Error('Could not fetch messages');
     }
   }
@@ -55,7 +55,7 @@ export class MessageService {
 
       await this.messageRepository.save(newMessage);
       return { message: 'Message sent successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to send message');
     }
   }

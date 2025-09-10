@@ -29,9 +29,13 @@ export default defineConfig([
       ...prettier.rules,
       "prettier/prettier": "error",
 
+      // Enforce curly braces for all control statements (if/for/while/do...while)
+      curly: ["error", "all"],
+
       "unused-imports/no-unused-imports": "error",
+      // Treat unused variables (reported by unused-imports) as errors
       "unused-imports/no-unused-vars": [
-        "warn",
+        "error",
         {
           vars: "all",
           varsIgnorePattern: "^_",

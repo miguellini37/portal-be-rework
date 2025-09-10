@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Put,
-  Patch, // add
+  Patch,
   Delete,
   Body,
   Param,
@@ -25,6 +25,7 @@ import {
   SchoolEventService,
   SchoolEmployeeService,
   AuthService,
+  InterviewService,
 } from './services';
 import {
   ILoginInput,
@@ -53,6 +54,12 @@ import {
 } from './models/school-employee.models';
 import { IApplicationInput } from './models/application.model';
 import { IAuthenticatedRequest } from './models/request.models';
+import {
+  ICreateInterviewInput,
+  IGetInterviewInput,
+  IGetInterviewsInput,
+  IUpdateInterviewInput,
+} from './models/interview.models';
 
 @Controller()
 export class AppController {
@@ -60,6 +67,7 @@ export class AppController {
     private readonly authService: AuthService,
     private readonly athleteService: AthleteService,
     private readonly applicationService: ApplicationService,
+    private readonly interviewService: InterviewService,
     private readonly companyService: CompanyService,
     private readonly companyEmployeeService: CompanyEmployeeService,
     private readonly jobService: JobService,
@@ -97,7 +105,6 @@ export class AppController {
 
   @Put('updateAthlete')
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
   async updateAthlete(
     @Request() req: IAuthenticatedRequest,
     @Body() updateAthleteDto: IUpdateAthleteInput
@@ -127,27 +134,17 @@ export class AppController {
 
   @Post('createApplication')
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.CREATED)
   async createApplication(
     @Request() req: IAuthenticatedRequest,
     @Body() createApplicationDto: ICreateApplicationInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.applicationService.createApplication(userId, createApplicationDto);
+    return this.applicationService.createApplication(req.user.id, createApplicationDto);
   }
 
   @Get('getApplications')
   @UseGuards(JwtAuthGuard)
   async getApplications(@Request() req: IAuthenticatedRequest, @Query() query: IApplicationInput) {
-    const userId = req.user?.id;
-    const companyRefId = req.user?.companyRefId;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.applicationService.getApplications(userId, companyRefId, query.jobId);
+    return this.applicationService.getApplications(req.user.id, req.user.companyRefId, query.jobId);
   }
 
   @Patch('updateApplicationStatus')
@@ -156,12 +153,45 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Body() body: IApplicationInput
   ) {
-    const userId = req.user?.id;
-    const companyRefId = req.user?.companyRefId;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.applicationService.updateApplicationStatus(userId, companyRefId, body);
+    return this.applicationService.updateApplicationStatus(
+      req.user.id,
+      req.user.companyRefId,
+      body
+    );
+  }
+
+  /*
+   * Interview Routes
+   */
+
+  @Post('createInterview')
+  @UseGuards(JwtAuthGuard)
+  async createInterview(
+    @Request() req: IAuthenticatedRequest,
+    @Body() createInterviewInput: ICreateInterviewInput
+  ) {
+    return this.interviewService.createInterview(req.user.companyRefId, createInterviewInput);
+  }
+
+  @Get('getInterview')
+  @UseGuards(JwtAuthGuard)
+  async getInterview(@Request() req: IAuthenticatedRequest, @Query() input: IGetInterviewInput) {
+    return this.interviewService.getInterview(req, input);
+  }
+
+  @Get('getInterviews')
+  @UseGuards(JwtAuthGuard)
+  async getInterviews(@Request() req: IAuthenticatedRequest, @Query() input: IGetInterviewsInput) {
+    return this.interviewService.getInterviews(req, input);
+  }
+
+  @Patch('updateInterview')
+  @UseGuards(JwtAuthGuard)
+  async updateInterview(
+    @Request() req: IAuthenticatedRequest,
+    @Body() input: IUpdateInterviewInput
+  ) {
+    return this.interviewService.updateInterview(req.user.companyRefId, input);
   }
 
   /*
@@ -215,23 +245,13 @@ export class AppController {
   @Post('createJob')
   @UseGuards(JwtAuthGuard)
   async createJob(@Request() req: IAuthenticatedRequest, @Body() createJobDto: ICreateJobInput) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.jobService.createJob(userId, req.user.companyRefId, createJobDto);
+    return this.jobService.createJob(req.user.id, req.user.companyRefId, createJobDto);
   }
 
   @Put('updateJob')
   @UseGuards(JwtAuthGuard)
   async updateJob(@Body() updateJobDto: IUpdateJobInput) {
     return this.jobService.updateJob(updateJobDto.id, updateJobDto);
-  }
-
-  @Delete('deleteJob/:id')
-  @UseGuards(JwtAuthGuard)
-  async deleteJob(@Param('id') id: string) {
-    return this.jobService.deleteJob(id);
   }
 
   @Get('getJob/:id')
@@ -255,11 +275,7 @@ export class AppController {
   @Get('getMessages')
   @UseGuards(JwtAuthGuard)
   async getMessages(@Request() req: IAuthenticatedRequest, @Query() query: IMessageQueryInput) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.messageService.getMessages(userId, query);
+    return this.messageService.getMessages(req.user.id, query);
   }
 
   @Post('createMessage')
@@ -268,11 +284,7 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Body() createMessageDto: ICreateMessageInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.messageService.createMessage(userId, createMessageDto);
+    return this.messageService.createMessage(req.user.id, createMessageDto);
   }
 
   /*
@@ -306,11 +318,7 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Body() createDto: ICreateSchoolEventInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.schoolEventService.createSchoolEvent(userId, createDto);
+    return this.schoolEventService.createSchoolEvent(req.user.id, createDto);
   }
 
   @Put('updateSchoolEvent/:id')
@@ -331,11 +339,7 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Query() query: ISchoolEventQueryInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.schoolEventService.getSchoolEvents(userId, query);
+    return this.schoolEventService.getSchoolEvents(req.user.id, query);
   }
 
   /*
@@ -348,11 +352,7 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Body() updateDto: IUpdateSchoolEmployeeInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.schoolEmployeeService.updateSchoolEmployee(userId, updateDto);
+    return this.schoolEmployeeService.updateSchoolEmployee(req.user.id, updateDto);
   }
 
   @Get('getSchoolEmployees')
@@ -361,11 +361,7 @@ export class AppController {
     @Request() req: IAuthenticatedRequest,
     @Query() query: ISchoolEmployeeQueryInput
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    return this.schoolEmployeeService.getSchoolEmployees(userId, query);
+    return this.schoolEmployeeService.getSchoolEmployees(req.user.id, query);
   }
 
   @Get('getSchoolEmployee/:id')

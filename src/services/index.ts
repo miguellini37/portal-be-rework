@@ -8,3 +8,4 @@ export { SchoolService } from './school.service';
 export { SchoolEventService } from './school-event.service';
 export { SchoolEmployeeService } from './school-employee.service';
 export { AuthService } from './auth/auth.service';
+export { InterviewService } from './interview.service';

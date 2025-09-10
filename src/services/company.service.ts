@@ -39,7 +39,7 @@ export class CompanyService {
 
       await this.companyRepository.save(company);
       return { message: 'Company updated successfully' };
-    } catch (_error) {
+    } catch {
       throw new Error('Failed to update company');
     }
   }
@@ -64,7 +64,7 @@ export class CompanyService {
       };
 
       return safeCompany;
-    } catch (_error) {
+    } catch {
       throw new Error('Company not found');
     }
   }

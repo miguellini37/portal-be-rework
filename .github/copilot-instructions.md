@@ -15,9 +15,11 @@ This repository is a Node.js/TypeScript backend for a portal application. It use
 ## Best Practices
 - Use async/await for all asynchronous operations.
 - Prefer explicit typing for function parameters and return types.
+- Always use curly brackets {} for control structures (if, for, etc.).
 - Use environment variables for secrets and configuration.
 - Write clear, concise commit messages and PR descriptions.
 - Document any non-obvious business logic or workarounds in code comments.
+- Try to never typecast objects
 
 ## Common Tasks
 - Adding a new filter to a search endpoint: Join the necessary relation, add the filter to the query builder, and use the correct column name.

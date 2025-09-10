@@ -26,7 +26,7 @@ export class SchoolService {
 
       await this.schoolRepository.save(school);
       return { message: 'School updated successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to update school');
     }
   }
@@ -38,7 +38,7 @@ export class SchoolService {
         throw new Error('School not found');
       }
       return school;
-    } catch (error) {
+    } catch {
       throw new Error('School not found');
     }
   }

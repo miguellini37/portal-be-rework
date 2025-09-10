@@ -32,7 +32,7 @@ export class JobService {
 
       await this.jobRepository.save(job);
       return { message: 'Job created successfully', job };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to create job');
     }
   }
@@ -47,20 +47,8 @@ export class JobService {
       Object.assign(job, updateJobDto);
       await this.jobRepository.save(job);
       return { message: 'Job updated successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to update job');
-    }
-  }
-
-  async deleteJob(id: string) {
-    try {
-      const result = await this.jobRepository.delete(id);
-      if (result.affected === 0) {
-        throw new Error('Job not found');
-      }
-      return { message: 'Job deleted successfully' };
-    } catch (error) {
-      throw new Error('Failed to delete job');
     }
   }
 
@@ -75,12 +63,12 @@ export class JobService {
       }
       const sanitizedOwner = job.owner ? sanitizeUser(job.owner) : undefined;
       return { ...job, owner: sanitizedOwner };
-    } catch (error) {
+    } catch {
       throw new Error('Job not found');
     }
   }
 
-  async getJobs(query: IJobQueryInput, userId?: string, userPermission?: string) {
+  async getJobs(query: IJobQueryInput, userId: string, userPermission?: string) {
     const queryBuilder = this.jobRepository
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
@@ -128,7 +116,7 @@ export class JobService {
     }
 
     // For athletes, attach hasApplied boolean using an EXISTS subquery
-    if (userPermission === USER_PERMISSIONS.ATHLETE && userId) {
+    if (userPermission === USER_PERMISSIONS.ATHLETE) {
       return await this.getJobsWithHasAppliedFlag(queryBuilder, userId);
     }
 

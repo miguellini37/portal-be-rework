@@ -72,17 +72,36 @@ export class CompanyEmployeeService {
   }
 
   async createCompanyEmployee(input: ICreateCompanyEmployeeInput): Promise<User> {
-    const company = await this.companyRepository.findOne({
-      where: { companyName: input.companyName },
-    });
+    try {
+      let company = await this.companyRepository.findOne({
+        where: { companyName: input.companyName },
+      });
 
-    const companyEmployee = this.companyEmployeeRepository.create({
-      ...input,
-      companyRef: company ?? undefined,
-      permission: USER_PERMISSIONS.COMPANY,
-    });
+      if (!company) {
+        company = await this.companyRepository.save(
+          this.companyRepository.create({ companyName: input.companyName })
+        );
+      }
 
-    const saved = await this.companyEmployeeRepository.save(companyEmployee);
-    return saved as unknown as User;
+      const companyEmployee = this.companyEmployeeRepository.create({
+        ...input,
+        companyRef: company ?? undefined,
+        permission: USER_PERMISSIONS.COMPANY,
+      });
+
+      const saved = await this.companyEmployeeRepository.save(companyEmployee);
+
+      await this.companyRepository.save({
+        ...company,
+        ownerRef: companyEmployee,
+      });
+      return saved;
+    } catch (err) {
+      console.error(err);
+      throw new HttpException(
+        'Failed to create company employee',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 }

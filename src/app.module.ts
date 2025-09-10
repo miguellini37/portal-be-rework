@@ -32,6 +32,7 @@ import {
   SchoolService,
   SchoolEventService,
   SchoolEmployeeService,
+  InterviewService,
 } from './services';
 
 @Module({
@@ -83,6 +84,7 @@ import {
       School,
       SchoolEvent,
       Application,
+      Interview,
     ]),
   ],
   controllers: [AppController],
@@ -98,6 +100,7 @@ import {
     SchoolService,
     SchoolEventService,
     SchoolEmployeeService,
+    InterviewService,
   ],
 })
 export class AppModule {}

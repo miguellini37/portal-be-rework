@@ -39,7 +39,7 @@ export class SchoolEmployeeService {
 
       await this.schoolEmployeeRepository.save(employee);
       return { message: 'School employee updated successfully' };
-    } catch (error) {
+    } catch {
       throw new Error('Failed to update school employee');
     }
   }
@@ -79,15 +79,21 @@ export class SchoolEmployeeService {
       }
 
       return sanitizeUser(employee);
-    } catch (error) {
+    } catch {
       throw new Error('School employee not found');
     }
   }
 
   async createSchoolEmployee(input: ICreateSchoolEmployeeInput): Promise<User> {
-    const school = await this.schoolRepository.findOne({
+    let school = await this.schoolRepository.findOne({
       where: { schoolName: input.schoolName },
     });
+
+    if (!school) {
+      school = await this.schoolRepository.save(
+        this.schoolRepository.create({ schoolName: input.schoolName })
+      );
+    }
 
     const schoolEmployee = this.schoolEmployeeRepository.create({
       ...input,
@@ -96,6 +102,12 @@ export class SchoolEmployeeService {
     });
 
     const saved = await this.schoolEmployeeRepository.save(schoolEmployee);
-    return saved as unknown as User;
+
+    this.schoolRepository.save({
+      ...school,
+      ownerRef: schoolEmployee,
+    });
+
+    return saved;
   }
 }
