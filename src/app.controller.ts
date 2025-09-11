@@ -262,10 +262,8 @@ export class AppController {
 
   @Get('getJobs')
   @UseGuards(JwtAuthGuard)
-  async getJobs(@Request() req: IAuthenticatedRequest, @Query() query: IJobQueryInput) {
-    const userId = req.user?.id;
-    const userPermission = req.user?.permission;
-    return this.jobService.getJobs(query, userId, userPermission);
+  async getJobs(@Request() req: IAuthenticatedRequest, @Query() input: IJobQueryInput) {
+    return this.jobService.getJobs(req, input);
   }
 
   /*

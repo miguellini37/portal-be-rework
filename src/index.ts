@@ -11,12 +11,18 @@ import fastifySensible from '@fastify/sensible';
 import rateLimit from '@fastify/rate-limit';
 import fastifyPressure from '@fastify/under-pressure';
 import ms from 'ms';
+import fastifyQs from 'fastify-qs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true })
+    new FastifyAdapter({
+      logger: true,
+    })
   );
+
+  // Parse qs-style arrays and nested objects in querystrings (e.g., type[]=internship)
+  await app.register(fastifyQs);
 
   // Register Fastify plugins
   await app.register(cors, {

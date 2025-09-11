@@ -6,10 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, Repository } from 'typeorm';
-import { Application } from '../entities/Application';
-import { Athlete } from '../entities/Athlete';
+import { Application, ApplicationStatus } from '../entities/Application';
 import { Interview, InterviewStatus } from '../entities/Interview';
-import { Job } from '../entities/Job';
 import {
   ICreateInterviewInput,
   IGetInterviewInput,
@@ -26,11 +24,7 @@ export class InterviewService {
     @InjectRepository(Interview)
     private interviewRepository: Repository<Interview>,
     @InjectRepository(Application)
-    private applicationRepository: Repository<Application>,
-    @InjectRepository(Job)
-    private jobRepository: Repository<Job>,
-    @InjectRepository(Athlete)
-    private athleteRepository: Repository<Athlete>
+    private applicationRepository: Repository<Application>
   ) {}
 
   async createInterview(companyRefId: string | undefined, input: ICreateInterviewInput) {
@@ -67,9 +61,11 @@ export class InterviewService {
 
     await this.interviewRepository.save(interview);
 
-    // link back to application
-    application.interview = interview;
-    await this.applicationRepository.save(application);
+    await this.applicationRepository.save({
+      ...application,
+      interview: interview,
+      status: ApplicationStatus.interview_requested,
+    });
 
     return this.sanitizeInterview(interview);
   }
@@ -165,7 +161,7 @@ export class InterviewService {
     const interviews = await this.interviewRepository.find({
       where,
       relations: ['job', 'company', 'athlete'],
-      order: { dateTime: 'DESC' },
+      order: { dateTime: 'ASC' },
     });
 
     return interviews.map((i) => this.sanitizeInterview(i));

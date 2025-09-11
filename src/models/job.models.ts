@@ -84,6 +84,6 @@ export class IJobQueryInput {
   durations?: string[];
 
   @IsOptional()
-  @IsString()
-  type?: string;
+  @IsArray()
+  type?: string[];
 }

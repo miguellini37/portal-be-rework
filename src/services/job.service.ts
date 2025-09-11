@@ -8,6 +8,7 @@ import { Application } from '../entities/Application';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from '../models/job.models';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 import { sanitizeUser } from './auth/utils';
+import { IAuthenticatedRequest } from '../models/request.models';
 
 @Injectable()
 export class JobService {
@@ -68,56 +69,26 @@ export class JobService {
     }
   }
 
-  async getJobs(query: IJobQueryInput, userId: string, userPermission?: string) {
+  async getJobs(req: IAuthenticatedRequest, input: IJobQueryInput) {
+    const userId = req.user?.id;
+    const userPermission = req.user?.permission;
+
     const queryBuilder = this.jobRepository
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.owner', 'owner');
 
-    if (query.type) {
-      queryBuilder.where('job.type LIKE :term', { term: `%${query.type}%` });
-    }
-
-    // if both type and wildcard are provided, chain with AND
-    if (query.wildcardTerm && query.type) {
-      queryBuilder.andWhere(
-        '(job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc)',
-        { wc: `%${query.wildcardTerm}%` }
-      );
-    } else if (query.wildcardTerm) {
-      queryBuilder.where(
-        'job.position LIKE :wc OR job.description LIKE :wc OR company.companyName LIKE :wc',
-        { wc: `%${query.wildcardTerm}%` }
-      );
-    }
-
-    if (query.companies?.length) {
-      queryBuilder.andWhere('company.companyName IN (:...companies)', {
-        companies: query.companies,
-      });
-    }
-
-    if (query.industries?.length) {
-      queryBuilder.andWhere('job.industry IN (:...industries)', {
-        industries: query.industries,
-      });
-    }
-
-    if (query.experiences?.length) {
-      queryBuilder.andWhere('job.experience IN (:...experiences)', {
-        experiences: query.experiences,
-      });
-    }
-
-    if (query.durations?.length) {
-      queryBuilder.andWhere('job.duration IN (:...durations)', {
-        durations: query.durations,
-      });
+    if (input.type) {
+      queryBuilder.where('job.type IN (:...types)', { types: input.type });
     }
 
     // For athletes, attach hasApplied boolean using an EXISTS subquery
     if (userPermission === USER_PERMISSIONS.ATHLETE) {
       return await this.getJobsWithHasAppliedFlag(queryBuilder, userId);
+    }
+
+    if (userPermission === USER_PERMISSIONS.COMPANY) {
+      queryBuilder.andWhere('job.companyId = :companyId', { companyId: req.user?.companyRefId });
     }
 
     // Non-athletes: regular list (no flag)
