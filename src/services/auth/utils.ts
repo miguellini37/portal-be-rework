@@ -3,7 +3,7 @@ import { Application } from '../../entities';
 
 export const sanitizeUser = (
   user: User,
-  dropFields: (keyof User)[] = ['password', 'permission', 'email']
+  dropFields: (keyof User)[] = ['password', 'permission']
 ) => {
   if (!user) {
     return user;
