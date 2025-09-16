@@ -66,7 +66,7 @@ export class ActivityService {
       order: { date: 'DESC' },
       take: limit,
     });
-    return activities.map(sanitizeActivity).sort((a, b) => b.date.getTime() - a.date.getTime());
+    return activities.map(sanitizeActivity);
   }
 
   async getAllActivities(userId: string): Promise<IActivity[]> {
@@ -83,7 +83,7 @@ export class ActivityService {
       ],
       order: { date: 'DESC' },
     });
-    return activities.map(sanitizeActivity).sort((a, b) => b.date.getTime() - a.date.getTime());
+    return activities.map(sanitizeActivity);
   }
 
   async updateActivity(userId: string, input: IUpdateActivityInput): Promise<IActivity> {
