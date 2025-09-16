@@ -1,4 +1,5 @@
 export * from './Application';
+export * from './Activity';
 export * from './Athlete';
 export * from './Comment';
 export * from './Company';

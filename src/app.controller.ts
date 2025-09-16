@@ -43,6 +43,7 @@ import { IUpdateCompanyEmployeeInput } from './models/company-employee.models';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from './models/job.models';
 import { ICreateMessageInput, IMessageQueryInput } from './models/message.models';
 import { IUpdateSchoolInput, ISchoolQueryInput } from './models/school.models';
+import { ActivityService } from './services/activity.service';
 import {
   ICreateSchoolEventInput,
   IUpdateSchoolEventInput,
@@ -74,7 +75,8 @@ export class AppController {
     private readonly messageService: MessageService,
     private readonly schoolService: SchoolService,
     private readonly schoolEventService: SchoolEventService,
-    private readonly schoolEmployeeService: SchoolEmployeeService
+    private readonly schoolEmployeeService: SchoolEmployeeService,
+    private readonly activityService: ActivityService
   ) {}
 
   /*
@@ -192,6 +194,22 @@ export class AppController {
     @Body() input: IUpdateInterviewInput
   ) {
     return this.interviewService.updateInterview(req.user.companyRefId, input);
+  }
+
+  /*
+   * Activity Routes
+   */
+
+  @Get('activity/recent')
+  @UseGuards(JwtAuthGuard)
+  async getRecentActivity(@Request() req: IAuthenticatedRequest) {
+    return this.activityService.getRecentActivities(req.user.id);
+  }
+
+  @Get('activity/all')
+  @UseGuards(JwtAuthGuard)
+  async getAllActivity(@Request() req: IAuthenticatedRequest) {
+    return this.activityService.getAllActivities(req.user.id);
   }
 
   /*

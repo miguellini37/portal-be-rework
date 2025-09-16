@@ -18,6 +18,7 @@ import {
   Application,
   JobNote,
   Interview,
+  Activity,
 } from './entities';
 import { AppController } from './app.controller';
 import { AuthService } from './services/auth/auth.service';
@@ -33,6 +34,7 @@ import {
   SchoolEventService,
   SchoolEmployeeService,
   InterviewService,
+  ActivityService,
 } from './services';
 
 @Module({
@@ -69,6 +71,7 @@ import {
         Application,
         JobNote,
         Interview,
+        Activity,
       ],
       migrations: ['src/migrations/**/*.ts'],
       subscribers: [],
@@ -79,12 +82,14 @@ import {
       Company,
       CompanyEmployee,
       SchoolEmployee,
+      Activity,
       Job,
       Message,
       School,
       SchoolEvent,
       Application,
       Interview,
+      Activity,
     ]),
   ],
   controllers: [AppController],
@@ -101,6 +106,7 @@ import {
     SchoolEventService,
     SchoolEmployeeService,
     InterviewService,
+    ActivityService,
   ],
 })
 export class AppModule {}
