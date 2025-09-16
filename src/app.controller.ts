@@ -44,6 +44,7 @@ import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from './models/job.m
 import { ICreateMessageInput, IMessageQueryInput } from './models/message.models';
 import { IUpdateSchoolInput, ISchoolQueryInput } from './models/school.models';
 import { ActivityService } from './services/activity.service';
+import { IRecentActivityInput } from './models/activity.model';
 import {
   ICreateSchoolEventInput,
   IUpdateSchoolEventInput,
@@ -197,19 +198,16 @@ export class AppController {
   }
 
   /*
-   * Activity Routes
+   * Activity Route
    */
 
-  @Get('activity/recent')
+  @Get('activity')
   @UseGuards(JwtAuthGuard)
-  async getRecentActivity(@Request() req: IAuthenticatedRequest) {
-    return this.activityService.getRecentActivities(req.user.id);
-  }
-
-  @Get('activity/all')
-  @UseGuards(JwtAuthGuard)
-  async getAllActivity(@Request() req: IAuthenticatedRequest) {
-    return this.activityService.getAllActivities(req.user.id);
+  async getRecentActivity(
+    @Request() req: IAuthenticatedRequest,
+    @Query() input: IRecentActivityInput
+  ) {
+    return this.activityService.getActivities(req.user.id, input?.limit);
   }
 
   /*

@@ -11,7 +11,11 @@ import { User } from './User';
 import { Application } from './Application';
 import { Interview } from './Interview';
 
-export type ActivityType = 'application' | 'interview' | 'other';
+export enum ActivityType {
+  APPLICATION = 'application',
+  INTERVIEW = 'interview',
+  OTHER = 'other',
+}
 
 @Entity()
 export class Activity extends BaseEntity {

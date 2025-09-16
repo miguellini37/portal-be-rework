@@ -14,6 +14,7 @@ import { Athlete } from '../entities/Athlete';
 import { sanitizeUser, sanitizeApplication } from './auth/utils';
 import { ICreateApplicationInput } from '../models/athlete.models';
 import { ActivityService } from './activity.service';
+import { ActivityType } from '../entities/Activity';
 
 @Injectable()
 export class ApplicationService {
@@ -48,7 +49,7 @@ export class ApplicationService {
 
     const application = this.applicationRepository.create({ job, athlete });
     await this.applicationRepository.save(application);
-    await this.activityService.createActivity(athlete.id, 'application', {
+    await this.activityService.createActivity(athlete.id, ActivityType.APPLICATION, {
       applicationId: application.id,
       message: 'Application created successfully',
     });
@@ -95,7 +96,7 @@ export class ApplicationService {
 
     const application = await this.applicationRepository.findOne({
       where: { id },
-      relations: ['job', 'job.company', 'athlete'],
+      relations: ['job', 'job.company', 'athlete', 'interview'],
     });
     if (!application) {
       throw new NotFoundException('Application not found');
@@ -126,10 +127,9 @@ export class ApplicationService {
     await this.applicationRepository.save(application);
 
     if (application.athlete?.id) {
-      await this.activityService.updateActivity(application.athlete.id, {
+      await this.activityService.createActivity(application.athlete.id, ActivityType.APPLICATION, {
         applicationId: application.id,
-        type: 'application',
-        message: `Status changed to ${application.status}`,
+        message: 'Application status updated to ' + status.trim().replace(/_/g, ' '),
       });
     }
 

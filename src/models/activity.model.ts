@@ -16,3 +16,7 @@ export interface IUpdateActivityInput {
   type?: 'application' | 'interview' | 'other';
   message?: string;
 }
+
+export interface IRecentActivityInput {
+  limit?: number;
+}

@@ -18,6 +18,7 @@ import { sanitizeUser } from './auth/utils';
 import { IAuthenticatedRequest } from '../models/request.models';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 import { ActivityService } from './activity.service'; // ADD
+import { ActivityType } from '../entities';
 
 @Injectable()
 export class InterviewService {
@@ -71,7 +72,7 @@ export class InterviewService {
 
     // ACTIVITY: update or create (by interviewId)
     if (application.athlete?.id) {
-      await this.activityService.createActivity(application.athlete.id, 'interview', {
+      await this.activityService.createActivity(application.athlete.id, ActivityType.INTERVIEW, {
         interviewId: interview.id,
         applicationId: application.id,
         message: 'Interview scheduled',
@@ -152,12 +153,15 @@ export class InterviewService {
 
     // ACTIVITY: update or create (by interviewId)
     if (updatedInterview.athlete?.id) {
-      await this.activityService.updateActivity(updatedInterview.athlete.id, {
-        interviewId: updatedInterview.id,
-        applicationId: updatedInterview.application?.id,
-        type: 'interview',
-        message: 'Interview updated',
-      });
+      await this.activityService.createActivity(
+        updatedInterview.athlete.id,
+        ActivityType.INTERVIEW,
+        {
+          interviewId: updatedInterview.id,
+          applicationId: updatedInterview.application?.id,
+          message: 'Interview information updated',
+        }
+      );
     }
 
     return this.sanitizeInterview(updatedInterview);
