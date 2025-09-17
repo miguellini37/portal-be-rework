@@ -26,8 +26,11 @@ jobs:
 
       - name: Free disk space before pull
         run: |
-          docker system prune -af || true
-          docker volume prune -f || true
+          # Remove only previous portal-backend images to free space
+          ids=$(docker images -q portaljobs/portal-backend || true)
+          if [ -n "$ids" ]; then
+            docker rmi -f $ids || true
+          fi
           df -h
 
       - name: Pull image from docker hub
