@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration1757977233813 implements MigrationInterface {
-  name = 'Migration1757977233813';
+export class Migration1758068622015 implements MigrationInterface {
+  name = 'Migration1758068622015';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
             CREATE TABLE \`activity\` (
                 \`activityId\` varchar(36) NOT NULL,
-                \`type\` enum ('application', 'interview', 'other') NOT NULL,
+                \`type\` enum ('application', 'interview', 'other') NOT NULL DEFAULT 'other',
                 \`message\` text NULL,
                 \`date\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`userId\` varchar(36) NULL,

@@ -22,7 +22,7 @@ export class Activity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   activityId!: string;
 
-  @Column({ type: 'enum', enum: ['application', 'interview', 'other'] })
+  @Column({ type: 'simple-enum', enum: ActivityType, default: ActivityType.OTHER })
   type!: ActivityType;
 
   @Column({ type: 'text', nullable: true })
