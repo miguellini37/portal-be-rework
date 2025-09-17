@@ -7,6 +7,9 @@ jobs:
   deploy-keycloak:
     runs-on: [self-hosted]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
@@ -19,60 +22,15 @@ jobs:
       - name: Write .env file from secret
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
-      - name: Ensure Keycloak data volume exists
-        run: docker volume create keycloak_data || true
+      - name: Pull images with docker compose
+        run: docker compose -f docker-compose.keycloak.prod.yml --env-file .env pull
 
-      - name: Deploy/Update Keycloak container
+      - name: Deploy/Update with docker compose
         run: |
-          # Load env vars so we can pass specific values to Keycloak
-          set -o allexport
-          source .env
-          set +o allexport
-
-          KEYCLOAK_IMAGE=${KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.0.0}
-          KEYCLOAK_PORT=${KEYCLOAK_PORT:-8180}
-          KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
-          # Generate a strong random admin password if not provided in .env
-          if [ -z "${KEYCLOAK_ADMIN_PASSWORD}" ]; then
-            KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32 | tr -d '\n' | head -c 32)
-            echo "::add-mask::${KEYCLOAK_ADMIN_PASSWORD}"
-            echo "Generated a random KEYCLOAK_ADMIN_PASSWORD"
-          fi
-
-          # Default to MySQL to match backend
-          KC_DB=${KC_DB:-mysql}
-          KC_DB_URL_HOST=${KC_DB_URL_HOST:-$DB_ENDPOINT}
-          KC_DB_USERNAME=${KC_DB_USERNAME:-$DB_USER}
-          KC_DB_PASSWORD=${KC_DB_PASSWORD:-$DB_PASSWORD}
-          KC_DB_URL_DATABASE=${KC_DB_URL_DATABASE:-${KEYCLOAK_DB_NAME:-keycloak}}
-          KC_DB_URL_PORT=${KC_DB_URL_PORT:-${DB_PORT:-3306}}
-
-          # Run HTTP behind a reverse proxy/ALB and trust forwarded headers
-          KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}
-          KC_PROXY=${KC_PROXY:-edge}
-
-          # Remove any existing container
-          docker rm -f keycloak || true
-
-          # Run Keycloak
-          docker run -d \
-            --name keycloak \
-            -p ${KEYCLOAK_PORT}:8080 \
-            -e KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN} \
-            -e KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
-            -e KC_METRICS=enabled \
-            -e KC_HTTP_ENABLED=${KC_HTTP_ENABLED} \
-            -e KC_PROXY=${KC_PROXY} \
-            -e KC_DB=${KC_DB} \
-            -e KC_DB_URL_HOST=${KC_DB_URL_HOST} \
-            -e KC_DB_URL_PORT=${KC_DB_URL_PORT} \
-            -e KC_DB_URL_DATABASE=${KC_DB_URL_DATABASE} \
-            -e KC_DB_USERNAME=${KC_DB_USERNAME} \
-            -e KC_DB_PASSWORD=${KC_DB_PASSWORD} \
-            -v keycloak_data:/opt/keycloak/data \
-            -e KC_HOSTNAME=auth.portaljobs.net \
-            ${KEYCLOAK_IMAGE} \
-            start
+          # Ensure any previous stack is stopped to pick up changes
+          docker compose -f docker-compose.keycloak.prod.yml --env-file .env down || true
+          # Start in detached mode; compose will create volumes as needed
+          docker compose -f docker-compose.keycloak.prod.yml --env-file .env up -d
 
       - name: Cleanup .env file
         run: rm -f .env
