@@ -30,7 +30,7 @@ jobs:
           set +o allexport
 
           KEYCLOAK_IMAGE=${KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.0.0}
-          KEYCLOAK_PORT=${KEYCLOAK_PORT:-443}
+          KEYCLOAK_PORT=${KEYCLOAK_PORT:-8180}
           KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
           # Generate a strong random admin password if not provided in .env
           if [ -z "${KEYCLOAK_ADMIN_PASSWORD}" ]; then
@@ -47,6 +47,10 @@ jobs:
           KC_DB_URL_DATABASE=${KC_DB_URL_DATABASE:-${KEYCLOAK_DB_NAME:-keycloak}}
           KC_DB_URL_PORT=${KC_DB_URL_PORT:-${DB_PORT:-3306}}
 
+          # Run HTTP behind a reverse proxy/ALB and trust forwarded headers
+          KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}
+          KC_PROXY=${KC_PROXY:-edge}
+
           # Remove any existing container
           docker rm -f keycloak || true
 
@@ -57,6 +61,8 @@ jobs:
             -e KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN} \
             -e KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
             -e KC_METRICS=enabled \
+            -e KC_HTTP_ENABLED=${KC_HTTP_ENABLED} \
+            -e KC_PROXY=${KC_PROXY} \
             -e KC_DB=${KC_DB} \
             -e KC_DB_URL_HOST=${KC_DB_URL_HOST} \
             -e KC_DB_URL_PORT=${KC_DB_URL_PORT} \
