@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: portal-keycloak
+    command:
+      - "start-dev"
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN not set in .env}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD not set in .env}
+      # Optional goodies for local diagnostics
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      # Database configuration (external MySQL)
+      KC_DB: "mysql"
+      KC_DB_URL: "jdbc:mysql://${DB_ENDPOINT}:3306/${KEYCLOAK_DB_NAME}"
+      KC_DB_USERNAME: ${DB_USER:?DB_USER not set in .env}
+      KC_DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD not set in .env}
+    ports:
+      - "${KEYCLOAK_HTTP_PORT:-8180}:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    restart: unless-stopped
+
+volumes:
+  keycloak_data:

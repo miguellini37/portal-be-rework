@@ -39,3 +39,22 @@ yarn dev
 ```
 
 The app will be available at [http://localhost:3001](http://localhost:3001).
+
+## Keycloak via Docker Compose
+
+You can run Keycloak locally or in production mode using docker compose.
+
+Options:
+
+- Dispatcher with profiles: `docker-compose.keycloak.yml`
+  - Dev profile service: `keycloak-dev`
+  - Prod profile service: `keycloak-prod`
+
+- Separate files:
+  - `docker-compose.keycloak.dev.yml` (local dev)
+  - `docker-compose.keycloak.prod.yml` (production)
+
+Required env vars:
+
+- Dev: `KEYCLOAK_ADMIN_PASSWORD`, optional `KEYCLOAK_HTTP_PORT`
+- Prod: `KEYCLOAK_ADMIN_PASSWORD`, `DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_DB_NAME`, optional `KEYCLOAK_HTTP_PORT`

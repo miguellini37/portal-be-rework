@@ -15,7 +15,8 @@
     "migration:revert": "typeorm migration:revert -d src/config/db.ts",
     "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint src --ext .ts,.js --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "start:keycloak": "docker compose -f docker-compose.keycloak.dev.yml --env-file .env up -d"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
