@@ -8,7 +8,7 @@ import { IActivity } from '../models/activity.model';
 const sanitizeActivity = (activity: Activity): IActivity => {
   const { activityId, type, date } = activity;
   let message = activity.message ?? '';
-  if (activity.type === 'application' && activity.application) {
+  if (activity.type === ActivityType.APPLICATION && activity.application) {
     const { job, status } = activity.application;
     if (job) {
       message =
