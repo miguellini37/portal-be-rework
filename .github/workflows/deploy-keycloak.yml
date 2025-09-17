@@ -13,50 +13,68 @@ jobs:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Free disk space (optional)
+      - name: Free disk space before pull
+        shell: bash
         run: |
-          docker system prune -af || true
-          docker volume prune -f || true
+          set -euo pipefail
+          # Remove only previous Keycloak images to free space
+          ids=$(docker images -q quay.io/keycloak/keycloak || true)
+          if [ -n "$ids" ]; then
+            docker rmi -f $ids || true
+          fi
+          # Optionally prune dangling images only
+          docker image prune -f || true
           df -h
 
       - name: Write .env file from secret
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
-      - name: Deploy/Update Keycloak (Docker CLI)
+      - name: Prepare Keycloak env file
         shell: bash
         run: |
           set -euo pipefail
 
-          # Export env vars from .env for this step
+          # Export env vars from .env for variable expansion
           set -a
           source .env
           set +a
 
-          # Build a dedicated env file for KC_* vars without echoing secrets to logs
-          cat > .keycloak.env.template <<'EOF'
+          # Build a dedicated env file for KC_* vars
+          cat > .keycloak.env <<EOF
           KC_HOSTNAME=auth.portaljobs.net
           KC_PROXY=edge
           KC_DB=mysql
           KC_HEALTH_ENABLED=true
           KC_METRICS_ENABLED=true
-          # Computed from existing .env values
           KC_DB_URL=jdbc:mysql://${DB_ENDPOINT}:3306/${KEYCLOAK_DB_NAME}
           KC_DB_USERNAME=${DB_USER}
+          KC_DB_PASSWORD=${DB_PASSWORD}
           EOF
 
-          envsubst < .keycloak.env.template > .keycloak.env
-          rm -f .keycloak.env.template
+      - name: Pull Keycloak image
+        run: docker pull quay.io/keycloak/keycloak:24.0.5
 
-          # Pull image
-          docker pull quay.io/keycloak/keycloak:24.0.5
+      - name: Ensure data volume exists
+        run: docker volume create keycloak_data >/dev/null
 
-          # Ensure volume exists
-          docker volume create keycloak_data >/dev/null
+      - name: Remove existing container if present
+        shell: bash
+        run: |
+          set -euo pipefail
+          CID=$(docker ps -aq -f name=^portal-keycloak$ || true)
+          if [ -n "$CID" ]; then
+            docker rm -f "$CID"
+          fi
 
-          # Stop and remove old container if present
-          docker rm -f portal-keycloak || true
+      - name: Run Keycloak container
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Source .env for host port mapping
+          set -a
+          source .env
+          set +a
 
-          # Run container (DB password and other secrets come from .env via --env-file)
           docker run -d \
             --name portal-keycloak \
             --restart unless-stopped \
