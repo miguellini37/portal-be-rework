@@ -22,15 +22,49 @@ jobs:
       - name: Write .env file from secret
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
-      - name: Pull images with docker compose
-        run: docker compose -f docker-compose.keycloak.prod.yml --env-file .env pull
-
-      - name: Deploy/Update with docker compose
+      - name: Deploy/Update Keycloak (Docker CLI)
+        shell: bash
         run: |
-          # Ensure any previous stack is stopped to pick up changes
-          docker compose -f docker-compose.keycloak.prod.yml --env-file .env down || true
-          # Start in detached mode; compose will create volumes as needed
-          docker compose -f docker-compose.keycloak.prod.yml --env-file .env up -d
+          set -euo pipefail
 
-      - name: Cleanup .env file
-        run: rm -f .env
+          # Export env vars from .env for this step
+          set -a
+          source .env
+          set +a
+
+          # Build a dedicated env file for KC_* vars without echoing secrets to logs
+          cat > .keycloak.env.template <<'EOF'
+          KC_HOSTNAME=auth.portaljobs.net
+          KC_PROXY=edge
+          KC_DB=mysql
+          KC_HEALTH_ENABLED=true
+          KC_METRICS_ENABLED=true
+          # Computed from existing .env values
+          KC_DB_URL=jdbc:mysql://${DB_ENDPOINT}:3306/${KEYCLOAK_DB_NAME}
+          KC_DB_USERNAME=${DB_USER}
+          EOF
+
+          envsubst < .keycloak.env.template > .keycloak.env
+          rm -f .keycloak.env.template
+
+          # Pull image
+          docker pull quay.io/keycloak/keycloak:24.0.5
+
+          # Ensure volume exists
+          docker volume create keycloak_data >/dev/null
+
+          # Stop and remove old container if present
+          docker rm -f portal-keycloak || true
+
+          # Run container (DB password and other secrets come from .env via --env-file)
+          docker run -d \
+            --name portal-keycloak \
+            --restart unless-stopped \
+            --env-file .env \
+            --env-file .keycloak.env \
+            -p "${KEYCLOAK_HTTP_PORT:-8080}:8080" \
+            -v keycloak_data:/opt/keycloak/data \
+            quay.io/keycloak/keycloak:24.0.5 start
+
+      - name: Cleanup env files
+        run: rm -f .env .keycloak.env
