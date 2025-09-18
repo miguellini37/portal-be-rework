@@ -43,6 +43,9 @@ jobs:
           cat > .keycloak.env <<EOF
           KC_HOSTNAME=auth.portaljobs.net
           KC_HOSTNAME_ADMIN=auth.portaljobs.net
+          # Explicitly set full URLs so Keycloak generates HTTPS links when behind CloudFront
+          KC_HOSTNAME_URL=https://auth.portaljobs.net
+          KC_HOSTNAME_ADMIN_URL=https://auth.portaljobs.net
           KC_PROXY=edge
           KC_HOSTNAME_STRICT_HTTPS=true
           KC_DB=mysql
