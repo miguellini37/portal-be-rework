@@ -63,7 +63,7 @@ export class ActivityService {
 
   async createActivity(
     userId: string,
-    type: ActivityType.APPLICATION | ActivityType.INTERVIEW | ActivityType.OTHER,
+    type: ActivityType,
     opts?: { applicationId?: string; interviewId?: string; message?: string }
   ): Promise<IActivity> {
     const activity = this.activityRepository.create({
