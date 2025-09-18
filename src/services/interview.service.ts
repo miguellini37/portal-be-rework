@@ -17,6 +17,8 @@ import {
 import { sanitizeUser } from './auth/utils';
 import { IAuthenticatedRequest } from '../models/request.models';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
+import { ActivityService } from './activity.service'; // ADD
+import { ActivityType } from '../entities';
 
 @Injectable()
 export class InterviewService {
@@ -24,7 +26,8 @@ export class InterviewService {
     @InjectRepository(Interview)
     private interviewRepository: Repository<Interview>,
     @InjectRepository(Application)
-    private applicationRepository: Repository<Application>
+    private applicationRepository: Repository<Application>,
+    private activityService: ActivityService // ADD
   ) {}
 
   async createInterview(companyRefId: string | undefined, input: ICreateInterviewInput) {
@@ -66,6 +69,15 @@ export class InterviewService {
       interview: interview,
       status: ApplicationStatus.interview_requested,
     });
+
+    // ACTIVITY: update or create (by interviewId)
+    if (application.athlete?.id) {
+      await this.activityService.createActivity(application.athlete.id, ActivityType.INTERVIEW, {
+        interviewId: interview.id,
+        applicationId: application.id,
+        message: 'Interview scheduled',
+      });
+    }
 
     return this.sanitizeInterview(interview);
   }
@@ -112,7 +124,13 @@ export class InterviewService {
 
     const interview = await this.interviewRepository.findOne({
       where: { id: input.id },
-      relations: ['company'],
+      relations: [
+        'company',
+        'athlete',
+        'application',
+        'application.job',
+        'application.job.company',
+      ],
     });
     if (!interview) {
       throw new NotFoundException('Interview not found');
@@ -121,17 +139,32 @@ export class InterviewService {
     if (interview.company?.id !== companyRefId) {
       throw new BadRequestException('Not authorized to update interview');
     }
+
     const updatedInterview = this.interviewRepository.create({
       ...interview,
       dateTime: input.dateTime ? new Date(input.dateTime) : interview.dateTime,
-      location: input.location || interview.location,
-      interviewer: input.interviewer || interview.interviewer,
-      preparationTips: input.preparationTips || interview.preparationTips,
+      location: input.location ?? interview.location,
+      interviewer: input.interviewer ?? interview.interviewer,
+      preparationTips: input.preparationTips ?? interview.preparationTips,
       status: input.status ?? interview.status,
     });
 
     await this.interviewRepository.save(updatedInterview);
-    return this.sanitizeInterview(interview);
+
+    // ACTIVITY: update or create (by interviewId)
+    if (updatedInterview.athlete?.id) {
+      await this.activityService.createActivity(
+        updatedInterview.athlete.id,
+        ActivityType.INTERVIEW,
+        {
+          interviewId: updatedInterview.id,
+          applicationId: updatedInterview.application?.id,
+          message: 'Interview information updated',
+        }
+      );
+    }
+
+    return this.sanitizeInterview(updatedInterview);
   }
 
   async getInterviews(req: IAuthenticatedRequest, input: IGetInterviewsInput) {

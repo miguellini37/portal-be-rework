@@ -1,4 +1,5 @@
 export { AthleteService } from './athlete.service';
+export { ActivityService } from './activity.service';
 export { ApplicationService } from './application.service';
 export { CompanyService } from './company.service';
 export { CompanyEmployeeService } from './company-employee.service';

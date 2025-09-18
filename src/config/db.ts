@@ -13,10 +13,11 @@ import {
   School,
   SchoolEvent,
   User,
+  Interview,
+  Activity,
 } from '../entities';
 import { Application } from '../entities/Application';
 import { JobNote } from '../entities/JobNote';
-import { Interview } from '../entities/Interview';
 
 export const db = new DataSource({
   type: 'mysql',
@@ -42,6 +43,7 @@ export const db = new DataSource({
     Application,
     JobNote,
     Interview,
+    Activity,
   ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
