@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SchoolEmployee } from '../entities/SchoolEmployee';
 import { School } from '../entities/School';
 import { User } from '../entities/User';
@@ -57,9 +57,16 @@ export class SchoolEmployeeService {
     }
 
     if (query.wildcardTerm) {
-      queryBuilder.andWhere(
-        'schoolEmployee.firstName LIKE :term OR schoolEmployee.lastName LIKE :term OR schoolEmployee.email LIKE :term',
-        { term: `%${query.wildcardTerm}%` }
+      this.addWildcardFilterToQuery(
+        queryBuilder,
+        [
+          'schoolEmployee.firstName',
+          'schoolEmployee.lastName',
+          'schoolEmployee.email',
+          'schoolEmployee.position',
+          'school.schoolName',
+        ],
+        query.wildcardTerm
       );
     }
 
@@ -109,5 +116,19 @@ export class SchoolEmployeeService {
     });
 
     return saved;
+  }
+
+  private addWildcardFilterToQuery(
+    query: SelectQueryBuilder<SchoolEmployee>,
+    fields: string[],
+    term: string
+  ) {
+    const conditions = fields.map((field, index) => {
+      const paramName = `term${index}`;
+      query.setParameter(paramName, `%${term}%`);
+      return `${field} LIKE :${paramName}`;
+    });
+
+    query.andWhere(`(${conditions.join(' OR ')})`);
   }
 }
