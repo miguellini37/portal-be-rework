@@ -15,6 +15,12 @@ export enum JobStatus {
   filled = 'filled',
 }
 
+export enum JobType {
+  INTERNSHIP = 'internship',
+  JOB = 'job',
+  NIL = 'nil',
+}
+
 @Entity()
 export class Job extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -48,7 +54,7 @@ export class Job extends BaseEntity {
   benefits?: string;
 
   @Column({ nullable: true })
-  type?: string; // 'internship' or 'job'
+  type?: JobType;
 
   @Column({ nullable: true })
   requirements?: string;

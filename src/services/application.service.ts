@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, FindOptionsWhere } from 'typeorm';
-import { Application, ApplicationStatus } from '../entities/Application';
+import { Application, ApplicationStatus, TERMINAL_STATUSES } from '../entities/Application';
 import { IApplicationInput } from '../models/application.model';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
@@ -62,7 +62,7 @@ export class ApplicationService {
     }
 
     const whereCondition: FindOptionsWhere<Application> = companyRefId
-      ? await this.buildJobQueryForCompany(companyRefId, jobId)
+      ? this.buildJobQueryForCompany(companyRefId, jobId)
       : this.buildJobQueryForAthlete(userId, jobId);
 
     const applications = await this.applicationRepository.find({
@@ -93,6 +93,9 @@ export class ApplicationService {
     if (!id) {
       throw new BadRequestException('application id is required');
     }
+    if (!status) {
+      throw new BadRequestException('Application status is required');
+    }
 
     const application = await this.applicationRepository.findOne({
       where: { id },
@@ -100,9 +103,6 @@ export class ApplicationService {
     });
     if (!application) {
       throw new NotFoundException('Application not found');
-    }
-    if (!status) {
-      throw new BadRequestException('Application status is required');
     }
     if (!Object.values(ApplicationStatus).includes(status)) {
       throw new BadRequestException('Invalid application status');
@@ -124,14 +124,15 @@ export class ApplicationService {
     }
 
     application.status = status;
+    if (TERMINAL_STATUSES.includes(status)) {
+      application.terminalStatusDate = new Date();
+    }
     await this.applicationRepository.save(application);
 
-    if (application.athlete?.id) {
-      await this.activityService.createActivity(application.athlete.id, ActivityType.APPLICATION, {
-        applicationId: application.id,
-        message: 'Application status updated to ' + status.trim().replace(/_/g, ' '),
-      });
-    }
+    await this.activityService.createActivity(application.athlete.id, ActivityType.APPLICATION, {
+      applicationId: application.id,
+      message: 'Application status updated to ' + status.trim().replace(/_/g, ' '),
+    });
 
     return {
       ...application,

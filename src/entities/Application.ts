@@ -19,6 +19,12 @@ export enum ApplicationStatus {
   withdrawn = 'withdrawn',
 }
 
+export const TERMINAL_STATUSES = [
+  ApplicationStatus.accepted,
+  ApplicationStatus.rejected,
+  ApplicationStatus.withdrawn,
+];
+
 @Entity()
 export class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -32,6 +38,9 @@ export class Application extends BaseEntity {
 
   @CreateDateColumn()
   creationDate!: Date;
+
+  @Column({ type: 'date', nullable: true })
+  terminalStatusDate?: Date;
 
   @Column({ default: false })
   employerReviewed!: boolean;
