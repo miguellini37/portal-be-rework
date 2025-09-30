@@ -7,6 +7,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  CreateDateColumn,
 } from 'typeorm';
 import { CompanyEmployee } from './CompanyEmployee';
 import { Job } from './Job';
@@ -99,4 +100,7 @@ export class Company extends BaseEntity {
 
   @Column({ type: 'json', nullable: true })
   recruiting?: Recruiting | null;
+
+  @CreateDateColumn()
+  createdAtDate!: Date;
 }
