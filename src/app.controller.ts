@@ -42,7 +42,11 @@ import { IUpdateCompanyInput, ICompanyQueryInput } from './models/company.models
 import { IUpdateCompanyEmployeeInput } from './models/company-employee.models';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from './models/job.models';
 import { ICreateMessageInput, IMessageQueryInput } from './models/message.models';
-import { IUpdateSchoolInput, ISchoolQueryInput } from './models/school.models';
+import {
+  IUpdateSchoolInput,
+  ISchoolQueryInput,
+  IUniversityOverviewResponse,
+} from './models/school.models';
 import { ActivityService } from './services/activity.service';
 import { IRecentActivityInput } from './models/activity.model';
 import {
@@ -320,6 +324,22 @@ export class AppController {
   @Get('getSchools')
   async getSchools(@Query() query: ISchoolQueryInput) {
     return this.schoolService.getSchools(query);
+  }
+
+  @Get('getUniversityOverview')
+  @UseGuards(JwtAuthGuard)
+  async getUniversityOverview(
+    @Request() req: IAuthenticatedRequest
+  ): Promise<IUniversityOverviewResponse> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access university overview.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for university overview.');
+    }
+
+    return this.schoolService.getUniversityOverview(req.user.schoolRefId);
   }
 
   /*

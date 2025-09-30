@@ -15,3 +15,23 @@ export class ISchoolQueryInput {
   @IsString()
   wildcardTerm?: string;
 }
+
+export interface IMonthlyMetric {
+  currentMonth: number;
+  previousMonth: number;
+}
+
+export interface IUniversityOverviewResponse {
+  placedGraduates: IMonthlyMetric;
+  activeSponsors: IMonthlyMetric;
+  communityNumbers: {
+    totalStudents: number;
+  };
+  recentActivity: Array<{
+    activityId: string;
+    type: string;
+    message: string;
+    date: Date;
+    studentName?: string;
+  }>;
+}
