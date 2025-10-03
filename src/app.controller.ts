@@ -26,6 +26,7 @@ import {
   SchoolEmployeeService,
   AuthService,
   InterviewService,
+  CareerOutcomesService,
 } from './services';
 import {
   ILoginInput,
@@ -66,6 +67,13 @@ import {
   IGetInterviewsInput,
   IUpdateInterviewInput,
 } from './models/interview.models';
+import {
+  ICareerOutcomesQueryInput,
+  IStudentJobOutcomesResponse,
+  IPlacementBySportItem,
+  ISalaryDistributionResponse,
+  IStudentOutcome,
+} from './models/career-outcomes.models';
 
 @Controller()
 export class AppController {
@@ -81,7 +89,8 @@ export class AppController {
     private readonly schoolService: SchoolService,
     private readonly schoolEventService: SchoolEventService,
     private readonly schoolEmployeeService: SchoolEmployeeService,
-    private readonly activityService: ActivityService
+    private readonly activityService: ActivityService,
+    private readonly careerOutcomesService: CareerOutcomesService
   ) {}
 
   /*
@@ -402,5 +411,76 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   async getSchoolEmployee(@Param('id') id: string) {
     return this.schoolEmployeeService.getSchoolEmployee(id);
+  }
+
+  /*
+   * Career Outcomes Routes
+   */
+
+  @Get('getStudentJobOutcomes')
+  @UseGuards(JwtAuthGuard)
+  async getStudentJobOutcomes(
+    @Request() req: IAuthenticatedRequest
+  ): Promise<IStudentJobOutcomesResponse> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access career outcomes.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for career outcomes.');
+    }
+
+    return this.careerOutcomesService.getStudentJobOutcomes(req.user.schoolRefId);
+  }
+
+  @Get('getPlacementBySport')
+  @UseGuards(JwtAuthGuard)
+  async getPlacementBySport(
+    @Request() req: IAuthenticatedRequest,
+    @Query() filters: ICareerOutcomesQueryInput
+  ): Promise<IPlacementBySportItem[]> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access career outcomes.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for career outcomes.');
+    }
+
+    return this.careerOutcomesService.getPlacementBySport(req.user.schoolRefId, filters);
+  }
+
+  @Get('getSalaryDistribution')
+  @UseGuards(JwtAuthGuard)
+  async getSalaryDistribution(
+    @Request() req: IAuthenticatedRequest,
+    @Query() filters: ICareerOutcomesQueryInput
+  ): Promise<ISalaryDistributionResponse> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access career outcomes.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for career outcomes.');
+    }
+
+    return this.careerOutcomesService.getSalaryDistribution(req.user.schoolRefId, filters);
+  }
+
+  @Get('getStudentOutcomes')
+  @UseGuards(JwtAuthGuard)
+  async getStudentOutcomes(
+    @Request() req: IAuthenticatedRequest,
+    @Query() filters: ICareerOutcomesQueryInput
+  ): Promise<IStudentOutcome[]> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access career outcomes.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for career outcomes.');
+    }
+
+    return this.careerOutcomesService.getStudentOutcomes(req.user.schoolRefId, filters);
   }
 }

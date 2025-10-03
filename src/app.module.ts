@@ -35,6 +35,7 @@ import {
   SchoolEmployeeService,
   InterviewService,
   ActivityService,
+  CareerOutcomesService,
 } from './services';
 
 @Module({
@@ -107,6 +108,7 @@ import {
     SchoolEmployeeService,
     InterviewService,
     ActivityService,
+    CareerOutcomesService,
   ],
 })
 export class AppModule {}
