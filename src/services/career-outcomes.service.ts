@@ -105,39 +105,53 @@ export class CareerOutcomesService {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
 
-    const queryBuilder = this.athleteRepository
+    // First get all athletes matching the criteria
+    const athleteQuery = this.athleteRepository
       .createQueryBuilder('athlete')
       .leftJoin('athlete.schoolRef', 'school')
-      .leftJoinAndSelect(
-        'application',
-        'app',
-        'app.athleteId = athlete.id AND app.status = :status',
-        { status: ApplicationStatus.accepted }
-      )
-      .leftJoinAndSelect('app.job', 'job', 'job.type = :jobType', { jobType: JobType.JOB })
       .where('school.id = :schoolId', { schoolId })
       .andWhere('athlete.academicsGraduationdate >= :yearStart', { yearStart })
       .andWhere('athlete.academicsGraduationdate <= :yearEnd', { yearEnd });
 
     if (filters.sport) {
-      queryBuilder.andWhere('athlete.athleticsSport = :sport', { sport: filters.sport });
+      athleteQuery.andWhere('athlete.athleticsSport = :sport', { sport: filters.sport });
     }
+
+    const athletes = await athleteQuery
+      .select(['athlete.id', 'athlete.athleticsSport'])
+      .getRawMany();
+
+    if (athletes.length === 0) {
+      return [];
+    }
+
+    const athleteIds = athletes.map((a) => a.athlete_id);
+
+    // Get all accepted job applications for these athletes
+    const jobApplicationsQuery = this.applicationRepository
+      .createQueryBuilder('application')
+      .leftJoin('application.job', 'job')
+      .where('application.athleteId IN (:...athleteIds)', { athleteIds })
+      .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
+      .andWhere('job.type = :jobType', { jobType: JobType.JOB });
 
     if (filters.industry) {
-      queryBuilder.andWhere('job.industry = :industry', { industry: filters.industry });
+      jobApplicationsQuery.andWhere('job.industry = :industry', { industry: filters.industry });
     }
 
-    const athletes = await queryBuilder
-      .select(['athlete.id', 'athlete.athleticsSport', 'app.id', 'job.id'])
+    const jobApplications = await jobApplicationsQuery
+      .select(['application.athleteId'])
       .getRawMany();
+
+    const athletesWithJobs = new Set(jobApplications.map((app) => app.application_athleteId));
 
     // Group by sport
     const sportMap = new Map<string, { withJob: Set<string>; total: Set<string> }>();
 
-    for (const row of athletes) {
-      const sport = row.athlete_athleticsSport || 'Unknown';
-      const athleteId = row.athlete_id;
-      const hasJob = !!row.app_id;
+    for (const athlete of athletes) {
+      const sport = athlete.athlete_athleticsSport || 'Unknown';
+      const athleteId = athlete.athlete_id;
+      const hasJob = athletesWithJobs.has(athleteId);
 
       if (!sportMap.has(sport)) {
         sportMap.set(sport, { withJob: new Set(), total: new Set() });
