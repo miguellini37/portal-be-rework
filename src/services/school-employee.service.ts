@@ -59,15 +59,13 @@ export class SchoolEmployeeService {
     if (query.wildcardTerm) {
       this.addWildcardFilterToQuery(
         queryBuilder,
-        [
-          'schoolEmployee.firstName',
-          'schoolEmployee.lastName',
-          'schoolEmployee.email',
-          'schoolEmployee.position',
-          'school.schoolName',
-        ],
+        ['schoolEmployee.firstName', 'schoolEmployee.lastName', 'schoolEmployee.email'],
         query.wildcardTerm
       );
+    }
+
+    if (query.position) {
+      queryBuilder.andWhere('schoolEmployee.position = :position', { position: query.position });
     }
 
     const employees = await queryBuilder.getMany();

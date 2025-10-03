@@ -48,4 +48,8 @@ export class ISchoolEmployeeQueryInput {
   @IsOptional()
   @IsString()
   wildcardTerm?: string;
+
+  @IsOptional()
+  @IsString()
+  position?: string;
 }
