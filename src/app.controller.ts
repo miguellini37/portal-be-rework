@@ -47,6 +47,7 @@ import {
   IUpdateSchoolInput,
   ISchoolQueryInput,
   IUniversityOverviewResponse,
+  ICompaniesForUniversityResponse,
   IUniversityNILOversightResponse,
 } from './models/school.models';
 import { ActivityService } from './services/activity.service';
@@ -350,6 +351,22 @@ export class AppController {
     }
 
     return this.schoolService.getUniversityOverview(req.user.schoolRefId);
+  }
+
+  @Get('getCompaniesForUniversity')
+  @UseGuards(JwtAuthGuard)
+  async getCompaniesForUniversity(
+    @Request() req: IAuthenticatedRequest
+  ): Promise<ICompaniesForUniversityResponse> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access companies for university.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for companies for university.');
+    }
+
+    return this.schoolService.getCompaniesForUniversity(req.user.schoolRefId);
   }
 
   @Get('getUniversityNILOversight')
