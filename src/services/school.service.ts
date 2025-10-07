@@ -6,11 +6,13 @@ import { Athlete } from '../entities/Athlete';
 import { Application, ApplicationStatus } from '../entities/Application';
 import { Company } from '../entities/Company';
 import { Activity } from '../entities/Activity';
-import { JobType } from '../entities/Job';
+import { Job, JobType, JobStatus } from '../entities/Job';
 import {
   IUpdateSchoolInput,
   ISchoolQueryInput,
   IUniversityOverviewResponse,
+  ICompaniesForUniversityResponse,
+  ICompanyWithJobCount,
 } from '../models/school.models';
 
 @Injectable()
@@ -25,7 +27,9 @@ export class SchoolService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
     @InjectRepository(Activity)
-    private activityRepository: Repository<Activity>
+    private activityRepository: Repository<Activity>,
+    @InjectRepository(Job)
+    private jobRepository: Repository<Job>
   ) {}
 
   async updateSchool(updateSchoolDto: IUpdateSchoolInput) {
@@ -177,6 +181,128 @@ export class SchoolService {
     } catch (error) {
       throw new Error(
         `Failed to get university overview: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async getCompaniesForUniversity(schoolId: string): Promise<ICompaniesForUniversityResponse> {
+    try {
+      // Verify school exists
+      const school = await this.schoolRepository.findOneBy({ id: schoolId });
+      if (!school) {
+        throw new Error('School not found');
+      }
+
+      // Calculate date ranges
+      const now = new Date();
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+
+      // 1. Total Partners - Companies with at least one open job (current and previous month)
+      // Current: All companies with open jobs right now
+      const currentMonthPartners = await this.companyRepository
+        .createQueryBuilder('company')
+        .leftJoin('company.jobs', 'job')
+        .where('job.status = :status', { status: JobStatus.open })
+        .select('COUNT(DISTINCT company.id)', 'count')
+        .getRawOne();
+
+      const totalPartnersCurrent = parseInt(currentMonthPartners?.count || '0', 10);
+
+      // Previous month: Companies with open jobs at end of previous month
+      const previousMonthPartners = await this.companyRepository
+        .createQueryBuilder('company')
+        .leftJoin('company.jobs', 'job')
+        .where('job.status = :status', { status: JobStatus.open })
+        .andWhere('job.createdDate <= :end', { end: previousMonthEnd })
+        .select('COUNT(DISTINCT company.id)', 'count')
+        .getRawOne();
+
+      const totalPartnersPrevious = parseInt(previousMonthPartners?.count || '0', 10);
+
+      // 2. Open Positions - Total count of open jobs across all companies
+      const openPositions = await this.jobRepository
+        .createQueryBuilder('job')
+        .where('job.status = :status', { status: JobStatus.open })
+        .getCount();
+
+      // 3. Placements YTD - Accepted applications for students from this school
+      const placementsYTD = await this.applicationRepository
+        .createQueryBuilder('application')
+        .leftJoin('application.athlete', 'athlete')
+        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('application.job', 'job')
+        .where('school.id = :schoolId', { schoolId })
+        .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
+        .andWhere('job.type = :jobType', { jobType: JobType.JOB })
+        .andWhere('application.terminalStatusDate >= :yearStart', { yearStart })
+        .getCount();
+
+      // 4. Median Salary - Median salary of all active (open) jobs
+      const salariesQuery = `
+        SELECT job.salary
+        FROM job
+        WHERE job.status = ?
+          AND job.salary IS NOT NULL
+        ORDER BY job.salary
+      `;
+
+      const salaries = await this.jobRepository.query(salariesQuery, [JobStatus.open]);
+
+      let medianSalary = 0;
+      if (salaries.length > 0) {
+        const salaryValues = salaries.map((s: { salary: number }) => s.salary);
+        const mid = Math.floor(salaryValues.length / 2);
+        if (salaryValues.length % 2 === 0) {
+          medianSalary = (salaryValues[mid - 1] + salaryValues[mid]) / 2;
+        } else {
+          medianSalary = salaryValues[mid];
+        }
+      }
+
+      // 5. All Companies with open job count
+      const companiesWithJobCounts = await this.companyRepository
+        .createQueryBuilder('company')
+        .leftJoin('company.jobs', 'job', 'job.status = :status', { status: JobStatus.open })
+        .select([
+          'company.id',
+          'company.companyName',
+          'company.industry',
+          'company.culture',
+          'company.benefits',
+          'company.recruiting',
+          'company.createdAtDate',
+        ])
+        .addSelect('COUNT(job.id)', 'openJobsCount')
+        .groupBy('company.id')
+        .getRawAndEntities();
+
+      const companies: ICompanyWithJobCount[] = companiesWithJobCounts.entities.map(
+        (company, index) => ({
+          id: company.id,
+          companyName: company.companyName,
+          industry: company.industry,
+          culture: company.culture,
+          benefits: company.benefits,
+          recruiting: company.recruiting,
+          createdAtDate: company.createdAtDate,
+          openJobsCount: parseInt(companiesWithJobCounts.raw[index]?.openJobsCount || '0', 10),
+        })
+      );
+
+      return {
+        totalPartners: {
+          current: totalPartnersCurrent,
+          previousMonth: totalPartnersPrevious,
+        },
+        openPositions,
+        placementsYTD,
+        medianSalary: Math.round(medianSalary),
+        companies,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to get companies for university: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

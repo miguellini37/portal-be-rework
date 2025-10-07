@@ -35,3 +35,25 @@ export interface IUniversityOverviewResponse {
     studentName?: string;
   }>;
 }
+
+export interface ICompanyWithJobCount {
+  id: string;
+  companyName?: string;
+  industry?: string;
+  culture?: unknown;
+  benefits?: unknown;
+  recruiting?: unknown;
+  createdAtDate: Date;
+  openJobsCount: number;
+}
+
+export interface ICompaniesForUniversityResponse {
+  totalPartners: {
+    current: number;
+    previousMonth: number;
+  };
+  openPositions: number;
+  placementsYTD: number;
+  medianSalary: number;
+  companies: ICompanyWithJobCount[];
+}
