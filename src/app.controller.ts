@@ -367,6 +367,8 @@ export class AppController {
     }
 
     return this.schoolService.getCompaniesForUniversity(req.user.schoolRefId);
+  }
+
   @Get('getUniversityNILOversight')
   @UseGuards(JwtAuthGuard)
   async getUniversityNILOversight(

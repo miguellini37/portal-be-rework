@@ -56,6 +56,8 @@ export interface ICompaniesForUniversityResponse {
   placementsYTD: number;
   medianSalary: number;
   companies: ICompanyWithJobCount[];
+}
+
 export interface IUniversityNILOversightResponse {
   metrics: {
     totalAcceptedDeals: {

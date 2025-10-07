@@ -187,7 +187,6 @@ export class SchoolService {
   }
 
   async getCompaniesForUniversity(schoolId: string): Promise<ICompaniesForUniversityResponse> {
-  async getUniversityNILOversight(schoolId: string): Promise<IUniversityNILOversightResponse> {
     try {
       // Verify school exists
       const school = await this.schoolRepository.findOneBy({ id: schoolId });
@@ -305,6 +304,18 @@ export class SchoolService {
     } catch (error) {
       throw new Error(
         `Failed to get companies for university: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async getUniversityNILOversight(schoolId: string): Promise<IUniversityNILOversightResponse> {
+    try {
+      // Verify school exists
+      const school = await this.schoolRepository.findOneBy({ id: schoolId });
+      if (!school) {
+        throw new Error('School not found');
+      }
+
       // Calculate academic year ranges (August to July)
       const now = new Date();
       const currentMonth = now.getMonth();
