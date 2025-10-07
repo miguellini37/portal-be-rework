@@ -264,6 +264,17 @@ export class SchoolService {
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
         .getCount();
 
+      // Total Accepted NIL Deals (all time) for approval rate calculation
+      const totalAcceptedDealsAllTime = await this.applicationRepository
+        .createQueryBuilder('application')
+        .leftJoin('application.job', 'job')
+        .leftJoin('application.athlete', 'athlete')
+        .leftJoin('athlete.schoolRef', 'school')
+        .where('school.id = :schoolId', { schoolId })
+        .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
+        .andWhere('job.type = :jobType', { jobType: JobType.NIL })
+        .getCount();
+
       // 5. Total Value of Accepted NIL Deals (current academic year)
       const totalValueResult = await this.applicationRepository
         .createQueryBuilder('application')
@@ -282,7 +293,7 @@ export class SchoolService {
 
       // Calculate approval rate
       const approvalRate =
-        totalNILApplications > 0 ? (totalAcceptedDealsCurrentYear / totalNILApplications) * 100 : 0;
+        totalNILApplications > 0 ? (totalAcceptedDealsAllTime / totalNILApplications) * 100 : 0;
 
       // 6. Get 5 Most Recent NIL Deals (most recently updated NIL applications)
       const recentDealsData = await this.applicationRepository
@@ -295,6 +306,7 @@ export class SchoolService {
           'application.id',
           'application.status',
           'application.creationDate',
+          'application.terminalStatusDate',
           'job.id',
           'job.position',
           'job.description',
@@ -319,7 +331,8 @@ export class SchoolService {
         ])
         .where('school.id = :schoolId', { schoolId })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
-        .orderBy('application.creationDate', 'DESC')
+        .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
+        .orderBy('application.terminalStatusDate', 'DESC')
         .limit(5)
         .getMany();
 
@@ -349,6 +362,7 @@ export class SchoolService {
           : undefined,
         applicationStatus: application.status,
         applicationCreationDate: application.creationDate,
+        applicationTerminalStatusDate: application.terminalStatusDate,
         athleteName: application.athlete
           ? `${application.athlete.firstName} ${application.athlete.lastName}`
           : undefined,

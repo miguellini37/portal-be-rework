@@ -71,6 +71,7 @@ export interface IUniversityNILOversightResponse {
     };
     applicationStatus?: string;
     applicationCreationDate?: Date;
+    applicationTerminalStatusDate?: Date;
     athleteName?: string;
   }>;
 }
