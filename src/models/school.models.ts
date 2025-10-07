@@ -56,4 +56,42 @@ export interface ICompaniesForUniversityResponse {
   placementsYTD: number;
   medianSalary: number;
   companies: ICompanyWithJobCount[];
+export interface IUniversityNILOversightResponse {
+  metrics: {
+    totalAcceptedDeals: {
+      currentYear: number;
+      lastYear: number;
+    };
+    totalApplications: number;
+    approvalRate: number;
+    applicationsUnderReview: number;
+    totalValue: number;
+  };
+  recentDeals: Array<{
+    id: string;
+    position?: string;
+    description?: string;
+    industry?: string;
+    experience?: string;
+    createdDate: Date;
+    applicationDeadline?: Date;
+    benefits?: string;
+    type?: string;
+    requirements?: string;
+    location?: string;
+    salary?: number;
+    paymentType?: string;
+    duration?: string;
+    athleteBenefits?: string;
+    status?: string;
+    company?: {
+      id: string;
+      companyName?: string;
+      industry?: string;
+    };
+    applicationStatus?: string;
+    applicationCreationDate?: Date;
+    applicationTerminalStatusDate?: Date;
+    athleteName?: string;
+  }>;
 }

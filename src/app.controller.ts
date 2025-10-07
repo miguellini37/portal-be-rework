@@ -48,6 +48,7 @@ import {
   ISchoolQueryInput,
   IUniversityOverviewResponse,
   ICompaniesForUniversityResponse,
+  IUniversityNILOversightResponse,
 } from './models/school.models';
 import { ActivityService } from './services/activity.service';
 import { IRecentActivityInput } from './models/activity.model';
@@ -366,6 +367,20 @@ export class AppController {
     }
 
     return this.schoolService.getCompaniesForUniversity(req.user.schoolRefId);
+  @Get('getUniversityNILOversight')
+  @UseGuards(JwtAuthGuard)
+  async getUniversityNILOversight(
+    @Request() req: IAuthenticatedRequest
+  ): Promise<IUniversityNILOversightResponse> {
+    if (req.user.permission !== 'school') {
+      throw new Error('Access denied. Only school users can access NIL oversight.');
+    }
+
+    if (!req.user.schoolRefId) {
+      throw new Error('School reference ID is required for NIL oversight.');
+    }
+
+    return this.schoolService.getUniversityNILOversight(req.user.schoolRefId);
   }
 
   /*
