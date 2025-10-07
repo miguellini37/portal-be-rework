@@ -105,75 +105,53 @@ export class CareerOutcomesService {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
 
-    // First get all athletes matching the criteria
-    const athleteQuery = this.athleteRepository
-      .createQueryBuilder('athlete')
-      .leftJoin('athlete.schoolRef', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('athlete.academicsGraduationdate >= :yearStart', { yearStart })
-      .andWhere('athlete.academicsGraduationdate <= :yearEnd', { yearEnd });
+    // Build dynamic query parts
+    const sportFilter = filters.sport ? 'AND athlete.athleticsSport = ?' : '';
 
-    if (filters.sport) {
-      athleteQuery.andWhere('athlete.athleticsSport = :sport', { sport: filters.sport });
-    }
+    // Use a single query with GROUP BY to compute totals and jobs count in MySQL
+    const query = `
+      SELECT 
+        COALESCE(athlete.athleticsSport, 'Unknown') as sport,
+        COUNT(DISTINCT athlete.id) as totalAthletes,
+        COUNT(DISTINCT CASE 
+          WHEN application.status = ? 
+          AND job.type = ?
+          ${filters.industry ? 'AND job.industry = ?' : ''}
+          THEN athlete.id 
+        END) as athletesWithJobs
+      FROM athlete
+      LEFT JOIN school ON athlete.schoolRefId = school.id
+      LEFT JOIN application ON application.athleteId = athlete.id
+      LEFT JOIN job ON application.jobId = job.id
+      WHERE school.id = ?
+        AND athlete.academicsGraduationdate >= ?
+        AND athlete.academicsGraduationdate <= ?
+        ${sportFilter}
+      GROUP BY COALESCE(athlete.athleticsSport, 'Unknown')
+      ORDER BY sport
+    `;
 
-    const athletes = await athleteQuery
-      .select(['athlete.id', 'athlete.athleticsSport'])
-      .getRawMany();
-
-    if (athletes.length === 0) {
-      return [];
-    }
-
-    const athleteIds = athletes.map((a) => a.athlete_id);
-
-    // Get all accepted job applications for these athletes
-    const jobApplicationsQuery = this.applicationRepository
-      .createQueryBuilder('application')
-      .leftJoin('application.job', 'job')
-      .where('application.athleteId IN (:...athleteIds)', { athleteIds })
-      .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
-      .andWhere('job.type = :jobType', { jobType: JobType.JOB });
+    const parameters: unknown[] = [ApplicationStatus.accepted, JobType.JOB];
 
     if (filters.industry) {
-      jobApplicationsQuery.andWhere('job.industry = :industry', { industry: filters.industry });
+      parameters.push(filters.industry);
     }
 
-    const jobApplications = await jobApplicationsQuery
-      .select(['application.athleteId'])
-      .getRawMany();
+    parameters.push(schoolId, yearStart, yearEnd);
 
-    const athletesWithJobs = new Set(jobApplications.map((app) => app.application_athleteId));
-
-    // Group by sport
-    const sportMap = new Map<string, { withJob: Set<string>; total: Set<string> }>();
-
-    for (const athlete of athletes) {
-      const sport = athlete.athlete_athleticsSport || 'Unknown';
-      const athleteId = athlete.athlete_id;
-      const hasJob = athletesWithJobs.has(athleteId);
-
-      if (!sportMap.has(sport)) {
-        sportMap.set(sport, { withJob: new Set(), total: new Set() });
-      }
-
-      const sportData = sportMap.get(sport)!;
-      sportData.total.add(athleteId);
-      if (hasJob) {
-        sportData.withJob.add(athleteId);
-      }
+    if (filters.sport) {
+      parameters.push(filters.sport);
     }
 
-    const result: IPlacementBySportItem[] = [];
-    for (const [sport, data] of sportMap.entries()) {
-      result.push({
-        sport,
-        athletesWithJobs: data.withJob.size,
-        totalAthletes: data.total.size,
-      });
-    }
+    const results = await this.athleteRepository.query(query, parameters);
 
-    return result;
+    return results.map(
+      (row: { sport: string; totalAthletes: number; athletesWithJobs: number }) => ({
+        sport: row.sport,
+        totalAthletes: parseInt(String(row.totalAthletes), 10),
+        athletesWithJobs: parseInt(String(row.athletesWithJobs), 10),
+      })
+    );
   }
 
   async getSalaryDistribution(
@@ -184,29 +162,46 @@ export class CareerOutcomesService {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
 
-    const queryBuilder = this.applicationRepository
-      .createQueryBuilder('application')
-      .leftJoin('application.job', 'job')
-      .leftJoin('application.athlete', 'athlete')
-      .leftJoin('athlete.schoolRef', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
-      .andWhere('job.type = :jobType', { jobType: JobType.JOB })
-      .andWhere('athlete.academicsGraduationdate >= :yearStart', { yearStart })
-      .andWhere('athlete.academicsGraduationdate <= :yearEnd', { yearEnd })
-      .andWhere('job.salary IS NOT NULL');
+    // Use MySQL CASE statements to count salary ranges in a single query
+    const query = `
+      SELECT 
+        SUM(CASE WHEN job.salary >= 100000 THEN 1 ELSE 0 END) as over100k,
+        SUM(CASE WHEN job.salary >= 80000 AND job.salary < 100000 THEN 1 ELSE 0 END) as range80kTo99k,
+        SUM(CASE WHEN job.salary >= 60000 AND job.salary < 80000 THEN 1 ELSE 0 END) as range60kTo79k,
+        SUM(CASE WHEN job.salary >= 40000 AND job.salary < 60000 THEN 1 ELSE 0 END) as range40kTo59k,
+        SUM(CASE WHEN job.salary < 40000 THEN 1 ELSE 0 END) as under40k
+      FROM application
+      INNER JOIN job ON application.jobId = job.id
+      INNER JOIN athlete ON application.athleteId = athlete.id
+      INNER JOIN school ON athlete.schoolRefId = school.id
+      WHERE school.id = ?
+        AND application.status = ?
+        AND job.type = ?
+        AND athlete.academicsGraduationdate >= ?
+        AND athlete.academicsGraduationdate <= ?
+        AND job.salary IS NOT NULL
+        ${filters.sport ? 'AND athlete.athleticsSport = ?' : ''}
+        ${filters.industry ? 'AND job.industry = ?' : ''}
+    `;
+
+    const parameters: unknown[] = [
+      schoolId,
+      ApplicationStatus.accepted,
+      JobType.JOB,
+      yearStart,
+      yearEnd,
+    ];
 
     if (filters.sport) {
-      queryBuilder.andWhere('athlete.athleticsSport = :sport', { sport: filters.sport });
+      parameters.push(filters.sport);
     }
 
     if (filters.industry) {
-      queryBuilder.andWhere('job.industry = :industry', { industry: filters.industry });
+      parameters.push(filters.industry);
     }
 
-    const applications = await queryBuilder.select(['job.salary']).getRawMany();
-
-    const distribution = {
+    const results = await this.applicationRepository.query(query, parameters);
+    const row = results[0] || {
       over100k: 0,
       range80kTo99k: 0,
       range60kTo79k: 0,
@@ -214,22 +209,13 @@ export class CareerOutcomesService {
       under40k: 0,
     };
 
-    for (const app of applications) {
-      const salary = app.job_salary;
-      if (salary >= 100000) {
-        distribution.over100k++;
-      } else if (salary >= 80000) {
-        distribution.range80kTo99k++;
-      } else if (salary >= 60000) {
-        distribution.range60kTo79k++;
-      } else if (salary >= 40000) {
-        distribution.range40kTo59k++;
-      } else {
-        distribution.under40k++;
-      }
-    }
-
-    return distribution;
+    return {
+      over100k: parseInt(String(row.over100k), 10),
+      range80kTo99k: parseInt(String(row.range80kTo99k), 10),
+      range60kTo79k: parseInt(String(row.range60kTo79k), 10),
+      range40kTo59k: parseInt(String(row.range40kTo59k), 10),
+      under40k: parseInt(String(row.under40k), 10),
+    };
   }
 
   async getStudentOutcomes(
@@ -240,87 +226,94 @@ export class CareerOutcomesService {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
 
-    const queryBuilder = this.athleteRepository
-      .createQueryBuilder('athlete')
-      .leftJoin('athlete.schoolRef', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('athlete.academicsGraduationdate >= :yearStart', { yearStart })
-      .andWhere('athlete.academicsGraduationdate <= :yearEnd', { yearEnd });
+    // Build dynamic query parts
+    const sportFilter = filters.sport ? 'AND athlete.athleticsSport = ?' : '';
+    const havingParts: string[] = [];
+
+    if (filters.hasJob !== undefined) {
+      havingParts.push('hasJob = ?');
+    }
+
+    if (filters.industry) {
+      havingParts.push('industry = ?');
+    }
+
+    const havingClause = havingParts.length > 0 ? `HAVING ${havingParts.join(' AND ')}` : '';
+
+    // Use a single query with GROUP BY to get athlete data and counts
+    const query = `
+      SELECT 
+        athlete.id,
+        athlete.firstName,
+        athlete.lastName,
+        athlete.athleticsSport as sport,
+        athlete.academicsMajor as major,
+        athlete.academicsGpa as gpa,
+        athlete.academicsGraduationdate as graduationDate,
+        athlete.location,
+        COUNT(DISTINCT CASE WHEN job.type = 'job' THEN application.id END) > 0 as hasJob,
+        MAX(CASE WHEN job.type = 'job' THEN job.industry END) as industry,
+        COUNT(DISTINCT CASE WHEN job.type = 'internship' THEN application.id END) as internshipCount,
+        COUNT(DISTINCT CASE WHEN job.type = 'nil' THEN application.id END) as nilCount
+      FROM athlete
+      INNER JOIN school ON athlete.schoolRefId = school.id
+      LEFT JOIN application ON application.athleteId = athlete.id 
+        AND application.status = ?
+      LEFT JOIN job ON application.jobId = job.id
+      WHERE school.id = ?
+        AND athlete.academicsGraduationdate >= ?
+        AND athlete.academicsGraduationdate <= ?
+        ${sportFilter}
+      GROUP BY athlete.id, athlete.firstName, athlete.lastName, athlete.athleticsSport, 
+               athlete.academicsMajor, athlete.academicsGpa, athlete.academicsGraduationdate, athlete.location
+      ${havingClause}
+      ORDER BY athlete.lastName, athlete.firstName
+    `;
+
+    const parameters: unknown[] = [ApplicationStatus.accepted, schoolId, yearStart, yearEnd];
 
     if (filters.sport) {
-      queryBuilder.andWhere('athlete.athleticsSport = :sport', { sport: filters.sport });
+      parameters.push(filters.sport);
     }
 
-    const athletes = await queryBuilder.getMany();
-    const athleteIds = athletes.map((a) => a.id);
-
-    if (athleteIds.length === 0) {
-      return [];
+    if (filters.hasJob !== undefined) {
+      parameters.push(filters.hasJob ? 1 : 0);
     }
 
-    // Get all applications for these athletes in one query
-    const allApplications = await this.applicationRepository
-      .createQueryBuilder('application')
-      .leftJoin('application.job', 'job')
-      .where('application.athleteId IN (:...athleteIds)', { athleteIds })
-      .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
-      .select(['application.athleteId', 'job.type', 'job.industry'])
-      .getRawMany();
-
-    // Create maps for quick lookup
-    const jobCountMap = new Map<string, number>();
-    const internshipCountMap = new Map<string, number>();
-    const nilCountMap = new Map<string, number>();
-    const industryMap = new Map<string, string>();
-
-    for (const app of allApplications) {
-      const athleteId = app.application_athleteId;
-      const jobType = app.job_type;
-
-      if (jobType === JobType.JOB) {
-        jobCountMap.set(athleteId, (jobCountMap.get(athleteId) || 0) + 1);
-        if (app.job_industry && !industryMap.has(athleteId)) {
-          industryMap.set(athleteId, app.job_industry);
-        }
-      } else if (jobType === JobType.INTERNSHIP) {
-        internshipCountMap.set(athleteId, (internshipCountMap.get(athleteId) || 0) + 1);
-      } else if (jobType === JobType.NIL) {
-        nilCountMap.set(athleteId, (nilCountMap.get(athleteId) || 0) + 1);
-      }
+    if (filters.industry) {
+      parameters.push(filters.industry);
     }
 
-    // Build results, applying filters
-    const results: IStudentOutcome[] = [];
-    for (const athlete of athletes) {
-      const hasJob = (jobCountMap.get(athlete.id) || 0) > 0;
-      const industry = industryMap.get(athlete.id);
+    const results = await this.athleteRepository.query(query, parameters);
 
-      // Apply hasJob filter
-      if (filters.hasJob !== undefined && hasJob !== filters.hasJob) {
-        continue;
-      }
-
-      // Apply industry filter
-      if (filters.industry && industry !== filters.industry) {
-        continue;
-      }
-
-      results.push({
-        id: athlete.id,
-        name: `${athlete.firstName} ${athlete.lastName}`,
-        sport: athlete.athletics?.sport,
-        hasJob,
-        major: athlete.academics?.major,
-        gpa: athlete.academics?.gpa,
-        industry,
-        graduationDate: athlete.academics?.graduationDate,
-        internshipCount: internshipCountMap.get(athlete.id) || 0,
-        nilCount: nilCountMap.get(athlete.id) || 0,
-        location: athlete.location,
-      });
-    }
-
-    return results;
+    return results.map(
+      (row: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        sport: string;
+        major: string;
+        gpa: number;
+        graduationDate: Date;
+        location: string;
+        hasJob: number;
+        industry: string;
+        internshipCount: number;
+        nilCount: number;
+      }) => ({
+        id: row.id,
+        name: `${row.firstName} ${row.lastName}`,
+        sport: row.sport,
+        hasJob: row.hasJob === 1,
+        major: row.major,
+        gpa: row.gpa,
+        industry: row.industry,
+        graduationDate: row.graduationDate,
+        internshipCount: parseInt(String(row.internshipCount), 10),
+        nilCount: parseInt(String(row.nilCount), 10),
+        location: row.location,
+      })
+    );
   }
 
   // Helper methods
@@ -387,43 +380,39 @@ export class CareerOutcomesService {
     startDate: Date,
     endDate: Date
   ): Promise<number> {
-    const applications = await this.applicationRepository
-      .createQueryBuilder('application')
-      .leftJoin('application.job', 'job')
-      .leftJoin('application.athlete', 'athlete')
-      .leftJoin('athlete.schoolRef', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
-      .andWhere('job.type = :jobType', { jobType: JobType.JOB })
-      .andWhere('application.terminalStatusDate >= :startDate', { startDate })
-      .andWhere('application.terminalStatusDate <= :endDate', { endDate })
-      .andWhere('application.terminalStatusDate IS NOT NULL')
-      .andWhere('athlete.academicsGraduationdate IS NOT NULL')
-      .select(['athlete.academicsGraduationdate', 'application.terminalStatusDate'])
-      .getRawMany();
+    // Use MySQL to calculate month differences
+    const query = `
+      SELECT 
+        AVG(
+          GREATEST(0, 
+            PERIOD_DIFF(
+              DATE_FORMAT(application.terminalStatusDate, '%Y%m'),
+              DATE_FORMAT(athlete.academicsGraduationdate, '%Y%m')
+            )
+          )
+        ) as avgMonths
+      FROM application
+      INNER JOIN job ON application.jobId = job.id
+      INNER JOIN athlete ON application.athleteId = athlete.id
+      INNER JOIN school ON athlete.schoolRefId = school.id
+      WHERE school.id = ?
+        AND application.status = ?
+        AND job.type = ?
+        AND application.terminalStatusDate >= ?
+        AND application.terminalStatusDate <= ?
+        AND application.terminalStatusDate IS NOT NULL
+        AND athlete.academicsGraduationdate IS NOT NULL
+    `;
 
-    if (applications.length === 0) {
-      return 0;
-    }
+    const results = await this.applicationRepository.query(query, [
+      schoolId,
+      ApplicationStatus.accepted,
+      JobType.JOB,
+      startDate,
+      endDate,
+    ]);
 
-    let totalMonths = 0;
-    for (const app of applications) {
-      const gradDate = new Date(app.athlete_academicsGraduationdate);
-      const terminalDate = new Date(app.application_terminalStatusDate);
-
-      // If terminal date is before graduation, count as 0 months
-      if (terminalDate <= gradDate) {
-        totalMonths += 0;
-      } else {
-        // Calculate months difference
-        const monthsDiff =
-          (terminalDate.getFullYear() - gradDate.getFullYear()) * 12 +
-          (terminalDate.getMonth() - gradDate.getMonth());
-        totalMonths += monthsDiff;
-      }
-    }
-
-    return Math.round(totalMonths / applications.length);
+    return Math.round(parseFloat(results[0]?.avgMonths || '0'));
   }
 
   private async calculateActiveJobSeekers(
@@ -431,30 +420,32 @@ export class CareerOutcomesService {
     startDate: Date,
     endDate: Date
   ): Promise<number> {
-    // Athletes graduating in the period without accepted jobs
-    const totalGraduating = await this.athleteRepository
-      .createQueryBuilder('athlete')
-      .leftJoin('athlete.schoolRef', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('athlete.academicsGraduationdate >= :startDate', { startDate })
-      .andWhere('athlete.academicsGraduationdate <= :endDate', { endDate })
-      .getMany();
+    // Use a single query with NOT EXISTS subquery to count athletes without jobs
+    const query = `
+      SELECT COUNT(*) as count
+      FROM athlete
+      INNER JOIN school ON athlete.schoolRefId = school.id
+      WHERE school.id = ?
+        AND athlete.academicsGraduationdate >= ?
+        AND athlete.academicsGraduationdate <= ?
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM application
+          INNER JOIN job ON application.jobId = job.id
+          WHERE application.athleteId = athlete.id
+            AND application.status = ?
+            AND job.type = ?
+        )
+    `;
 
-    let activeJobSeekers = 0;
-    for (const athlete of totalGraduating) {
-      const hasJob = await this.applicationRepository
-        .createQueryBuilder('application')
-        .leftJoin('application.job', 'job')
-        .where('application.athleteId = :athleteId', { athleteId: athlete.id })
-        .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
-        .andWhere('job.type = :jobType', { jobType: JobType.JOB })
-        .getCount();
+    const results = await this.athleteRepository.query(query, [
+      schoolId,
+      startDate,
+      endDate,
+      ApplicationStatus.accepted,
+      JobType.JOB,
+    ]);
 
-      if (hasJob === 0) {
-        activeJobSeekers++;
-      }
-    }
-
-    return activeJobSeekers;
+    return parseInt(String(results[0]?.count || '0'), 10);
   }
 }
