@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  JoinColumn,
   CreateDateColumn,
   BaseEntity,
+  RelationId,
 } from 'typeorm';
 import { User } from './User';
 import { Application } from './Application';
@@ -33,11 +35,23 @@ export class Activity extends BaseEntity {
 
   // Unidirectional (no inverse to avoid circular load)
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
   user!: User;
 
+  @RelationId((activity: Activity) => activity.user)
+  userId!: string;
+
   @ManyToOne(() => Application, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'applicationId' })
   application?: Application;
 
+  @RelationId((activity: Activity) => activity.application)
+  applicationId?: string;
+
   @ManyToOne(() => Interview, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'interviewId' })
   interview?: Interview;
+
+  @RelationId((activity: Activity) => activity.interview)
+  interviewId?: string;
 }

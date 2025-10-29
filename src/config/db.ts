@@ -3,21 +3,16 @@ import { DataSource } from 'typeorm';
 import 'dotenv/config';
 import {
   Athlete,
-  Comment,
   Company,
   CompanyEmployee,
   SchoolEmployee,
   Job,
-  Message,
-  Post,
   School,
-  SchoolEvent,
   User,
   Interview,
   Activity,
 } from '../entities';
 import { Application } from '../entities/Application';
-import { JobNote } from '../entities/JobNote';
 
 export const db = new DataSource({
   type: 'mysql',
@@ -33,15 +28,10 @@ export const db = new DataSource({
     Athlete,
     CompanyEmployee,
     SchoolEmployee,
-    Comment,
     Company,
     Job,
-    Message,
     School,
-    Post,
-    SchoolEvent,
     Application,
-    JobNote,
     Interview,
     Activity,
   ],

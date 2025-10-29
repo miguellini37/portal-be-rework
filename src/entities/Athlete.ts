@@ -1,4 +1,4 @@
-import { Column, ChildEntity, ManyToOne } from 'typeorm';
+import { Column, ChildEntity, ManyToOne, JoinColumn, RelationId } from 'typeorm';
 import { User } from './User';
 import { School } from './School';
 
@@ -59,10 +59,10 @@ export class Athlete extends User {
   @Column(() => Athletics)
   athletics?: Athletics;
 
-  @ManyToOne(() => School, { nullable: true })
-  schoolRef?: School;
-}
+  @ManyToOne(() => School, (school) => school.athletes, { nullable: true })
+  @JoinColumn({ name: 'schoolId' })
+  school?: School;
 
-export class GetAthletesFilter {
-  wildcardTerm?: string;
+  @RelationId((athlete: Athlete) => athlete.school)
+  schoolId?: string;
 }

@@ -7,7 +7,6 @@ import { CompanyEmployee } from '../entities/CompanyEmployee';
 import { Application } from '../entities/Application';
 import { ICreateJobInput, IUpdateJobInput, IJobQueryInput } from '../models/job.models';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
-import { sanitizeUser } from './auth/utils';
 import { IAuthenticatedRequest } from '../models/request.models';
 
 @Injectable()
@@ -21,11 +20,11 @@ export class JobService {
     private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
-  async createJob(userId: string, companyRefId: string | undefined, createJobDto: ICreateJobInput) {
+  async createJob(userId: string, companyId: string | undefined, createJobDto: ICreateJobInput) {
     try {
       const job = this.jobRepository.create(createJobDto);
 
-      const company = await this.findCompany(companyRefId);
+      const company = await this.findCompany(companyId);
       const owner = await this.findCompanyEmployee(userId);
 
       job.company = company;
@@ -62,15 +61,14 @@ export class JobService {
       if (!job) {
         throw new Error('Job not found');
       }
-      const sanitizedOwner = job.owner ? sanitizeUser(job.owner) : undefined;
-      return { ...job, owner: sanitizedOwner };
+      return job;
     } catch {
       throw new Error('Job not found');
     }
   }
 
   async getJobs(req: IAuthenticatedRequest, input: IJobQueryInput) {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     const userPermission = req.user?.permission;
 
     const queryBuilder = this.jobRepository
@@ -88,7 +86,7 @@ export class JobService {
     }
 
     if (userPermission === USER_PERMISSIONS.COMPANY) {
-      queryBuilder.andWhere('job.companyId = :companyId', { companyId: req.user?.companyRefId });
+      queryBuilder.andWhere('job.companyId = :companyId', { companyId: req.user?.companyId });
     }
 
     // Non-athletes: regular list (no flag)

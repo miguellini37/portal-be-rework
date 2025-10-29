@@ -2,15 +2,15 @@ import {
   BaseEntity,
   Column,
   Entity,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
-  RelationId,
   CreateDateColumn,
+  OneToOne,
+  RelationId,
+  JoinColumn,
 } from 'typeorm';
-import { CompanyEmployee } from './CompanyEmployee';
 import { Job } from './Job';
+import { CompanyEmployee } from '.';
 
 export interface SpecificRecruitingStrategy {
   icon?: string;
@@ -34,6 +34,7 @@ export class Culture {
   @Column({ type: 'json', nullable: true })
   thrivePoints?: string[] | null;
 }
+
 export class SpecificBenefits {
   @Column({ type: 'string', nullable: true })
   title?: string;
@@ -44,6 +45,7 @@ export class SpecificBenefits {
   @Column({ type: 'string', nullable: true })
   icon?: string;
 }
+
 export class Benefits {
   @Column({ type: 'integer', nullable: true })
   baseSalaryMin?: number;
@@ -68,6 +70,7 @@ export class Benefits {
   @Column({ type: 'json', nullable: true })
   specificBenefits?: SpecificBenefits[] | null;
 }
+
 @Entity()
 export class Company extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -75,16 +78,6 @@ export class Company extends BaseEntity {
 
   @Column({ nullable: true, unique: true })
   companyName?: string;
-
-  @OneToOne(() => CompanyEmployee, { nullable: true })
-  @JoinColumn()
-  ownerRef?: CompanyEmployee;
-
-  @RelationId((company: Company) => company.ownerRef)
-  ownerRefId?: string;
-
-  @OneToMany(() => CompanyEmployee, (employee) => employee.companyRef)
-  companyEmployees?: CompanyEmployee[];
 
   @Column({ nullable: true })
   industry?: string;
@@ -103,4 +96,14 @@ export class Company extends BaseEntity {
 
   @CreateDateColumn()
   createdAtDate!: Date;
+
+  @OneToMany(() => CompanyEmployee, (user) => user.company)
+  companyEmployees?: CompanyEmployee[];
+
+  @OneToOne(() => CompanyEmployee, { nullable: true })
+  @JoinColumn({ name: 'ownerId' })
+  companyOwner?: CompanyEmployee;
+
+  @RelationId((company: Company) => company.companyOwner)
+  ownerId?: string;
 }

@@ -37,7 +37,7 @@ export class IUpdateCompanyEmployeeInput {
 
   @IsOptional()
   @IsString()
-  companyRefId?: string;
+  companyId?: string;
 }
 
 export class ICompanyEmployeeQueryInput {

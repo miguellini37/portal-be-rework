@@ -2,21 +2,13 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompanyEmployee } from '../entities';
-import { Company } from '../entities/Company';
-import { User } from '../entities/User';
-import {
-  IUpdateCompanyEmployeeInput,
-  ICreateCompanyEmployeeInput,
-} from '../models/company-employee.models';
-import { USER_PERMISSIONS } from '../constants/user-permissions';
+import { IUpdateCompanyEmployeeInput } from '../models/company-employee.models';
 
 @Injectable()
 export class CompanyEmployeeService {
   constructor(
     @InjectRepository(CompanyEmployee)
-    private companyEmployeeRepository: Repository<CompanyEmployee>,
-    @InjectRepository(Company)
-    private companyRepository: Repository<Company>
+    private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
   async updateCompanyEmployee(userEmail: string, updateDto: IUpdateCompanyEmployeeInput) {
@@ -53,7 +45,7 @@ export class CompanyEmployeeService {
 
       const companyEmployee = await this.companyEmployeeRepository.findOne({
         where: { id },
-        relations: ['companyRef'],
+        relations: ['company'],
       });
 
       if (!companyEmployee) {
@@ -61,47 +53,13 @@ export class CompanyEmployeeService {
       }
 
       // Remove sensitive information
-      const { password: _password, permission: _permission, ...safeEmployee } = companyEmployee;
+      const { permission: _permission, ...safeEmployee } = companyEmployee;
       return safeEmployee;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException('Failed to fetch company employee', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async createCompanyEmployee(input: ICreateCompanyEmployeeInput): Promise<User> {
-    try {
-      let company = await this.companyRepository.findOne({
-        where: { companyName: input.companyName },
-      });
-
-      if (!company) {
-        company = await this.companyRepository.save(
-          this.companyRepository.create({ companyName: input.companyName })
-        );
-      }
-
-      const companyEmployee = this.companyEmployeeRepository.create({
-        ...input,
-        companyRef: company ?? undefined,
-        permission: USER_PERMISSIONS.COMPANY,
-      });
-
-      const saved = await this.companyEmployeeRepository.save(companyEmployee);
-
-      await this.companyRepository.save({
-        ...company,
-        ownerRef: companyEmployee,
-      });
-      return saved;
-    } catch (err) {
-      console.error(err);
-      throw new HttpException(
-        'Failed to create company employee',
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
     }
   }
 }

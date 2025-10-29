@@ -1,0 +1,201 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Company } from '../entities/Company';
+import {
+  ICreateCompanyInput,
+  ICreateSchoolInput,
+  IGetAllCompaniesResponse,
+  IGetAllSchoolsResponse,
+  IGetAllUsersInput,
+  IGetAllUsersResponse,
+  IUpdateSchoolOwnerInput,
+  IUpdateCompanyOwnerInput,
+} from '../models/admin.model';
+import { School, User, SchoolEmployee, CompanyEmployee } from '../entities';
+
+@Injectable()
+export class AdminService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Company)
+    private companyRepository: Repository<Company>,
+    @InjectRepository(School)
+    private schoolRepository: Repository<School>
+  ) {}
+
+  async getAllUsers(input?: IGetAllUsersInput): Promise<IGetAllUsersResponse> {
+    try {
+      const queryBuilder = this.userRepository
+        .createQueryBuilder('user')
+        .select([
+          'user.id',
+          'user.email',
+          'user.firstName',
+          'user.lastName',
+          'user.permission',
+          'user.companyId',
+          'user.schoolId',
+        ])
+        .leftJoin('user.company', 'company')
+        .addSelect('company.companyName')
+        .leftJoin('user.school', 'school')
+        .addSelect('school.schoolName');
+
+      if (input?.name) {
+        queryBuilder.andWhere("CONCAT(user.firstName, ' ', user.lastName) LIKE :name", {
+          name: `%${input.name}%`,
+        });
+      }
+
+      if (input?.permission) {
+        queryBuilder.andWhere('user.permission = :permission', {
+          permission: input.permission,
+        });
+      }
+
+      if (input?.schoolId) {
+        queryBuilder.andWhere('user.schoolId = :schoolId', {
+          schoolId: input.schoolId,
+        });
+      }
+
+      if (input?.companyId) {
+        queryBuilder.andWhere('user.companyId = :companyId', {
+          companyId: input.companyId,
+        });
+      }
+
+      return (await queryBuilder.getMany()) as IGetAllUsersResponse;
+    } catch {
+      throw new Error('Failed to get all users');
+    }
+  }
+
+  async getAllCompanies(): Promise<IGetAllCompaniesResponse> {
+    try {
+      const companies = await this.companyRepository
+        .createQueryBuilder('company')
+        .select(['company.id', 'company.companyName'])
+        .leftJoin('company.companyOwner', 'companyOwner')
+        .addSelect(['companyOwner.firstName', 'companyOwner.lastName', 'companyOwner.email'])
+        .getMany();
+
+      return companies.map((company) => ({
+        id: company.id,
+        companyName: company.companyName ?? '',
+        ownerName: company.companyOwner
+          ? `${company.companyOwner.firstName ?? ''} ${company.companyOwner.lastName ?? ''}`
+          : '',
+        ownerEmail: company.companyOwner?.email ?? '',
+      }));
+    } catch {
+      throw new Error('Failed to get all companies');
+    }
+  }
+
+  async getAllSchools(): Promise<IGetAllSchoolsResponse> {
+    try {
+      const schools = await this.schoolRepository
+        .createQueryBuilder('school')
+        .select(['school.id', 'school.schoolName'])
+        .leftJoin('school.schoolOwner', 'schoolOwner')
+        .addSelect(['schoolOwner.firstName', 'schoolOwner.lastName', 'schoolOwner.email'])
+        .getMany();
+
+      return schools.map((school) => ({
+        id: school.id,
+        schoolName: school.schoolName ?? '',
+        ownerName: school.schoolOwner
+          ? `${school.schoolOwner.firstName ?? ''} ${school.schoolOwner.lastName ?? ''}`
+          : '',
+        ownerEmail: school.schoolOwner?.email ?? '',
+      }));
+    } catch {
+      throw new Error('Failed to get all schools');
+    }
+  }
+
+  async createCompany(input: ICreateCompanyInput): Promise<Company> {
+    try {
+      const company = this.companyRepository.create({
+        companyName: input.companyName,
+        ownerId: input.ownerId,
+      });
+
+      return await this.companyRepository.save(company);
+    } catch {
+      throw new Error('Failed to create company');
+    }
+  }
+
+  async createSchool(input: ICreateSchoolInput): Promise<School> {
+    try {
+      const school = this.schoolRepository.create({
+        schoolName: input.schoolName,
+        ownerId: input.ownerId,
+      });
+
+      return await this.schoolRepository.save(school);
+    } catch {
+      throw new Error('Failed to create school');
+    }
+  }
+
+  async updateSchoolOwner(input: IUpdateSchoolOwnerInput): Promise<School> {
+    try {
+      const school = await this.schoolRepository.findOne({
+        where: { id: input.schoolId },
+      });
+
+      if (!school) {
+        throw new Error('School not found');
+      }
+
+      // Verify the owner exists and is a school employee
+      const owner = await this.userRepository.findOne({
+        where: { id: input.ownerId },
+      });
+
+      if (!owner) {
+        throw new Error('User not found');
+      }
+
+      school.schoolOwner = { id: input.ownerId } as SchoolEmployee;
+      return await this.schoolRepository.save(school);
+    } catch (error) {
+      throw new Error(
+        `Failed to update school owner: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async updateCompanyOwner(input: IUpdateCompanyOwnerInput): Promise<Company> {
+    try {
+      const company = await this.companyRepository.findOne({
+        where: { id: input.companyId },
+      });
+
+      if (!company) {
+        throw new Error('Company not found');
+      }
+
+      // Verify the owner exists and is a company employee
+      const owner = await this.userRepository.findOne({
+        where: { id: input.ownerId },
+      });
+
+      if (!owner) {
+        throw new Error('User not found');
+      }
+
+      company.companyOwner = { id: input.ownerId } as CompanyEmployee;
+      return await this.companyRepository.save(company);
+    } catch (error) {
+      throw new Error(
+        `Failed to update company owner: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+}

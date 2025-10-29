@@ -58,7 +58,7 @@ export class CompanyService {
       const safeCompany = {
         ...company,
         companyEmployees: company.companyEmployees?.map((employee) => {
-          const { password: _password, permission: _permission, ...safeEmployee } = employee;
+          const { permission: _permission, ...safeEmployee } = employee;
           return safeEmployee;
         }),
       };
@@ -84,6 +84,14 @@ export class CompanyService {
     if (query.industry) {
       queryBuilder.andWhere('company.industry = :industry', { industry: query.industry });
     }
+
+    return await queryBuilder.getMany();
+  }
+
+  async getCompaniesForDropdown() {
+    const queryBuilder = this.companyRepository
+      .createQueryBuilder('company')
+      .select(['company.id', 'company.companyName']);
 
     return await queryBuilder.getMany();
   }

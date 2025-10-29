@@ -40,9 +40,21 @@ yarn dev
 
 The app will be available at [http://localhost:3001](http://localhost:3001).
 
-## Keycloak via Docker Compose
+## Keycloak Authentication
+
+This application uses Keycloak for authentication and authorization. Keycloak is an open-source identity and access management solution.
+
+### Keycloak Setup via Docker Compose
 
 You can run Keycloak locally or in production mode using docker compose.
+
+To start Keycloak locally:
+
+```sh
+yarn start:keycloak
+```
+
+This will start Keycloak on `http://localhost:8180` (configurable via `KEYCLOAK_HTTP_PORT`).
 
 Options:
 
@@ -54,7 +66,16 @@ Options:
   - `docker-compose.keycloak.dev.yml` (local dev)
   - `docker-compose.keycloak.prod.yml` (production)
 
-Required env vars:
+Required env vars for Keycloak Docker:
 
-- Dev: `KEYCLOAK_ADMIN_PASSWORD`, optional `KEYCLOAK_HTTP_PORT`
-- Prod: `KEYCLOAK_ADMIN_PASSWORD`, `DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_DB_NAME`, optional `KEYCLOAK_HTTP_PORT`
+- Dev: `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`, optional `KEYCLOAK_HTTP_PORT`
+- Prod: `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`, `DB_ENDPOINT`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_DB_NAME`, optional `KEYCLOAK_HTTP_PORT`
+
+### Keycloak Configuration for Backend
+
+The backend requires the following environment variables to connect to Keycloak:
+
+- `KEYCLOAK_AUTH_SERVER_URL` - The URL of your Keycloak server (e.g., `http://localhost:8180`)
+- `KEYCLOAK_REALM` - The Keycloak realm name (e.g., `portal`)
+- `KEYCLOAK_CLIENT_ID` - The client ID for this backend (e.g., `portal-backend`)
+- `KEYCLOAK_CLIENT_SECRET` - The client secret from Keycloak

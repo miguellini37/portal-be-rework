@@ -17,8 +17,13 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      logger: true,
-    })
+      logger: {
+        level: 'warn',
+      },
+    }),
+    {
+      logger: ['log', 'error', 'warn'], // NestJS logger levels
+    }
   );
 
   // Parse qs-style arrays and nested objects in querystrings (e.g., type[]=internship)

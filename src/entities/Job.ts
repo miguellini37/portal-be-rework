@@ -4,7 +4,9 @@ import {
   Column,
   BaseEntity,
   ManyToOne,
+  JoinColumn,
   CreateDateColumn,
+  RelationId,
 } from 'typeorm';
 import { Company } from './Company';
 import { CompanyEmployee } from './CompanyEmployee'; // assuming this is your owner employee entity
@@ -25,12 +27,6 @@ export enum JobType {
 export class Job extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
-
-  @ManyToOne(() => Company, { nullable: true })
-  company?: Company;
-
-  @ManyToOne(() => CompanyEmployee, { nullable: true })
-  owner?: CompanyEmployee; // the employee who created/owns this job
 
   @Column({ nullable: true })
   position?: string;
@@ -80,4 +76,18 @@ export class Job extends BaseEntity {
 
   @Column({ nullable: true })
   status?: JobStatus;
+
+  @ManyToOne(() => Company, { nullable: true })
+  @JoinColumn({ name: 'companyId' })
+  company?: Company;
+
+  @RelationId((job: Job) => job.company)
+  companyId?: string;
+
+  @ManyToOne(() => CompanyEmployee, { nullable: true })
+  @JoinColumn({ name: 'ownerId' })
+  owner?: CompanyEmployee; // the employee who created/owns this job
+
+  @RelationId((job: Job) => job.owner)
+  ownerId?: string;
 }

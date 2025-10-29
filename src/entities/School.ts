@@ -3,12 +3,12 @@ import {
   BaseEntity,
   Entity,
   PrimaryGeneratedColumn,
+  OneToMany,
   OneToOne,
-  ManyToMany,
+  RelationId,
   JoinColumn,
 } from 'typeorm';
-import { SchoolEmployee } from './SchoolEmployee';
-import { Athlete } from './Athlete';
+import { Athlete, SchoolEmployee } from '.';
 
 @Entity()
 export class School extends BaseEntity {
@@ -18,13 +18,16 @@ export class School extends BaseEntity {
   @Column({ nullable: true, unique: true })
   schoolName?: string;
 
-  @OneToOne(() => SchoolEmployee, { nullable: true })
-  @JoinColumn() // necessary for @OneToOne owner side
-  ownerRef?: SchoolEmployee;
+  @OneToMany(() => Athlete, (athlete) => athlete.school)
+  athletes?: Athlete[];
 
-  @ManyToMany(() => SchoolEmployee, (employee) => employee.schoolRef)
+  @OneToMany(() => SchoolEmployee, (employee) => employee.school)
   employees?: SchoolEmployee[];
 
-  @ManyToMany(() => Athlete, (student) => student.schoolRef)
-  athletes?: Athlete[];
+  @OneToOne(() => SchoolEmployee, { nullable: true })
+  @JoinColumn({ name: 'ownerId' })
+  schoolOwner?: SchoolEmployee;
+
+  @RelationId((school: School) => school.schoolOwner)
+  ownerId?: string;
 }

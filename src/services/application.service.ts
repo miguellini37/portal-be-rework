@@ -8,11 +8,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, FindOptionsWhere } from 'typeorm';
 import { Application, ApplicationStatus, TERMINAL_STATUSES } from '../entities/Application';
-import { IApplicationInput } from '../models/application.model';
+import { IApplicationInput, ICreateApplicationInput } from '../models/application.model';
 import { Job } from '../entities/Job';
 import { Athlete } from '../entities/Athlete';
-import { sanitizeUser, sanitizeApplication } from './auth/utils';
-import { ICreateApplicationInput } from '../models/athlete.models';
 import { ActivityService } from './activity.service';
 import { ActivityType } from '../entities/Activity';
 
@@ -56,13 +54,13 @@ export class ApplicationService {
     return { message: 'Application created successfully' };
   }
 
-  async getApplications(userId: string, companyRefId?: string, jobId?: string) {
-    if (!userId && !companyRefId) {
+  async getApplications(userId: string, companyId?: string, jobId?: string) {
+    if (!userId && !companyId) {
       throw new BadRequestException('Missing user id');
     }
 
-    const whereCondition: FindOptionsWhere<Application> = companyRefId
-      ? this.buildJobQueryForCompany(companyRefId, jobId)
+    const whereCondition: FindOptionsWhere<Application> = companyId
+      ? this.buildJobQueryForCompany(companyId, jobId)
       : this.buildJobQueryForAthlete(userId, jobId);
 
     const applications = await this.applicationRepository.find({
@@ -71,22 +69,12 @@ export class ApplicationService {
       order: { creationDate: 'DESC' },
     });
 
-    const mapSanitize = (app: Application, dropJob = false) => {
-      const sanitized = dropJob ? sanitizeApplication(app) : { ...app };
-      sanitized.athlete = sanitizeUser(sanitized.athlete);
-      return sanitized;
-    };
-
-    if (jobId) {
-      return applications.map((app) => mapSanitize(app, true));
-    }
-
-    return applications.map((app) => mapSanitize(app, false));
+    return applications;
   }
 
   async updateApplicationStatus(
     userId: string,
-    companyRefId: string | undefined,
+    companyId: string | undefined,
     input: IApplicationInput
   ) {
     const { id, status } = input;
@@ -109,7 +97,7 @@ export class ApplicationService {
     }
 
     const isApplicant = application.athlete?.id === userId;
-    const isCompanyOwner = Boolean(companyRefId && application.job?.company?.id === companyRefId);
+    const isCompanyOwner = Boolean(companyId && application.job?.company?.id === companyId);
 
     if (status === ApplicationStatus.withdrawn) {
       // Allow athlete (applicant) or company owner to withdraw
@@ -134,25 +122,22 @@ export class ApplicationService {
       message: 'Application status updated to ' + status.trim().replace(/_/g, ' '),
     });
 
-    return {
-      ...application,
-      athlete: sanitizeUser(application.athlete),
-    };
+    return application;
   }
 
   // Company: validate job ownership when jobId provided and filter withdrawn
   private buildJobQueryForCompany(
-    companyRefId: string,
+    companyId: string,
     jobId?: string
   ): FindOptionsWhere<Application> {
-    if (!companyRefId) {
+    if (!companyId) {
       throw new BadRequestException('Company id is required');
     }
 
     const where: FindOptionsWhere<Application> = {
       job: {
         ...(jobId ? { id: jobId } : {}),
-        company: { id: companyRefId },
+        company: { id: companyId },
       },
       status: Not(ApplicationStatus.withdrawn),
     };

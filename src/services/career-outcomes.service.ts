@@ -120,7 +120,7 @@ export class CareerOutcomesService {
           THEN athlete.id 
         END) as athletesWithJobs
       FROM athlete
-      LEFT JOIN school ON athlete.schoolRefId = school.id
+      LEFT JOIN school ON athlete.schoolId = school.id
       LEFT JOIN application ON application.athleteId = athlete.id
       LEFT JOIN job ON application.jobId = job.id
       WHERE school.id = ?
@@ -173,7 +173,7 @@ export class CareerOutcomesService {
       FROM application
       INNER JOIN job ON application.jobId = job.id
       INNER JOIN athlete ON application.athleteId = athlete.id
-      INNER JOIN school ON athlete.schoolRefId = school.id
+      INNER JOIN school ON athlete.schoolId = school.id
       WHERE school.id = ?
         AND application.status = ?
         AND job.type = ?
@@ -256,7 +256,7 @@ export class CareerOutcomesService {
         COUNT(DISTINCT CASE WHEN job.type = 'internship' THEN application.id END) as internshipCount,
         COUNT(DISTINCT CASE WHEN job.type = 'nil' THEN application.id END) as nilCount
       FROM athlete
-      INNER JOIN school ON athlete.schoolRefId = school.id
+      INNER JOIN school ON athlete.schoolId = school.id
       LEFT JOIN application ON application.athleteId = athlete.id 
         AND application.status = ?
       LEFT JOIN job ON application.jobId = job.id
@@ -325,7 +325,7 @@ export class CareerOutcomesService {
     // Total athletes graduating in the period
     const totalGraduating = await this.athleteRepository
       .createQueryBuilder('athlete')
-      .leftJoin('athlete.schoolRef', 'school')
+      .leftJoin('athlete.school', 'school')
       .where('school.id = :schoolId', { schoolId })
       .andWhere('athlete.academicsGraduationdate >= :startDate', { startDate })
       .andWhere('athlete.academicsGraduationdate <= :endDate', { endDate })
@@ -340,7 +340,7 @@ export class CareerOutcomesService {
       .createQueryBuilder('application')
       .leftJoin('application.job', 'job')
       .leftJoin('application.athlete', 'athlete')
-      .leftJoin('athlete.schoolRef', 'school')
+      .leftJoin('athlete.school', 'school')
       .where('school.id = :schoolId', { schoolId })
       .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
       .andWhere('job.type = :jobType', { jobType: JobType.JOB })
@@ -362,7 +362,7 @@ export class CareerOutcomesService {
       .createQueryBuilder('application')
       .leftJoin('application.job', 'job')
       .leftJoin('application.athlete', 'athlete')
-      .leftJoin('athlete.schoolRef', 'school')
+      .leftJoin('athlete.school', 'school')
       .where('school.id = :schoolId', { schoolId })
       .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
       .andWhere('job.type = :jobType', { jobType: JobType.JOB })
@@ -394,7 +394,7 @@ export class CareerOutcomesService {
       FROM application
       INNER JOIN job ON application.jobId = job.id
       INNER JOIN athlete ON application.athleteId = athlete.id
-      INNER JOIN school ON athlete.schoolRefId = school.id
+      INNER JOIN school ON athlete.schoolId = school.id
       WHERE school.id = ?
         AND application.status = ?
         AND job.type = ?
@@ -424,7 +424,7 @@ export class CareerOutcomesService {
     const query = `
       SELECT COUNT(*) as count
       FROM athlete
-      INNER JOIN school ON athlete.schoolRefId = school.id
+      INNER JOIN school ON athlete.schoolId = school.id
       WHERE school.id = ?
         AND athlete.academicsGraduationdate >= ?
         AND athlete.academicsGraduationdate <= ?

@@ -2,23 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Athlete } from '../entities/Athlete';
-import { School } from '../entities/School';
-import { User } from '../entities/User';
 import { IUpdateAthleteInput, IAthleteQueryInput } from '../models/athlete.models';
-import { sanitizeUser } from './auth/utils';
-import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 @Injectable()
 export class AthleteService {
   constructor(
     @InjectRepository(Athlete)
-    private athleteRepository: Repository<Athlete>,
-    @InjectRepository(School)
-    private schoolRepository: Repository<School>
+    private athleteRepository: Repository<Athlete>
   ) {}
 
-  async updateAthlete(userEmail: string, updateAthleteDto: IUpdateAthleteInput) {
-    const athlete = await this.athleteRepository.findOneBy({ email: userEmail });
+  async updateAthlete(id: string, updateAthleteDto: IUpdateAthleteInput) {
+    const athlete = await this.athleteRepository.findOneBy({ id });
 
     if (!athlete) {
       throw new Error('Athlete not found');
@@ -30,7 +24,7 @@ export class AthleteService {
       phone: updateAthleteDto.phone ?? athlete.phone,
       location: updateAthleteDto.location ?? athlete.location,
       bio: updateAthleteDto.bio ?? athlete.bio,
-      schoolRefId: updateAthleteDto.schoolId ?? athlete.schoolRef?.id,
+      schoolId: updateAthleteDto.schoolId ?? athlete.school?.id,
       academics: {
         ...athlete.academics,
         ...updateAthleteDto.academics,
@@ -52,14 +46,15 @@ export class AthleteService {
 
     const athlete = await this.athleteRepository.findOne({
       where: { id },
-      relations: ['schoolRef'],
+      relations: ['school'],
     });
 
     if (!athlete) {
-      throw new Error('Athlete not found');
+      console.log('User info has not been created yet.');
+      return;
     }
 
-    return sanitizeUser(athlete);
+    return athlete;
   }
 
   async getAthletes(query: IAthleteQueryInput) {
@@ -67,32 +62,18 @@ export class AthleteService {
 
     const queryBuilder = this.athleteRepository
       .createQueryBuilder('athlete')
-      .leftJoinAndSelect('athlete.schoolRef', 'schoolRef');
+      .leftJoinAndSelect('athlete.school', 'school');
 
     if (wildcardTerm) {
       this.addWildcardFilterToQuery(
         queryBuilder,
-        ['athlete.firstName', 'athlete.lastName', 'athlete.bio', 'schoolRef.schoolName'],
+        ['athlete.firstName', 'athlete.lastName', 'athlete.bio', 'school.schoolName'],
         wildcardTerm
       );
     }
 
     const athletes = await queryBuilder.getMany();
-    return athletes.map((athlete) => sanitizeUser(athlete));
-  }
-
-  async createAthlete(input: Athlete & { schoolName: string }): Promise<User> {
-    const school = await this.schoolRepository.findOne({
-      where: { schoolName: input.schoolName },
-    });
-
-    const athlete = this.athleteRepository.create({
-      ...input,
-      schoolRef: school ?? undefined,
-      permission: USER_PERMISSIONS.ATHLETE,
-    });
-
-    return await this.athleteRepository.save(athlete);
+    return athletes;
   }
 
   private addWildcardFilterToQuery(

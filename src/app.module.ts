@@ -1,52 +1,53 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
+import { APP_GUARD } from '@nestjs/core';
+import {
+  KeycloakConnectModule,
+  AuthGuard as KeycloakGuard,
+  ResourceGuard,
+  RoleGuard,
+} from 'nest-keycloak-connect';
 import {
   User,
   Athlete,
-  Comment,
   Company,
   CompanyEmployee,
   SchoolEmployee,
   Job,
-  Message,
-  Post,
   School,
-  SchoolEvent,
   Application,
-  JobNote,
   Interview,
   Activity,
 } from './entities';
 import { AppController } from './app.controller';
-import { AuthService } from './services/auth/auth.service';
-import { JwtStrategy } from './services/auth/jwt.strategy';
 import {
   AthleteService,
   ApplicationService,
   CompanyService,
   CompanyEmployeeService,
   JobService,
-  MessageService,
   SchoolService,
-  SchoolEventService,
   SchoolEmployeeService,
   InterviewService,
   ActivityService,
   CareerOutcomesService,
+  ProfileService,
 } from './services';
+import { KeycloakService } from './services/keycloak.service';
+import { AdminService } from './services/admin.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.ACCESS_TOKEN_SECRET,
-      signOptions: { expiresIn: '15m' },
+    KeycloakConnectModule.register({
+      authServerUrl: process.env.KEYCLOAK_AUTH_SERVER_URL ?? 'http://localhost:8180',
+      realm: process.env.KEYCLOAK_REALM ?? 'portal',
+      clientId: process.env.KEYCLOAK_CLIENT_ID ?? 'portal-backend',
+      secret: process.env.KEYCLOAK_CLIENT_SECRET ?? '',
+      useNestLogger: true,
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -62,15 +63,10 @@ import {
         Athlete,
         CompanyEmployee,
         SchoolEmployee,
-        Comment,
         Company,
         Job,
-        Message,
         School,
-        Post,
-        SchoolEvent,
         Application,
-        JobNote,
         Interview,
         Activity,
       ],
@@ -85,9 +81,7 @@ import {
       SchoolEmployee,
       Activity,
       Job,
-      Message,
       School,
-      SchoolEvent,
       Application,
       Interview,
       Activity,
@@ -95,20 +89,31 @@ import {
   ],
   controllers: [AppController],
   providers: [
-    AuthService,
-    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: KeycloakGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ResourceGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
+    },
     AthleteService,
     ApplicationService,
     CompanyService,
     CompanyEmployeeService,
     JobService,
-    MessageService,
     SchoolService,
-    SchoolEventService,
     SchoolEmployeeService,
     InterviewService,
     ActivityService,
     CareerOutcomesService,
+    ProfileService,
+    KeycloakService,
+    AdminService,
   ],
 })
 export class AppModule {}

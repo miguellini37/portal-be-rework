@@ -1,15 +1,35 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration1757508907599 implements MigrationInterface {
-  name = 'Migration1757508907599';
+export class Migration1761697568691 implements MigrationInterface {
+  name = 'Migration1761697568691';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            CREATE TABLE \`user\` (
+            CREATE TABLE \`company\` (
                 \`id\` varchar(36) NOT NULL,
+                \`companyName\` varchar(255) NULL,
+                \`industry\` varchar(255) NULL,
+                \`recruiting\` json NULL,
+                \`createdAtDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`cultureCulturevalues\` json NULL,
+                \`cultureEnvironmenttiles\` json NULL,
+                \`cultureThrivepoints\` json NULL,
+                \`benefitsBasesalarymin\` int NULL,
+                \`benefitsBasesalarymax\` int NULL,
+                \`benefitsCommissionmin\` int NULL,
+                \`benefitsCommissionmax\` int NULL,
+                \`benefitsTotalcompmin\` int NULL,
+                \`benefitsTotalcompmax\` int NULL,
+                \`benefitsSpecificbenefits\` json NULL,
+                UNIQUE INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` (\`companyName\`),
+                PRIMARY KEY (\`id\`)
+            ) ENGINE = InnoDB
+        `);
+    await queryRunner.query(`
+            CREATE TABLE \`user\` (
+                \`id\` varchar(255) NOT NULL,
                 \`email\` varchar(255) NULL,
-                \`password\` varchar(255) NULL,
-                \`permission\` varchar(255) NULL DEFAULT 'user',
+                \`permission\` varchar(255) NULL,
                 \`firstName\` varchar(255) NULL,
                 \`lastName\` varchar(255) NULL,
                 \`phone\` varchar(255) NULL,
@@ -17,8 +37,8 @@ export class Migration1757508907599 implements MigrationInterface {
                 \`bio\` varchar(255) NULL,
                 \`position\` varchar(255) NULL,
                 \`type\` varchar(255) NOT NULL,
-                \`companyRefId\` varchar(36) NULL,
-                \`schoolRefId\` varchar(36) NULL,
+                \`companyId\` varchar(36) NULL,
+                \`schoolId\` varchar(36) NULL,
                 \`academicsMajor\` varchar(255) NULL,
                 \`academicsMinor\` varchar(255) NULL,
                 \`academicsGpa\` float NULL,
@@ -35,28 +55,7 @@ export class Migration1757508907599 implements MigrationInterface {
                 \`athleticsStatistics\` varchar(255) NULL,
                 \`athleticsSkills\` json NULL,
                 UNIQUE INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` (\`email\`),
-                PRIMARY KEY (\`id\`)
-            ) ENGINE = InnoDB
-        `);
-    await queryRunner.query(`
-            CREATE TABLE \`company\` (
-                \`id\` varchar(36) NOT NULL,
-                \`companyName\` varchar(255) NULL,
-                \`industry\` varchar(255) NULL,
-                \`recruiting\` json NULL,
-                \`ownerRefId\` varchar(36) NULL,
-                \`cultureCulturevalues\` json NULL,
-                \`cultureEnvironmenttiles\` json NULL,
-                \`cultureThrivepoints\` json NULL,
-                \`benefitsBasesalarymin\` int NULL,
-                \`benefitsBasesalarymax\` int NULL,
-                \`benefitsCommissionmin\` int NULL,
-                \`benefitsCommissionmax\` int NULL,
-                \`benefitsTotalcompmin\` int NULL,
-                \`benefitsTotalcompmax\` int NULL,
-                \`benefitsSpecificbenefits\` json NULL,
-                UNIQUE INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` (\`companyName\`),
-                UNIQUE INDEX \`REL_859dc203a23d97e7a8a7c1c7c4\` (\`ownerRefId\`),
+                INDEX \`IDX_31ef2b4d30675d0c15056b7f6e\` (\`type\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -88,9 +87,7 @@ export class Migration1757508907599 implements MigrationInterface {
             CREATE TABLE \`school\` (
                 \`id\` varchar(36) NOT NULL,
                 \`schoolName\` varchar(255) NULL,
-                \`ownerRefId\` varchar(36) NULL,
                 UNIQUE INDEX \`IDX_9eb00e0accde5ee2d96e86570b\` (\`schoolName\`),
-                UNIQUE INDEX \`REL_21fa1878f7ae3fd4d8d4029772\` (\`ownerRefId\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -114,6 +111,7 @@ export class Migration1757508907599 implements MigrationInterface {
             CREATE TABLE \`application\` (
                 \`id\` varchar(36) NOT NULL,
                 \`creationDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`terminalStatusDate\` date NULL,
                 \`employerReviewed\` tinyint NOT NULL DEFAULT 0,
                 \`status\` enum (
                     'applied',
@@ -130,67 +128,24 @@ export class Migration1757508907599 implements MigrationInterface {
             ) ENGINE = InnoDB
         `);
     await queryRunner.query(`
-            CREATE TABLE \`post\` (
-                \`id\` varchar(36) NOT NULL,
-                \`content\` varchar(255) NULL,
-                \`date\` date NULL,
-                \`type\` varchar(255) NULL,
-                \`authorId\` varchar(36) NULL,
-                \`schoolId\` varchar(36) NULL,
-                PRIMARY KEY (\`id\`)
-            ) ENGINE = InnoDB
-        `);
-    await queryRunner.query(`
-            CREATE TABLE \`comment\` (
-                \`id\` varchar(36) NOT NULL,
-                \`content\` varchar(255) NULL,
-                \`postId\` varchar(36) NULL,
-                \`authorId\` varchar(36) NULL,
-                PRIMARY KEY (\`id\`)
-            ) ENGINE = InnoDB
-        `);
-    await queryRunner.query(`
-            CREATE TABLE \`job_note\` (
-                \`id\` varchar(36) NOT NULL,
-                \`note\` text NOT NULL,
-                \`jobId\` varchar(36) NOT NULL,
-                \`athleteId\` varchar(36) NOT NULL,
-                PRIMARY KEY (\`id\`)
-            ) ENGINE = InnoDB
-        `);
-    await queryRunner.query(`
-            CREATE TABLE \`message\` (
-                \`id\` varchar(36) NOT NULL,
-                \`message\` varchar(255) NULL,
-                \`createdDate\` timestamp NULL,
-                \`fromUserId\` varchar(36) NULL,
-                \`toUserId\` varchar(36) NULL,
-                PRIMARY KEY (\`id\`)
-            ) ENGINE = InnoDB
-        `);
-    await queryRunner.query(`
-            CREATE TABLE \`school_event\` (
-                \`id\` varchar(36) NOT NULL,
-                \`title\` varchar(255) NULL,
-                \`type\` varchar(255) NULL,
-                \`description\` varchar(255) NULL,
-                \`date\` date NULL,
-                \`location\` varchar(255) NULL,
-                \`schoolId\` varchar(36) NULL,
-                PRIMARY KEY (\`id\`)
+            CREATE TABLE \`activity\` (
+                \`activityId\` varchar(36) NOT NULL,
+                \`type\` enum ('application', 'interview', 'other') NOT NULL DEFAULT 'other',
+                \`message\` text NULL,
+                \`date\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`userId\` varchar(36) NULL,
+                \`applicationId\` varchar(36) NULL,
+                \`interviewId\` varchar(36) NULL,
+                PRIMARY KEY (\`activityId\`)
             ) ENGINE = InnoDB
         `);
     await queryRunner.query(`
             ALTER TABLE \`user\`
-            ADD CONSTRAINT \`FK_981cc89a6e49d019d81b4a98f6f\` FOREIGN KEY (\`companyRefId\`) REFERENCES \`company\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ADD CONSTRAINT \`FK_86586021a26d1180b0968f98502\` FOREIGN KEY (\`companyId\`) REFERENCES \`company\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`user\`
-            ADD CONSTRAINT \`FK_02119985094dfe844ef334aacc8\` FOREIGN KEY (\`schoolRefId\`) REFERENCES \`school\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`company\`
-            ADD CONSTRAINT \`FK_859dc203a23d97e7a8a7c1c7c44\` FOREIGN KEY (\`ownerRefId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ADD CONSTRAINT \`FK_709e51110daa2b560f0fc32367b\` FOREIGN KEY (\`schoolId\`) REFERENCES \`school\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`job\`
@@ -199,10 +154,6 @@ export class Migration1757508907599 implements MigrationInterface {
     await queryRunner.query(`
             ALTER TABLE \`job\`
             ADD CONSTRAINT \`FK_4230d15401eafcf6f4538208015\` FOREIGN KEY (\`ownerId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`school\`
-            ADD CONSTRAINT \`FK_21fa1878f7ae3fd4d8d40297720\` FOREIGN KEY (\`ownerRefId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`interview\`
@@ -233,70 +184,30 @@ export class Migration1757508907599 implements MigrationInterface {
             ADD CONSTRAINT \`FK_7cca1f23def73793a5099e4f5a9\` FOREIGN KEY (\`interviewId\`) REFERENCES \`interview\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE \`post\`
-            ADD CONSTRAINT \`FK_c6fb082a3114f35d0cc27c518e0\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ALTER TABLE \`activity\`
+            ADD CONSTRAINT \`FK_3571467bcbe021f66e2bdce96ea\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE \`post\`
-            ADD CONSTRAINT \`FK_2a39546ac8af066d45aa251c863\` FOREIGN KEY (\`schoolId\`) REFERENCES \`school\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ALTER TABLE \`activity\`
+            ADD CONSTRAINT \`FK_eed75d41cc663dde49f0b84d65f\` FOREIGN KEY (\`applicationId\`) REFERENCES \`application\`(\`id\`) ON DELETE
+            SET NULL ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE \`comment\`
-            ADD CONSTRAINT \`FK_94a85bb16d24033a2afdd5df060\` FOREIGN KEY (\`postId\`) REFERENCES \`post\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`comment\`
-            ADD CONSTRAINT \`FK_276779da446413a0d79598d4fbd\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`job_note\`
-            ADD CONSTRAINT \`FK_c247d6d54ff88ad2e25ba570565\` FOREIGN KEY (\`jobId\`) REFERENCES \`job\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`job_note\`
-            ADD CONSTRAINT \`FK_254f4933205abca8f6a362559fd\` FOREIGN KEY (\`athleteId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`message\`
-            ADD CONSTRAINT \`FK_c59262513a3006fd8f58bb4b7c2\` FOREIGN KEY (\`fromUserId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`message\`
-            ADD CONSTRAINT \`FK_96789153e31e0bb7885ea13a279\` FOREIGN KEY (\`toUserId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`school_event\`
-            ADD CONSTRAINT \`FK_769fd7a0f041de4be5bde29c300\` FOREIGN KEY (\`schoolId\`) REFERENCES \`school\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ALTER TABLE \`activity\`
+            ADD CONSTRAINT \`FK_1ec871667cd35957d136979e31e\` FOREIGN KEY (\`interviewId\`) REFERENCES \`interview\`(\`id\`) ON DELETE
+            SET NULL ON UPDATE NO ACTION
         `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE \`school_event\` DROP FOREIGN KEY \`FK_769fd7a0f041de4be5bde29c300\`
+            ALTER TABLE \`activity\` DROP FOREIGN KEY \`FK_1ec871667cd35957d136979e31e\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`message\` DROP FOREIGN KEY \`FK_96789153e31e0bb7885ea13a279\`
+            ALTER TABLE \`activity\` DROP FOREIGN KEY \`FK_eed75d41cc663dde49f0b84d65f\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`message\` DROP FOREIGN KEY \`FK_c59262513a3006fd8f58bb4b7c2\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`job_note\` DROP FOREIGN KEY \`FK_254f4933205abca8f6a362559fd\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`job_note\` DROP FOREIGN KEY \`FK_c247d6d54ff88ad2e25ba570565\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`comment\` DROP FOREIGN KEY \`FK_276779da446413a0d79598d4fbd\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`comment\` DROP FOREIGN KEY \`FK_94a85bb16d24033a2afdd5df060\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`post\` DROP FOREIGN KEY \`FK_2a39546ac8af066d45aa251c863\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`post\` DROP FOREIGN KEY \`FK_c6fb082a3114f35d0cc27c518e0\`
+            ALTER TABLE \`activity\` DROP FOREIGN KEY \`FK_3571467bcbe021f66e2bdce96ea\`
         `);
     await queryRunner.query(`
             ALTER TABLE \`application\` DROP FOREIGN KEY \`FK_7cca1f23def73793a5099e4f5a9\`
@@ -320,46 +231,25 @@ export class Migration1757508907599 implements MigrationInterface {
             ALTER TABLE \`interview\` DROP FOREIGN KEY \`FK_15008468e129b5542f78d0718d6\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`school\` DROP FOREIGN KEY \`FK_21fa1878f7ae3fd4d8d40297720\`
-        `);
-    await queryRunner.query(`
             ALTER TABLE \`job\` DROP FOREIGN KEY \`FK_4230d15401eafcf6f4538208015\`
         `);
     await queryRunner.query(`
             ALTER TABLE \`job\` DROP FOREIGN KEY \`FK_e66170573cabd565dab1132727d\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`company\` DROP FOREIGN KEY \`FK_859dc203a23d97e7a8a7c1c7c44\`
+            ALTER TABLE \`user\` DROP FOREIGN KEY \`FK_709e51110daa2b560f0fc32367b\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`user\` DROP FOREIGN KEY \`FK_02119985094dfe844ef334aacc8\`
+            ALTER TABLE \`user\` DROP FOREIGN KEY \`FK_86586021a26d1180b0968f98502\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`user\` DROP FOREIGN KEY \`FK_981cc89a6e49d019d81b4a98f6f\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`school_event\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`message\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`job_note\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`comment\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`post\`
+            DROP TABLE \`activity\`
         `);
     await queryRunner.query(`
             DROP TABLE \`application\`
         `);
     await queryRunner.query(`
             DROP TABLE \`interview\`
-        `);
-    await queryRunner.query(`
-            DROP INDEX \`REL_21fa1878f7ae3fd4d8d4029772\` ON \`school\`
         `);
     await queryRunner.query(`
             DROP INDEX \`IDX_9eb00e0accde5ee2d96e86570b\` ON \`school\`
@@ -371,19 +261,19 @@ export class Migration1757508907599 implements MigrationInterface {
             DROP TABLE \`job\`
         `);
     await queryRunner.query(`
-            DROP INDEX \`REL_859dc203a23d97e7a8a7c1c7c4\` ON \`company\`
-        `);
-    await queryRunner.query(`
-            DROP INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` ON \`company\`
-        `);
-    await queryRunner.query(`
-            DROP TABLE \`company\`
+            DROP INDEX \`IDX_31ef2b4d30675d0c15056b7f6e\` ON \`user\`
         `);
     await queryRunner.query(`
             DROP INDEX \`IDX_e12875dfb3b1d92d7d7c5377e2\` ON \`user\`
         `);
     await queryRunner.query(`
             DROP TABLE \`user\`
+        `);
+    await queryRunner.query(`
+            DROP INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` ON \`company\`
+        `);
+    await queryRunner.query(`
+            DROP TABLE \`company\`
         `);
   }
 }

@@ -14,7 +14,6 @@ import {
   IGetInterviewsInput,
   IUpdateInterviewInput,
 } from '../models/interview.models';
-import { sanitizeUser } from './auth/utils';
 import { IAuthenticatedRequest } from '../models/request.models';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 import { ActivityService } from './activity.service'; // ADD
@@ -30,7 +29,7 @@ export class InterviewService {
     private activityService: ActivityService // ADD
   ) {}
 
-  async createInterview(companyRefId: string | undefined, input: ICreateInterviewInput) {
+  async createInterview(companyId: string | undefined, input: ICreateInterviewInput) {
     const { applicationId, dateTime, location, interviewer, preparationTips } = input;
     if (!applicationId) {
       throw new BadRequestException('applicationId is required');
@@ -46,7 +45,7 @@ export class InterviewService {
     if (application.interview) {
       throw new ConflictException('An interview already exists for this application');
     }
-    if (application.job.company?.id !== companyRefId) {
+    if (application.job.company?.id !== companyId) {
       throw new BadRequestException('Not authorized to create interview for this job');
     }
 
@@ -79,7 +78,7 @@ export class InterviewService {
       });
     }
 
-    return this.sanitizeInterview(interview);
+    return interview;
   }
 
   getInterview = async (req: IAuthenticatedRequest, input: IGetInterviewInput) => {
@@ -90,17 +89,20 @@ export class InterviewService {
     if (!interview) {
       return;
     }
-    if (req.user.permission === USER_PERMISSIONS.ATHLETE && interview.athlete?.id !== req.user.id) {
+    if (
+      req.user.permission === USER_PERMISSIONS.ATHLETE &&
+      interview.athlete?.id !== req.user.sub
+    ) {
       throw new BadRequestException('Not authorized to view this interview');
     }
     if (
       req.user.permission === USER_PERMISSIONS.COMPANY &&
-      interview.company?.id !== req.user.companyRefId
+      interview.company?.id !== req.user.companyId
     ) {
-      console.log('hiya', interview.company?.id, req.user.companyRefId);
+      console.log('hiya', interview.company?.id, req.user.companyId);
       throw new BadRequestException('Not authorized to view this interview');
     }
-    return this.sanitizeInterview(interview);
+    return interview;
   };
 
   getInterviewWhereClause = (input: IGetInterviewInput) => {
@@ -117,7 +119,7 @@ export class InterviewService {
     return where;
   };
 
-  async updateInterview(companyRefId: string | undefined, input: IUpdateInterviewInput) {
+  async updateInterview(companyId: string | undefined, input: IUpdateInterviewInput) {
     if (!input.id) {
       throw new BadRequestException('id is required');
     }
@@ -136,7 +138,7 @@ export class InterviewService {
       throw new NotFoundException('Interview not found');
     }
 
-    if (interview.company?.id !== companyRefId) {
+    if (interview.company?.id !== companyId) {
       throw new BadRequestException('Not authorized to update interview');
     }
 
@@ -164,7 +166,7 @@ export class InterviewService {
       );
     }
 
-    return this.sanitizeInterview(updatedInterview);
+    return updatedInterview;
   }
 
   async getInterviews(req: IAuthenticatedRequest, input: IGetInterviewsInput) {
@@ -174,7 +176,7 @@ export class InterviewService {
       where.job = { id: input.jobId };
     }
     if (req.user.permission === USER_PERMISSIONS.ATHLETE) {
-      where.athlete = { id: req.user.id };
+      where.athlete = { id: req.user.sub };
     }
 
     if (input.dateRange) {
@@ -185,10 +187,7 @@ export class InterviewService {
     }
 
     if (req.user.permission === USER_PERMISSIONS.COMPANY) {
-      where.company = { id: req.user.companyRefId };
-    }
-    if (req.user.permission === USER_PERMISSIONS.ATHLETE) {
-      where.athlete = { id: req.user.id };
+      where.company = { id: req.user.companyId };
     }
 
     const interviews = await this.interviewRepository.find({
@@ -197,13 +196,6 @@ export class InterviewService {
       order: { dateTime: 'ASC' },
     });
 
-    return interviews.map((i) => this.sanitizeInterview(i));
-  }
-
-  private sanitizeInterview(interview: Interview) {
-    return {
-      ...interview,
-      athlete: sanitizeUser(interview.athlete),
-    };
+    return interviews;
   }
 }

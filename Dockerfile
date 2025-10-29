@@ -7,6 +7,7 @@ WORKDIR /app
 # Install dependencies
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
+# RUN yarn typeorm migration:run -d src/config/db.ts
 
 # Copy source code
 COPY . .

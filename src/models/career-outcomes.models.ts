@@ -1,6 +1,5 @@
 import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
-// Request DTOs
 export class ICareerOutcomesQueryInput {
   @IsOptional()
   @IsString()
@@ -19,7 +18,6 @@ export class ICareerOutcomesQueryInput {
   hasJob?: boolean;
 }
 
-// Response DTOs
 export interface IYearOverYearMetric {
   current: number;
   lastYear: number;

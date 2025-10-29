@@ -1,12 +1,12 @@
 export interface IAuthenticatedRequest {
   user: {
+    sub: string; // user id in keycloak
     email: string;
-    id: string;
-    firstName?: string;
-    lastName?: string;
+    given_name?: string; // first name
+    family_name?: string; // last name
     permission?: string;
-    companyRefId?: string;
-    schoolRefId?: string;
+    companyId?: string;
+    schoolId?: string;
   };
 }
 

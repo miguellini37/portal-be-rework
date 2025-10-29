@@ -1,6 +1,6 @@
-import { Column, ChildEntity, ManyToOne } from 'typeorm';
+import { Column, ChildEntity, ManyToOne, JoinColumn, RelationId } from 'typeorm';
 import { User } from './User';
-import { School } from './School';
+import { School } from '.';
 
 @ChildEntity()
 export class SchoolEmployee extends User {
@@ -8,5 +8,9 @@ export class SchoolEmployee extends User {
   position?: string;
 
   @ManyToOne(() => School, (school) => school.employees, { nullable: true })
-  schoolRef?: School;
+  @JoinColumn({ name: 'schoolId' })
+  school?: School;
+
+  @RelationId((employee: SchoolEmployee) => employee.school)
+  schoolId?: string;
 }

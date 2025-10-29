@@ -2,9 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  JoinColumn,
   CreateDateColumn,
   Column,
   BaseEntity,
+  RelationId,
 } from 'typeorm';
 import { Job } from './Job';
 import { Athlete } from './Athlete';
@@ -30,12 +32,6 @@ export class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Job, { nullable: false })
-  job!: Job;
-
-  @ManyToOne(() => Athlete, { nullable: false })
-  athlete!: Athlete;
-
   @CreateDateColumn()
   creationDate!: Date;
 
@@ -45,9 +41,27 @@ export class Application extends BaseEntity {
   @Column({ default: false })
   employerReviewed!: boolean;
 
-  @ManyToOne(() => Interview, { nullable: true })
-  interview?: Interview;
-
   @Column({ type: 'enum', enum: ApplicationStatus, default: ApplicationStatus.applied })
   status!: ApplicationStatus;
+
+  @ManyToOne(() => Job, { nullable: false })
+  @JoinColumn({ name: 'jobId' })
+  job!: Job;
+
+  @RelationId((application: Application) => application.job)
+  jobId!: string;
+
+  @ManyToOne(() => Athlete, { nullable: false })
+  @JoinColumn({ name: 'athleteId' })
+  athlete!: Athlete;
+
+  @RelationId((application: Application) => application.athlete)
+  athleteId!: string;
+
+  @ManyToOne(() => Interview, { nullable: true })
+  @JoinColumn({ name: 'interviewId' })
+  interview?: Interview;
+
+  @RelationId((application: Application) => application.interview)
+  interviewId?: string;
 }

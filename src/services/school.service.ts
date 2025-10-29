@@ -75,6 +75,14 @@ export class SchoolService {
     return await queryBuilder.getMany();
   }
 
+  async getSchoolsForDropdown() {
+    const queryBuilder = this.schoolRepository
+      .createQueryBuilder('school')
+      .select(['school.id', 'school.schoolName']);
+
+    return await queryBuilder.getMany();
+  }
+
   async getUniversityOverview(schoolId: string): Promise<IUniversityOverviewResponse> {
     try {
       // Verify school exists
@@ -94,7 +102,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
         .andWhere('job.type = :jobType', { jobType: JobType.JOB })
@@ -105,7 +113,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
         .andWhere('job.type = :jobType', { jobType: JobType.JOB })
@@ -128,7 +136,7 @@ export class SchoolService {
       // 3. Community Numbers - Total students associated to the school
       const totalStudents = await this.athleteRepository
         .createQueryBuilder('athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .getCount();
 
@@ -136,7 +144,7 @@ export class SchoolService {
       const recentActivities = await this.activityRepository
         .createQueryBuilder('activity')
         .leftJoin('activity.user', 'user')
-        .leftJoin('user.schoolRef', 'school', 'user.type = :athleteType', {
+        .leftJoin('user.school', 'school', 'user.type = :athleteType', {
           athleteType: 'athlete',
         })
         .leftJoin('activity.application', 'application')
@@ -154,16 +162,25 @@ export class SchoolService {
         .limit(5)
         .getRawMany();
 
-      const formattedRecentActivity = recentActivities.map((activity) => ({
-        activityId: activity.activity_activityId,
-        type: activity.activity_type,
-        message: activity.activity_message || '',
-        date: activity.activity_date,
-        studentName:
-          activity.user_firstName && activity.user_lastName
-            ? `${activity.user_firstName} ${activity.user_lastName}`
-            : undefined,
-      }));
+      const formattedRecentActivity = recentActivities.map(
+        (activity: {
+          activity_activityId: string;
+          activity_type: string;
+          activity_message?: string;
+          activity_date: Date;
+          user_firstName?: string;
+          user_lastName?: string;
+        }) => ({
+          activityId: activity.activity_activityId,
+          type: activity.activity_type,
+          message: activity.activity_message || '',
+          date: activity.activity_date,
+          studentName:
+            activity.user_firstName && activity.user_lastName
+              ? `${activity.user_firstName} ${activity.user_lastName}`
+              : undefined,
+        })
+      );
 
       return {
         placedGraduates: {
@@ -231,7 +248,7 @@ export class SchoolService {
       const placementsYTD = await this.applicationRepository
         .createQueryBuilder('application')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .leftJoin('application.job', 'job')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
@@ -279,7 +296,7 @@ export class SchoolService {
         .getRawAndEntities();
 
       const companies: ICompanyWithJobCount[] = companiesWithJobCounts.entities.map(
-        (company, index) => ({
+        (company: Company, index: number) => ({
           id: company.id,
           companyName: company.companyName,
           industry: company.industry,
@@ -346,7 +363,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
@@ -359,7 +376,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
@@ -372,7 +389,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
         .getCount();
@@ -382,7 +399,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.under_review })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
@@ -393,7 +410,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
         .andWhere('job.type = :jobType', { jobType: JobType.NIL })
@@ -404,7 +421,7 @@ export class SchoolService {
         .createQueryBuilder('application')
         .leftJoin('application.job', 'job')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .select('SUM(job.salary)', 'totalValue')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('application.status = :status', { status: ApplicationStatus.accepted })
@@ -425,7 +442,7 @@ export class SchoolService {
         .leftJoinAndSelect('application.job', 'job')
         .leftJoinAndSelect('job.company', 'company')
         .leftJoin('application.athlete', 'athlete')
-        .leftJoin('athlete.schoolRef', 'school')
+        .leftJoin('athlete.school', 'school')
         .select([
           'application.id',
           'application.status',
@@ -460,7 +477,7 @@ export class SchoolService {
         .limit(5)
         .getMany();
 
-      const recentDeals = recentDealsData.map((application) => ({
+      const recentDeals = recentDealsData.map((application: Application) => ({
         id: application.job.id,
         position: application.job.position,
         description: application.job.description,
