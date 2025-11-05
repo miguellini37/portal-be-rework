@@ -13,6 +13,7 @@ import {
   IUpdateCompanyOwnerInput,
 } from '../models/admin.model';
 import { School, User, SchoolEmployee, CompanyEmployee } from '../entities';
+import { ProfileService } from './profile.service';
 
 @Injectable()
 export class AdminService {
@@ -22,7 +23,8 @@ export class AdminService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
     @InjectRepository(School)
-    private schoolRepository: Repository<School>
+    private schoolRepository: Repository<School>,
+    private profileService: ProfileService
   ) {}
 
   async getAllUsers(input?: IGetAllUsersInput): Promise<IGetAllUsersResponse> {
@@ -162,6 +164,12 @@ export class AdminService {
         throw new Error('User not found');
       }
 
+      await this.profileService.whiteListUser({
+        email: owner.email ?? '',
+        orgId: input.schoolId,
+        isActive: true,
+      });
+
       school.schoolOwner = { id: input.ownerId } as SchoolEmployee;
       return await this.schoolRepository.save(school);
     } catch (error) {
@@ -189,6 +197,12 @@ export class AdminService {
       if (!owner) {
         throw new Error('User not found');
       }
+
+      await this.profileService.whiteListUser({
+        email: owner.email ?? '',
+        orgId: input.companyId,
+        isActive: true,
+      });
 
       company.companyOwner = { id: input.ownerId } as CompanyEmployee;
       return await this.companyRepository.save(company);

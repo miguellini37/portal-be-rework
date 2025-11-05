@@ -11,6 +11,7 @@ import {
   User,
   Interview,
   Activity,
+  EmailWhitelist,
 } from '../entities';
 import { Application } from '../entities/Application';
 
@@ -34,6 +35,7 @@ export const db = new DataSource({
     Application,
     Interview,
     Activity,
+    EmailWhitelist,
   ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],

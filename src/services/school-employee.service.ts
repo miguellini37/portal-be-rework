@@ -17,17 +17,17 @@ export class SchoolEmployeeService {
     private schoolRepository: Repository<School>
   ) {}
 
-  async updateSchoolEmployee(userId: string, updateDto: IUpdateSchoolEmployeeInput) {
+  async updateSchoolEmployee(userId: string, updateInput: IUpdateSchoolEmployeeInput) {
     try {
       const employee = await this.schoolEmployeeRepository.findOneBy({ id: userId });
       if (!employee) {
         throw new Error('School employee not found');
       }
 
-      Object.assign(employee, updateDto);
+      Object.assign(employee, updateInput);
 
-      if (updateDto.schoolId) {
-        const school = await this.schoolRepository.findOneBy({ id: updateDto.schoolId });
+      if (updateInput.schoolId) {
+        const school = await this.schoolRepository.findOneBy({ id: updateInput.schoolId });
         if (school) {
           employee.school = school;
         }

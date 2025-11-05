@@ -11,7 +11,7 @@ export class CompanyEmployeeService {
     private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
-  async updateCompanyEmployee(userEmail: string, updateDto: IUpdateCompanyEmployeeInput) {
+  async updateCompanyEmployee(userEmail: string, updateInput: IUpdateCompanyEmployeeInput) {
     try {
       const companyEmployee = await this.companyEmployeeRepository.findOneBy({ email: userEmail });
       if (!companyEmployee) {
@@ -19,9 +19,9 @@ export class CompanyEmployeeService {
       }
 
       Object.assign(companyEmployee, {
-        firstName: updateDto.firstName ?? companyEmployee.firstName,
-        lastName: updateDto.lastName ?? companyEmployee.lastName,
-        position: updateDto.position ?? companyEmployee.position,
+        firstName: updateInput.firstName ?? companyEmployee.firstName,
+        lastName: updateInput.lastName ?? companyEmployee.lastName,
+        position: updateInput.position ?? companyEmployee.position,
       });
 
       await this.companyEmployeeRepository.save(companyEmployee);

@@ -11,7 +11,7 @@ export class AthleteService {
     private athleteRepository: Repository<Athlete>
   ) {}
 
-  async updateAthlete(id: string, updateAthleteDto: IUpdateAthleteInput) {
+  async updateAthlete(id: string, updateAthleteInput: IUpdateAthleteInput) {
     const athlete = await this.athleteRepository.findOneBy({ id });
 
     if (!athlete) {
@@ -19,19 +19,19 @@ export class AthleteService {
     }
 
     Object.assign(athlete, {
-      firstName: updateAthleteDto.firstName ?? athlete.firstName,
-      lastName: updateAthleteDto.lastName ?? athlete.lastName,
-      phone: updateAthleteDto.phone ?? athlete.phone,
-      location: updateAthleteDto.location ?? athlete.location,
-      bio: updateAthleteDto.bio ?? athlete.bio,
-      schoolId: updateAthleteDto.schoolId ?? athlete.school?.id,
+      firstName: updateAthleteInput.firstName ?? athlete.firstName,
+      lastName: updateAthleteInput.lastName ?? athlete.lastName,
+      phone: updateAthleteInput.phone ?? athlete.phone,
+      location: updateAthleteInput.location ?? athlete.location,
+      bio: updateAthleteInput.bio ?? athlete.bio,
+      schoolId: updateAthleteInput.schoolId ?? athlete.school?.id,
       academics: {
         ...athlete.academics,
-        ...updateAthleteDto.academics,
+        ...updateAthleteInput.academics,
       },
       athletics: {
         ...athlete.athletics,
-        ...updateAthleteDto.athletics,
+        ...updateAthleteInput.athletics,
       },
     });
 

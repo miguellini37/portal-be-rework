@@ -99,7 +99,6 @@ export class InterviewService {
       req.user.permission === USER_PERMISSIONS.COMPANY &&
       interview.company?.id !== req.user.companyId
     ) {
-      console.log('hiya', interview.company?.id, req.user.companyId);
       throw new BadRequestException('Not authorized to view this interview');
     }
     return interview;

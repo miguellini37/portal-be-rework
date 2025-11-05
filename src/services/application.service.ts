@@ -26,8 +26,8 @@ export class ApplicationService {
     private activityService: ActivityService
   ) {}
 
-  async createApplication(athleteId: string, createApplicationDto: ICreateApplicationInput) {
-    const { jobId } = createApplicationDto;
+  async createApplication(athleteId: string, createApplicationInput: ICreateApplicationInput) {
+    const { jobId } = createApplicationInput;
     if (!jobId || !athleteId) {
       throw new BadRequestException('jobId and athleteId are required');
     }

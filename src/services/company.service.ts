@@ -11,9 +11,9 @@ export class CompanyService {
     private companyRepository: Repository<Company>
   ) {}
 
-  async updateCompany(updateCompanyDto: IUpdateCompanyInput) {
+  async updateCompany(updateCompanyInput: IUpdateCompanyInput) {
     try {
-      const companyId = updateCompanyDto.id;
+      const companyId = updateCompanyInput.id;
       const company = await this.companyRepository.findOneBy({ id: companyId });
 
       if (!company) {
@@ -21,19 +21,19 @@ export class CompanyService {
       }
 
       Object.assign(company, {
-        companyName: updateCompanyDto.companyName ?? company.companyName,
-        industry: updateCompanyDto.industry ?? company.industry,
+        companyName: updateCompanyInput.companyName ?? company.companyName,
+        industry: updateCompanyInput.industry ?? company.industry,
         culture: {
           ...company.culture,
-          ...updateCompanyDto.culture,
+          ...updateCompanyInput.culture,
         },
         benefits: {
           ...company.benefits,
-          ...updateCompanyDto.benefits,
+          ...updateCompanyInput.benefits,
         },
         recruiting: {
           ...company.recruiting,
-          ...updateCompanyDto.recruiting,
+          ...updateCompanyInput.recruiting,
         },
       });
 

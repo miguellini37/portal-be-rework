@@ -19,6 +19,7 @@ import {
   Application,
   Interview,
   Activity,
+  EmailWhitelist,
 } from './entities';
 import { AppController } from './app.controller';
 import {
@@ -69,6 +70,7 @@ import { AdminService } from './services/admin.service';
         Application,
         Interview,
         Activity,
+        EmailWhitelist,
       ],
       migrations: ['src/migrations/**/*.ts'],
       subscribers: [],
@@ -85,6 +87,7 @@ import { AdminService } from './services/admin.service';
       Application,
       Interview,
       Activity,
+      EmailWhitelist,
     ]),
   ],
   controllers: [AppController],

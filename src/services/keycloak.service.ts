@@ -32,6 +32,7 @@ export class KeycloakService {
       permission?: string;
       schoolId?: string;
       companyId?: string;
+      isOrgVerified?: string;
     }
   ): Promise<void> {
     await this.ensureAuthenticated();
@@ -59,6 +60,9 @@ export class KeycloakService {
       }
       if (attributes.companyId !== undefined) {
         updatedAttributes.companyId = [attributes.companyId];
+      }
+      if (attributes.isOrgVerified !== undefined) {
+        updatedAttributes.isOrgVerified = [attributes.isOrgVerified];
       }
 
       // Only send updatable fields to Keycloak
@@ -104,6 +108,9 @@ export class KeycloakService {
         }
         if (attributes.companyId !== undefined) {
           updatedAttributes.companyId = [attributes.companyId];
+        }
+        if (attributes.isOrgVerified !== undefined) {
+          updatedAttributes.isOrgVerified = [attributes.isOrgVerified];
         }
 
         await this.kcAdminClient.users.update(

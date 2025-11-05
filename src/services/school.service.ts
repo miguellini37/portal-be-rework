@@ -33,9 +33,9 @@ export class SchoolService {
     private jobRepository: Repository<Job>
   ) {}
 
-  async updateSchool(updateSchoolDto: IUpdateSchoolInput) {
+  async updateSchool(updateSchoolInput: IUpdateSchoolInput) {
     try {
-      const schoolId = updateSchoolDto.id;
+      const schoolId = updateSchoolInput.id;
       const school = await this.schoolRepository.findOneBy({ id: schoolId });
 
       if (!school) {
@@ -43,7 +43,7 @@ export class SchoolService {
       }
 
       Object.assign(school, {
-        schoolName: updateSchoolDto.schoolName ?? school.schoolName,
+        schoolName: updateSchoolInput.schoolName ?? school.schoolName,
       });
 
       await this.schoolRepository.save(school);

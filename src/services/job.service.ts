@@ -20,9 +20,9 @@ export class JobService {
     private companyEmployeeRepository: Repository<CompanyEmployee>
   ) {}
 
-  async createJob(userId: string, companyId: string | undefined, createJobDto: ICreateJobInput) {
+  async createJob(userId: string, companyId: string | undefined, createJobInput: ICreateJobInput) {
     try {
-      const job = this.jobRepository.create(createJobDto);
+      const job = this.jobRepository.create(createJobInput);
 
       const company = await this.findCompany(companyId);
       const owner = await this.findCompanyEmployee(userId);
@@ -37,14 +37,14 @@ export class JobService {
     }
   }
 
-  async updateJob(id: string, updateJobDto: IUpdateJobInput) {
+  async updateJob(id: string, updateJobInput: IUpdateJobInput) {
     try {
       const job = await this.jobRepository.findOneBy({ id });
       if (!job) {
         throw new Error('Job not found');
       }
 
-      Object.assign(job, updateJobDto);
+      Object.assign(job, updateJobInput);
       await this.jobRepository.save(job);
       return { message: 'Job updated successfully' };
     } catch {

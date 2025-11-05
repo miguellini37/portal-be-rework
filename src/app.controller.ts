@@ -57,8 +57,13 @@ import {
   ISalaryDistributionResponse,
   IStudentOutcome,
 } from './models/career-outcomes.models';
-import { ICreateProfileInput } from './models/profile.models';
-import { AdminGuard } from './guards';
+import {
+  IAllOrgUsersResponse,
+  ICreateProfileInput,
+  IGetAllOrgUsersInput,
+  IWhiteListUserInput,
+} from './models/profile.models';
+import { AdminGuard, OrgOwnerGuard, OrgOwnerOrAdminGuard } from './guards';
 import { AdminService } from './services/admin.service';
 import {
   ICreateCompanyInput,
@@ -152,6 +157,23 @@ export class AppController {
     @Body() createProfileInput: ICreateProfileInput
   ): Promise<void> {
     return this.profileService.createProfile(req, createProfileInput);
+  }
+
+  @Post('whiteListUser')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OrgOwnerOrAdminGuard)
+  async whiteListUser(@Body() input: IWhiteListUserInput): Promise<boolean> {
+    return this.profileService.whiteListUser(input);
+  }
+
+  @Post('getAllOrgUsers')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OrgOwnerGuard)
+  async getAllOrgUsers(
+    @Request() req: IAuthenticatedRequest,
+    @Body() input: IGetAllOrgUsersInput
+  ): Promise<IAllOrgUsersResponse> {
+    return this.profileService.getAllOrgUsers(req, input);
   }
 
   /*

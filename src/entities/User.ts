@@ -27,4 +27,7 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   bio?: string;
+
+  @Column({ nullable: true })
+  isVerified?: boolean;
 }

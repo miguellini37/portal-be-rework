@@ -3,6 +3,7 @@ export * from './Activity';
 export * from './Athlete';
 export * from './Company';
 export * from './CompanyEmployee';
+export * from './EmailWhitelist';
 export * from './Interview';
 export * from './Job';
 export * from './School';
