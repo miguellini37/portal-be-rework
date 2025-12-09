@@ -2,19 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SchoolEmployee } from '../entities/SchoolEmployee';
-import { School } from '../entities/School';
 import {
   IUpdateSchoolEmployeeInput,
   ISchoolEmployeeQueryInput,
 } from '../models/school-employee.models';
+import { KeycloakService } from './keycloak.service';
 
 @Injectable()
 export class SchoolEmployeeService {
   constructor(
     @InjectRepository(SchoolEmployee)
     private schoolEmployeeRepository: Repository<SchoolEmployee>,
-    @InjectRepository(School)
-    private schoolRepository: Repository<School>
+    private keycloakService: KeycloakService
   ) {}
 
   async updateSchoolEmployee(userId: string, updateInput: IUpdateSchoolEmployeeInput) {
@@ -24,16 +23,22 @@ export class SchoolEmployeeService {
         throw new Error('School employee not found');
       }
 
-      Object.assign(employee, updateInput);
+      const schoolHasChanged = employee.schoolId !== updateInput.schoolId;
 
-      if (updateInput.schoolId) {
-        const school = await this.schoolRepository.findOneBy({ id: updateInput.schoolId });
-        if (school) {
-          employee.school = school;
-        }
-      }
+      Object.assign(employee, {
+        ...updateInput,
+        school: updateInput.schoolId ? { id: updateInput.schoolId } : undefined,
+        isVerified: schoolHasChanged ? null : employee.isVerified,
+      });
 
       await this.schoolEmployeeRepository.save(employee);
+
+      if (schoolHasChanged) {
+        await this.keycloakService.updateUserAttributes(userId, {
+          schoolId: updateInput.schoolId,
+          isOrgVerified: undefined,
+        });
+      }
       return { message: 'School employee updated successfully' };
     } catch {
       throw new Error('Failed to update school employee');

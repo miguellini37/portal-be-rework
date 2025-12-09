@@ -302,7 +302,7 @@ export class AppController {
     if (!email) {
       throw new Error('User email is required');
     }
-    return this.companyEmployeeService.updateCompanyEmployee(email, updateInput);
+    return this.companyEmployeeService.updateCompanyEmployee(req.user.sub, email, updateInput);
   }
 
   @Get('getCompanyEmployee/:id')

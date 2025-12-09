@@ -14,6 +14,7 @@ import { IAuthenticatedRequest } from '../models/request.models';
 import { KeycloakService } from './keycloak.service';
 import { USER_PERMISSIONS } from '../constants/user-permissions';
 import { Athlete, EmailWhitelist } from '../entities';
+import { isNil } from 'lodash';
 
 @Injectable()
 export class ProfileService {
@@ -228,10 +229,13 @@ export class ProfileService {
       });
     }
 
-    if (filters?.isVerified !== undefined) {
+    if (!isNil(filters?.isVerified)) {
       query.andWhere(`${alias}.isVerified = :isVerified`, {
         isVerified: filters.isVerified,
       });
+    }
+    if (filters?.isVerified === null) {
+      query.andWhere(`${alias}.isVerified IS NULL`);
     }
 
     return query;
