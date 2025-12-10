@@ -48,13 +48,14 @@ export class SchoolEmployeeService {
   async getSchoolEmployees(userId: string, query: ISchoolEmployeeQueryInput) {
     const queryBuilder = this.schoolEmployeeRepository
       .createQueryBuilder('schoolEmployee')
-      .leftJoinAndSelect('schoolEmployee.school', 'school');
+      .leftJoinAndSelect('schoolEmployee.school', 'school')
+      .where('schoolEmployee.isVerified = :isVerified', { isVerified: true });
 
     if (query.schoolId) {
-      queryBuilder.where('school.id = :schoolId', { schoolId: query.schoolId });
+      queryBuilder.andWhere('school.id = :schoolId', { schoolId: query.schoolId });
     } else if (userId) {
       // Use user ID to filter by associated school
-      queryBuilder.where('school.id = :schoolId', { schoolId: userId });
+      queryBuilder.andWhere('school.id = :schoolId', { schoolId: userId });
     }
 
     if (query.wildcardTerm) {

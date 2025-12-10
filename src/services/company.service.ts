@@ -57,9 +57,8 @@ export class CompanyService {
       // Strip password and permission from employees
       const safeCompany = {
         ...company,
-        companyEmployees: company.companyEmployees?.map((employee) => {
-          const { permission: _permission, ...safeEmployee } = employee;
-          return safeEmployee;
+        companyEmployees: company.companyEmployees?.filter((employee) => {
+          return employee.isVerified;
         }),
       };
 

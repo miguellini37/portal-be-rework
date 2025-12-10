@@ -62,10 +62,11 @@ export class AthleteService {
 
     const queryBuilder = this.athleteRepository
       .createQueryBuilder('athlete')
-      .leftJoinAndSelect('athlete.school', 'school');
+      .leftJoinAndSelect('athlete.school', 'school')
+      .where('athlete.isVerified = :isVerified', { isVerified: true });
 
     if (query.schoolId) {
-      queryBuilder.where('school.id = :schoolId', { schoolId: query.schoolId });
+      queryBuilder.andWhere('school.id = :schoolId', { schoolId: query.schoolId });
     }
 
     if (wildcardTerm) {
