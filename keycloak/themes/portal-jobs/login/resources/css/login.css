@@ -1,0 +1,437 @@
+/* Portal Jobs Custom Keycloak Login Theme */
+
+/* CSS Variables for Portal Jobs branding */
+:root {
+    --primary-blue: #4361EE;
+    --primary-blue-hover: #3451d4;
+    --gradient-start: #667eea;
+    --gradient-end: #764ba2;
+    --card-background: #ffffff;
+    --input-background: #f3f4f6;
+    --input-border: #e5e7eb;
+    --input-focus-border: #4361EE;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-on-gradient: #ffffff;
+    --error-color: #ef4444;
+    --success-color: #10b981;
+    --border-radius: 12px;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Global body styling with gradient background */
+body {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main login container */
+#kc-container,
+.login-pf {
+    background: transparent !important;
+}
+
+#kc-container-wrapper {
+    background: transparent !important;
+}
+
+/* Card styling */
+#kc-form-wrapper,
+#kc-form,
+.card-pf,
+#kc-content,
+#kc-content-wrapper {
+    background: var(--card-background) !important;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 450px;
+}
+
+/* Header styling */
+#kc-header,
+#kc-page-title {
+    color: var(--text-on-gradient) !important;
+    font-size: 1.875rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+#kc-header-wrapper {
+    color: var(--text-on-gradient) !important;
+    text-align: center;
+    padding: 2rem 0 1rem 0;
+}
+
+/* Form styling */
+form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+/* Label styling */
+label {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Input field styling */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+.form-control:focus {
+    outline: none;
+    background-color: var(--card-background);
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+/* Primary button styling */
+#kc-login,
+input[type="submit"],
+.btn-primary,
+button[type="submit"] {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    background-color: var(--primary-blue);
+    color: var(--card-background);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+#kc-login:hover,
+input[type="submit"]:hover,
+.btn-primary:hover,
+button[type="submit"]:hover {
+    background-color: var(--primary-blue-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
+}
+
+#kc-login:active,
+input[type="submit"]:active,
+.btn-primary:active,
+button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Secondary button styling */
+.btn-default,
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--input-border);
+}
+
+.btn-default:hover,
+.btn-secondary:hover {
+    background-color: var(--input-background);
+    border-color: var(--text-secondary);
+}
+
+/* Link styling */
+a,
+#kc-registration a,
+#kc-form-options a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+a:hover,
+#kc-registration a:hover,
+#kc-form-options a:hover {
+    color: var(--primary-blue-hover);
+    text-decoration: underline;
+}
+
+/* Registration and form options */
+#kc-registration {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-on-gradient);
+}
+
+#kc-registration span {
+    color: var(--text-on-gradient);
+    margin-right: 0.5rem;
+}
+
+#kc-form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+#kc-form-options .checkbox {
+    display: flex;
+    align-items: center;
+}
+
+#kc-form-options .checkbox label {
+    margin-bottom: 0;
+    margin-left: 0.5rem;
+    font-weight: 400;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Error and success message styling */
+.alert-error,
+.pf-c-alert.pf-m-danger,
+.kc-feedback-text {
+    background-color: #fef2f2;
+    border-left: 4px solid var(--error-color);
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.alert-success,
+.pf-c-alert.pf-m-success {
+    background-color: #f0fdf4;
+    border-left: 4px solid var(--success-color);
+    color: #166534;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.alert-warning,
+.pf-c-alert.pf-m-warning {
+    background-color: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.alert-info,
+.pf-c-alert.pf-m-info {
+    background-color: #eff6ff;
+    border-left: 4px solid var(--primary-blue);
+    color: #1e40af;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+/* Info box styling */
+#kc-info,
+#kc-info-wrapper {
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 450px;
+}
+
+#kc-info-message p {
+    color: var(--text-primary);
+    margin: 0.5rem 0;
+}
+
+/* Social providers */
+#kc-social-providers {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--input-border);
+}
+
+#kc-social-providers ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#kc-social-providers li {
+    margin-bottom: 0.75rem;
+}
+
+#kc-social-providers a {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#kc-social-providers a:hover {
+    background-color: var(--input-background);
+    text-decoration: none;
+}
+
+/* OTP and additional form elements */
+#kc-otp,
+.otp-label {
+    margin-top: 1rem;
+}
+
+/* Locale selector */
+#kc-locale {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+#kc-locale-dropdown {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--text-on-gradient);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+#kc-locale-dropdown:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Required field indicator */
+.required {
+    color: var(--error-color);
+}
+
+/* Terms and conditions */
+#kc-terms-text {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: var(--input-background);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+    #kc-form-wrapper,
+    #kc-form,
+    .card-pf,
+    #kc-content,
+    #kc-content-wrapper,
+    #kc-info,
+    #kc-info-wrapper {
+        margin: 1rem;
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    #kc-header,
+    #kc-page-title {
+        font-size: 1.5rem;
+    }
+
+    #kc-form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    #kc-locale {
+        position: static;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+}
+
+/* PatternFly overrides */
+.login-pf body {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%) !important;
+}
+
+.login-pf-page {
+    background: transparent !important;
+}
+
+.login-pf-page .card-pf {
+    background: var(--card-background) !important;
+}
+
+/* Ensure proper spacing */
+#kc-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Back to application link */
+#kc-back {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#kc-back a {
+    color: var(--text-on-gradient);
+    font-size: 0.875rem;
+}
+
+/* Feedback areas */
+#kc-feedback {
+    margin-bottom: 1rem;
+}
+
+#kc-feedback-wrapper {
+    width: 100%;
+}
+
+/* Identity provider links */
+.identity-provider-container {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.identity-provider-link {
+    display: inline-block;
+    margin: 0.5rem;
+}

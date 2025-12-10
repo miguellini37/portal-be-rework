@@ -59,6 +59,17 @@ jobs:
       - name: Ensure data volume exists
         run: docker volume create keycloak_data >/dev/null
 
+      - name: Prepare theme directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Create theme directory on host
+          sudo mkdir -p /opt/keycloak-themes/portal-jobs
+          # Copy theme files
+          sudo cp -r ./keycloak/themes/portal-jobs/* /opt/keycloak-themes/portal-jobs/
+          # Set appropriate permissions
+          sudo chmod -R 755 /opt/keycloak-themes/portal-jobs
+
       - name: Remove existing container if present
         shell: bash
         run: |
@@ -84,6 +95,7 @@ jobs:
             --env-file .keycloak.env \
             -p "${KEYCLOAK_HTTP_PORT:-8080}:8080" \
             -v keycloak_data:/opt/keycloak/data \
+            -v /opt/keycloak-themes/portal-jobs:/opt/keycloak/themes/portal-jobs:ro \
             quay.io/keycloak/keycloak:24.0.5 start
 
       - name: Cleanup env files
