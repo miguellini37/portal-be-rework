@@ -64,6 +64,10 @@ export class AthleteService {
       .createQueryBuilder('athlete')
       .leftJoinAndSelect('athlete.school', 'school');
 
+    if (query.schoolId) {
+      queryBuilder.where('school.id = :schoolId', { schoolId: query.schoolId });
+    }
+
     if (wildcardTerm) {
       this.addWildcardFilterToQuery(
         queryBuilder,

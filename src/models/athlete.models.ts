@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsUUID } from 'class-validator';
 import { IAcademics, IAthletics } from './request.models';
 
 export class IUpdateAthleteInput {
@@ -43,4 +43,8 @@ export class IAthleteQueryInput {
   @IsOptional()
   @IsString()
   wildcardTerm?: string;
+
+  @IsOptional()
+  @IsUUID()
+  schoolId?: string;
 }
