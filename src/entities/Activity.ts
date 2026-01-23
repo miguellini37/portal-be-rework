@@ -30,7 +30,7 @@ export class Activity extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   message?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   date!: Date;
 
   // Unidirectional (no inverse to avoid circular load)

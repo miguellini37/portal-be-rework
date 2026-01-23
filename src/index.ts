@@ -12,6 +12,7 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyPressure from '@fastify/under-pressure';
 import ms from 'ms';
 import fastifyQs from 'fastify-qs';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -25,6 +26,10 @@ async function bootstrap() {
       logger: ['log', 'error', 'warn'], // NestJS logger levels
     }
   );
+
+  // Configure Socket.IO adapter
+  app.useWebSocketAdapter(new IoAdapter(app));
+  console.log('🔌 Socket.IO adapter configured');
 
   // Parse qs-style arrays and nested objects in querystrings (e.g., type[]=internship)
   await app.register(fastifyQs);

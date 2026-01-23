@@ -39,7 +39,7 @@ export class Interview extends BaseEntity {
   @Column({ type: 'enum', enum: InterviewStatus, default: InterviewStatus.scheduled })
   status!: InterviewStatus;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   creationDate!: Date;
 
   @ManyToOne(() => Job, { nullable: false })

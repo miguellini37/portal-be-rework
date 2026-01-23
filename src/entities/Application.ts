@@ -32,7 +32,7 @@ export class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   creationDate!: Date;
 
   @Column({ type: 'date', nullable: true })

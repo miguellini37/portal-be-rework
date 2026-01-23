@@ -79,3 +79,38 @@ The backend requires the following environment variables to connect to Keycloak:
 - `KEYCLOAK_REALM` - The Keycloak realm name (e.g., `portal`)
 - `KEYCLOAK_CLIENT_ID` - The client ID for this backend (e.g., `portal-backend`)
 - `KEYCLOAK_CLIENT_SECRET` - The client secret from Keycloak
+
+## Messaging Feature
+
+This application includes a comprehensive messaging system with real-time WebSocket support. For detailed information about the messaging feature, including:
+
+- API endpoints documentation
+- WebSocket usage and events
+- React frontend integration example
+- CloudFront/EC2 deployment configuration
+- Security considerations
+
+Please refer to [MESSAGING_FEATURE.md](MESSAGING_FEATURE.md)
+
+### Quick Start for Messaging
+
+1. **Run the database migration:**
+   ```sh
+   yarn migration:run
+   ```
+
+2. **The messaging endpoints are available at:**
+   - `GET /getRecentMessages` - Get recent conversations
+   - `GET /getConversation?otherUserId={id}` - Get conversation history
+   - `POST /sendMessage` - Send a message
+   - `PATCH /markMessageRead` - Mark message as read
+
+3. **WebSocket connection for real-time updates:**
+   ```javascript
+   const socket = io('http://localhost:3000', {
+     path: '/messages',
+     auth: { token: 'your-jwt-token' }
+   });
+   ```
+
+See [MESSAGING_FEATURE.md](MESSAGING_FEATURE.md) for complete documentation.

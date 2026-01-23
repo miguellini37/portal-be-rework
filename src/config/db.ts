@@ -12,6 +12,7 @@ import {
   Interview,
   Activity,
   EmailWhitelist,
+  Message,
 } from '../entities';
 import { Application } from '../entities/Application';
 
@@ -24,6 +25,7 @@ export const db = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false,
   logging: false,
+  timezone: 'Z',
   entities: [
     User,
     Athlete,
@@ -36,6 +38,7 @@ export const db = new DataSource({
     Interview,
     Activity,
     EmailWhitelist,
+    Message,
   ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],

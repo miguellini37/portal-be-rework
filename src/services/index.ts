@@ -9,3 +9,4 @@ export { SchoolEmployeeService } from './school-employee.service';
 export { InterviewService } from './interview.service';
 export { CareerOutcomesService } from './career-outcomes.service';
 export { ProfileService } from './profile.service';
+export { MessageService } from './message.service';

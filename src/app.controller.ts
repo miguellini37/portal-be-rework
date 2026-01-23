@@ -23,6 +23,7 @@ import {
   InterviewService,
   CareerOutcomesService,
   ProfileService,
+  MessageService,
 } from './services';
 import { IUpdateAthleteInput, IAthleteQueryInput } from './models/athlete.models';
 import { IUpdateCompanyInput, ICompanyQueryInput } from './models/company.models';
@@ -63,6 +64,19 @@ import {
   IGetAllOrgUsersInput,
   IWhiteListUserInput,
 } from './models/profile.models';
+import {
+  IGetRecentMessagesResponse,
+  IGetConversationInput,
+  IGetConversationResponse,
+  ISendMessageInput,
+  ISendMessageResponse,
+  IMarkMessageReadInput,
+  IMarkMessageReadResponse,
+  IGetUsersToMessageInput,
+  IGetUsersToMessageResponse,
+  IGetUserForMessagingInput,
+  IUserToMessage,
+} from './models/message.models';
 import { AdminGuard, OrgOwnerGuard, OrgOwnerOrAdminGuard } from './guards';
 import { AdminService } from './services/admin.service';
 import {
@@ -90,7 +104,8 @@ export class AppController {
     private readonly activityService: ActivityService,
     private readonly careerOutcomesService: CareerOutcomesService,
     private readonly profileService: ProfileService,
-    private readonly adminService: AdminService
+    private readonly adminService: AdminService,
+    private readonly messageService: MessageService
   ) {}
 
   /*
@@ -493,5 +508,74 @@ export class AppController {
     }
 
     return this.careerOutcomesService.getStudentOutcomes(req.user.schoolId, filters);
+  }
+
+  /*
+   * Message Routes
+   */
+
+  @Get('getRecentMessages')
+  @HttpCode(HttpStatus.OK)
+  async getRecentMessages(
+    @Request() req: IAuthenticatedRequest
+  ): Promise<IGetRecentMessagesResponse[]> {
+    return this.messageService.getRecentMessages(req.user.sub);
+  }
+
+  @Get('getConversation')
+  @HttpCode(HttpStatus.OK)
+  async getConversation(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: IGetConversationInput
+  ): Promise<IGetConversationResponse> {
+    return this.messageService.getConversation(req.user.sub, query);
+  }
+
+  @Post('sendMessage')
+  @HttpCode(HttpStatus.CREATED)
+  async sendMessage(
+    @Request() req: IAuthenticatedRequest,
+    @Body() body: ISendMessageInput
+  ): Promise<ISendMessageResponse> {
+    return this.messageService.sendMessage(req.user.sub, body);
+  }
+
+  @Patch('markMessageRead')
+  @HttpCode(HttpStatus.OK)
+  async markMessageRead(
+    @Request() req: IAuthenticatedRequest,
+    @Body() body: IMarkMessageReadInput
+  ): Promise<IMarkMessageReadResponse> {
+    return this.messageService.markMessageRead(req.user.sub, body);
+  }
+
+  @Get('getUsersToMessage')
+  @HttpCode(HttpStatus.OK)
+  async getUsersToMessage(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: IGetUsersToMessageInput
+  ): Promise<IGetUsersToMessageResponse> {
+    return this.messageService.getUsersToMessage(
+      req.user.sub,
+      req.user.permission ?? '',
+      req.user.schoolId,
+      req.user.companyId,
+      query
+    );
+  }
+
+  @Get('getUserForMessaging')
+  @HttpCode(HttpStatus.OK)
+  async getUserForMessaging(
+    @Request() req: IAuthenticatedRequest,
+    @Query() query: IGetUserForMessagingInput
+  ): Promise<IUserToMessage | null> {
+    return this.messageService.getUserForMessaging(
+      req.user.sub,
+      req.user.permission ?? '',
+      req.user.schoolId,
+      req.user.companyId,
+      query
+    );
   }
 }

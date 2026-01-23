@@ -1,10 +1,12 @@
+import { USER_PERMISSIONS } from '../constants/user-permissions';
+
 export interface IAuthenticatedRequest {
   user: {
     sub: string; // user id in keycloak
     email: string;
     given_name?: string; // first name
     family_name?: string; // last name
-    permission?: string;
+    permission?: USER_PERMISSIONS;
     companyId?: string;
     schoolId?: string;
   };

@@ -94,7 +94,7 @@ export class Company extends BaseEntity {
   @Column({ type: 'json', nullable: true })
   recruiting?: Recruiting | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAtDate!: Date;
 
   @OneToMany(() => CompanyEmployee, (user) => user.company)

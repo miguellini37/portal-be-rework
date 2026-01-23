@@ -21,7 +21,7 @@ export class EmailWhitelist extends BaseEntity {
   @Column({ default: true })
   isActive!: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
   @UpdateDateColumn()

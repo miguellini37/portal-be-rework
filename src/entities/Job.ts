@@ -40,7 +40,7 @@ export class Job extends BaseEntity {
   @Column({ nullable: true })
   experience?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdDate!: Date;
 
   @Column({ type: 'date', nullable: true })

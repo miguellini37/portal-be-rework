@@ -20,6 +20,7 @@ import {
   Interview,
   Activity,
   EmailWhitelist,
+  Message,
 } from './entities';
 import { AppController } from './app.controller';
 import {
@@ -34,9 +35,11 @@ import {
   ActivityService,
   CareerOutcomesService,
   ProfileService,
+  MessageService,
 } from './services';
 import { KeycloakService } from './services/keycloak.service';
 import { AdminService } from './services/admin.service';
+import { MessagingGateway } from './gateways/messaging.gateway';
 
 @Module({
   imports: [
@@ -54,6 +57,7 @@ import { AdminService } from './services/admin.service';
       type: 'mysql',
       host: process.env.DB_ENDPOINT ?? 'localhost',
       port: 3306,
+      timezone: 'Z',
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
@@ -71,6 +75,7 @@ import { AdminService } from './services/admin.service';
         Interview,
         Activity,
         EmailWhitelist,
+        Message,
       ],
       migrations: ['src/migrations/**/*.ts'],
       subscribers: [],
@@ -88,6 +93,7 @@ import { AdminService } from './services/admin.service';
       Interview,
       Activity,
       EmailWhitelist,
+      Message,
     ]),
   ],
   controllers: [AppController],
@@ -117,6 +123,8 @@ import { AdminService } from './services/admin.service';
     ProfileService,
     KeycloakService,
     AdminService,
+    MessageService,
+    MessagingGateway,
   ],
 })
 export class AppModule {}
