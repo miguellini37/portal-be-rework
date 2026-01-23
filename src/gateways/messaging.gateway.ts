@@ -58,6 +58,7 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
       const token = (client.handshake.query.token as string) || client.handshake.auth.token || '';
 
       if (!token) {
+        console.error('❌ WebSocket connection failed: No token provided');
         throw new UnauthorizedException('Authentication token is required');
       }
 
@@ -68,6 +69,7 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
         // or validate it against the Keycloak server using the JWKS endpoint
         const base64Payload = token.split('.')[1];
         if (!base64Payload) {
+          console.error('❌ WebSocket connection failed: Invalid token format');
           throw new UnauthorizedException('Invalid token format');
         }
         const decodedPayload = Buffer.from(base64Payload, 'base64').toString();
@@ -75,20 +77,28 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
 
         // At minimum, check that the token is not expired
         if (payload.exp && payload.exp * 1000 < Date.now()) {
+          console.error('❌ WebSocket connection failed: Token expired');
           throw new UnauthorizedException('Token expired');
         }
 
         if (!payload.sub) {
+          console.error('❌ WebSocket connection failed: Invalid token payload (no sub)');
           throw new UnauthorizedException('Invalid token payload');
         }
-      } catch {
+      } catch (error) {
+        console.error('❌ WebSocket connection failed: Token parsing error', error);
         throw new UnauthorizedException('Invalid token');
       }
 
       // Store user information in the socket
       client.userId = payload.sub;
       client.email = payload.email;
-    } catch {
+      console.log(`✅ WebSocket connected: User ${client.userId} (${client.email})`);
+    } catch (error) {
+      console.error(
+        '❌ WebSocket connection error:',
+        error instanceof Error ? error.message : error
+      );
       client.disconnect();
     }
   }
