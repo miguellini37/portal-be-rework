@@ -33,8 +33,10 @@ interface IJwtPayload {
   cors: {
     origin: true,
     credentials: true,
+    methods: ['GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   },
-  path: '/messages',
+  path: '/subscription',
 })
 export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
