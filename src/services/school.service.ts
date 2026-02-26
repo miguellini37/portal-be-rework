@@ -78,7 +78,9 @@ export class SchoolService {
   async getSchoolsForDropdown() {
     const queryBuilder = this.schoolRepository
       .createQueryBuilder('school')
-      .select(['school.id', 'school.schoolName']);
+      .select(['school.id', 'school.schoolName'])
+      .orderBy('school.schoolName', 'ASC')
+      .take(15);
 
     return await queryBuilder.getMany();
   }

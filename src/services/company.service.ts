@@ -90,7 +90,9 @@ export class CompanyService {
   async getCompaniesForDropdown() {
     const queryBuilder = this.companyRepository
       .createQueryBuilder('company')
-      .select(['company.id', 'company.companyName']);
+      .select(['company.id', 'company.companyName'])
+      .orderBy('company.companyName', 'ASC')
+      .take(15);
 
     return await queryBuilder.getMany();
   }
