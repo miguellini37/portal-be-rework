@@ -87,12 +87,16 @@ export class CompanyService {
     return await queryBuilder.getMany();
   }
 
-  async getCompaniesForDropdown() {
+  async getCompaniesForDropdown(query: ICompanyQueryInput) {
     const queryBuilder = this.companyRepository
       .createQueryBuilder('company')
       .select(['company.id', 'company.companyName'])
       .orderBy('company.companyName', 'ASC')
       .take(15);
+
+    if (query.wildcardTerm) {
+      queryBuilder.where('company.companyName LIKE :term', { term: `%${query.wildcardTerm}%` });
+    }
 
     return await queryBuilder.getMany();
   }

@@ -300,8 +300,8 @@ export class AppController {
   }
 
   @Get('getCompaniesForDropdown')
-  async getCompaniesForDropdown() {
-    return this.companyService.getCompaniesForDropdown();
+  async getCompaniesForDropdown(@Query() query: ICompanyQueryInput) {
+    return this.companyService.getCompaniesForDropdown(query);
   }
 
   /*
@@ -369,8 +369,8 @@ export class AppController {
   }
 
   @Get('getSchoolsForDropdown')
-  async getSchoolsForDropdown() {
-    return this.schoolService.getSchoolsForDropdown();
+  async getSchoolsForDropdown(@Query() query: ISchoolQueryInput) {
+    return this.schoolService.getSchoolsForDropdown(query);
   }
 
   @Get('getUniversityOverview')

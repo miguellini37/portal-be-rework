@@ -39,11 +39,14 @@ export class AdminService {
           'user.permission',
           'user.companyId',
           'user.schoolId',
+          'user.isVerified',
+          'company.companyName',
+          'school.schoolName',
+          'company.id',
+          'school.id',
         ])
         .leftJoin('user.company', 'company')
-        .addSelect('company.companyName')
-        .leftJoin('user.school', 'school')
-        .addSelect('school.schoolName');
+        .leftJoin('user.school', 'school');
 
       if (input?.name) {
         queryBuilder.andWhere("CONCAT(user.firstName, ' ', user.lastName) LIKE :name", {

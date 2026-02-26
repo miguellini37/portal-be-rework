@@ -159,9 +159,10 @@ export class ProfileService {
         isOrgVerified: input.isActive.toString(),
       });
       this.logger.log(`Updated isVerified for user ${existingUser.email} to ${input.isActive}`);
+      return true;
     }
 
-    return true;
+    throw new Error('User not found or does not belong to the specified organization');
   }
 
   /**

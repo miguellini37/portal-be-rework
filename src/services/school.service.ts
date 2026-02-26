@@ -75,12 +75,16 @@ export class SchoolService {
     return await queryBuilder.getMany();
   }
 
-  async getSchoolsForDropdown() {
+  async getSchoolsForDropdown(query: ISchoolQueryInput) {
     const queryBuilder = this.schoolRepository
       .createQueryBuilder('school')
       .select(['school.id', 'school.schoolName'])
       .orderBy('school.schoolName', 'ASC')
       .take(15);
+
+    if (query.wildcardTerm) {
+      queryBuilder.where('school.schoolName LIKE :term', { term: `%${query.wildcardTerm}%` });
+    }
 
     return await queryBuilder.getMany();
   }
