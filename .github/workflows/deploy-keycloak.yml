@@ -108,14 +108,17 @@ jobs:
           PORT="${KEYCLOAK_HTTP_PORT:-8080}"
           echo "Waiting for Keycloak on port $PORT..."
           for i in $(seq 1 24); do
-            if curl -sf "http://localhost:${PORT}/health/ready" 2>/dev/null | grep -q '"status":"UP"'; then
+            RESPONSE=$(curl -s -o /dev/stdout -w "\nHTTP_CODE:%{http_code}" "http://localhost:${PORT}/health/ready" 2>&1 || true)
+            echo "Attempt $i/24 — response: $RESPONSE"
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"UP"'; then
               echo "Keycloak is ready."
               exit 0
             fi
-            echo "Attempt $i/24 — not ready yet, waiting 15s..."
+            echo "Waiting 15s..."
             sleep 15
           done
           echo "Keycloak did not become healthy in time."
+          docker logs portal-keycloak --tail 50 || true
           exit 1
 
       - name: Import realm config (preserve users)
