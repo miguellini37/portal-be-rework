@@ -16,6 +16,7 @@ import {
   SchoolEmployee,
   Job,
   School,
+  SchoolDomain,
   Application,
   Interview,
   Activity,
@@ -39,6 +40,7 @@ import {
 } from './services';
 import { KeycloakService } from './services/keycloak.service';
 import { AdminService } from './services/admin.service';
+import { EmailService } from './services/email.service';
 import { MessagingGateway } from './gateways/messaging.gateway';
 
 @Module({
@@ -71,6 +73,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
         Company,
         Job,
         School,
+        SchoolDomain,
         Application,
         Interview,
         Activity,
@@ -89,6 +92,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
       Activity,
       Job,
       School,
+      SchoolDomain,
       Application,
       Interview,
       Activity,
@@ -125,6 +129,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
     AdminService,
     MessageService,
     MessagingGateway,
+    EmailService,
   ],
 })
 export class AppModule {}

@@ -36,7 +36,7 @@ export class SchoolEmployeeService {
       if (schoolHasChanged) {
         await this.keycloakService.updateUserAttributes(userId, {
           schoolId: updateInput.schoolId,
-          isOrgVerified: undefined,
+          isVerified: undefined,
         });
       }
       return { message: 'School employee updated successfully' };

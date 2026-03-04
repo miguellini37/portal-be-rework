@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from '../entities/Company';
@@ -12,36 +12,32 @@ export class CompanyService {
   ) {}
 
   async updateCompany(updateCompanyInput: IUpdateCompanyInput) {
-    try {
-      const companyId = updateCompanyInput.id;
-      const company = await this.companyRepository.findOneBy({ id: companyId });
+    const companyId = updateCompanyInput.id;
+    const company = await this.companyRepository.findOneBy({ id: companyId });
 
-      if (!company) {
-        throw new Error('Company not found');
-      }
-
-      Object.assign(company, {
-        companyName: updateCompanyInput.companyName ?? company.companyName,
-        industry: updateCompanyInput.industry ?? company.industry,
-        culture: {
-          ...company.culture,
-          ...updateCompanyInput.culture,
-        },
-        benefits: {
-          ...company.benefits,
-          ...updateCompanyInput.benefits,
-        },
-        recruiting: {
-          ...company.recruiting,
-          ...updateCompanyInput.recruiting,
-        },
-      });
-
-      await this.companyRepository.save(company);
-      return { message: 'Company updated successfully' };
-    } catch {
-      throw new Error('Failed to update company');
+    if (!company) {
+      throw new BadRequestException('Company not found');
     }
+
+    Object.assign(company, {
+      companyName: updateCompanyInput.companyName ?? company.companyName,
+      industry: updateCompanyInput.industry ?? company.industry,
+      culture: {
+        ...company.culture,
+        ...updateCompanyInput.culture,
+      },
+      benefits: {
+        ...company.benefits,
+        ...updateCompanyInput.benefits,
+      },
+      recruiting: {
+        ...company.recruiting,
+        ...updateCompanyInput.recruiting,
+      },
+    });
+
+    await this.companyRepository.save(company);
+    return { message: 'Company updated successfully' };
   }
 
   async getCompany(id: string) {

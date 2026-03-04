@@ -8,5 +8,6 @@ export * from './Interview';
 export * from './Job';
 export * from './Message';
 export * from './School';
+export * from './SchoolDomain';
 export * from './SchoolEmployee';
 export * from './User';

@@ -39,7 +39,7 @@ export class CompanyEmployeeService {
       if (companyHasChanged) {
         await this.keycloakService.updateUserAttributes(userId, {
           companyId: updateInput.companyId,
-          isOrgVerified: undefined,
+          isVerified: undefined,
         });
       }
       return { message: 'Company employee updated successfully' };

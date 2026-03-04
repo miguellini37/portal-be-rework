@@ -98,5 +98,51 @@ jobs:
             -v /opt/keycloak-themes/portal-jobs:/opt/keycloak/themes/portal-jobs:ro \
             quay.io/keycloak/keycloak:24.0.5 start
 
+      - name: Wait for Keycloak to be healthy
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source .env
+          set +a
+          PORT="${KEYCLOAK_HTTP_PORT:-8080}"
+          echo "Waiting for Keycloak on port $PORT..."
+          for i in $(seq 1 24); do
+            if curl -sf "http://localhost:${PORT}/health/ready" 2>/dev/null | grep -q '"status":"UP"'; then
+              echo "Keycloak is ready."
+              exit 0
+            fi
+            echo "Attempt $i/24 — not ready yet, waiting 15s..."
+            sleep 15
+          done
+          echo "Keycloak did not become healthy in time."
+          exit 1
+
+      - name: Import realm config (preserve users)
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source .env
+          set +a
+
+          docker run --rm \
+            --network host \
+            -e KEYCLOAK_URL="http://localhost:${KEYCLOAK_HTTP_PORT:-8080}" \
+            -e KEYCLOAK_USER="${KEYCLOAK_ADMIN}" \
+            -e KEYCLOAK_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}" \
+            -e KEYCLOAK_AVAILABILITYCHECK_ENABLED=true \
+            -e KEYCLOAK_AVAILABILITYCHECK_TIMEOUT=120s \
+            -e IMPORT_FILES_LOCATIONS='/config/*' \
+            -e IMPORT_MANAGED_USER=no-delete \
+            -e IMPORT_VARSUBSTITUTION_ENABLED=true \
+            -e IMPORT_FORCE=true \
+            -e KEYCLOAK_VERIFY_EMAIL="${KEYCLOAK_VERIFY_EMAIL}" \
+            -e KEYCLOAK_SMTP_USER="${KEYCLOAK_SMTP_USER}" \
+            -e KEYCLOAK_SMTP_PASSWORD="${KEYCLOAK_SMTP_PASSWORD}" \
+            -e KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}" \
+            -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
+            adorsys/keycloak-config-cli:latest-24.0.5
+
       - name: Cleanup env files
         run: rm -f .env .keycloak.env

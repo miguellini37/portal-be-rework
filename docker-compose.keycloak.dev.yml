@@ -1,27 +1,101 @@
-version: "3.9"
+version: '3.9'
 
 services:
+  app-db:
+    image: mysql:8.0
+    container_name: portal-app-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-portal}
+      MYSQL_USER: ${DB_USER:-portal}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-portal}
+    volumes:
+      - app_mysql_data:/var/lib/mysql
+    ports:
+      - '${DB_PORT:-3306}:3306'
+    restart: unless-stopped
+
+  keycloak-db:
+    image: mysql:8.0
+    container_name: portal-keycloak-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${KEYCLOAK_DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${KEYCLOAK_DB_NAME:-keycloak}
+      MYSQL_USER: ${KEYCLOAK_DB_USER:-keycloak}
+      MYSQL_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+    volumes:
+      - keycloak_mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.5
     container_name: portal-keycloak
     command:
-      - "start-dev"
+      - 'start-dev'
+    depends_on:
+      - keycloak-db
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN not set in .env}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD not set in .env}
+      # Hostname settings for dev
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
       # Optional goodies for local diagnostics
-      KC_HEALTH_ENABLED: "true"
-      KC_METRICS_ENABLED: "true"
-      # Database configuration (external MySQL)
-      KC_DB: "mysql"
-      KC_DB_URL: "jdbc:mysql://${DB_ENDPOINT}:3306/${KEYCLOAK_DB_NAME}"
-      KC_DB_USERNAME: ${DB_USER:?DB_USER not set in .env}
-      KC_DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD not set in .env}
+      KC_HEALTH_ENABLED: 'true'
+      KC_METRICS_ENABLED: 'true'
+      # Database configuration (local MySQL)
+      KC_DB: 'mysql'
+      KC_DB_URL: 'jdbc:mysql://keycloak-db:3306/${KEYCLOAK_DB_NAME:-keycloak}'
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
     ports:
-      - "${KEYCLOAK_HTTP_PORT:-8180}:8080"
+      - '${KEYCLOAK_HTTP_PORT:-8180}:8080'
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - ./keycloak/themes/portal-jobs:/opt/keycloak/themes/portal-jobs
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'exec 3<>/dev/tcp/localhost/8080 && echo -e "GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "UP"',
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     restart: unless-stopped
+
+  keycloak-config-cli:
+    image: adorsys/keycloak-config-cli:latest-24.0.5
+    container_name: portal-keycloak-config-cli
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_URL: 'http://keycloak:8080'
+      KEYCLOAK_USER: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN not set in .env}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD not set in .env}
+      KEYCLOAK_AVAILABILITYCHECK_ENABLED: 'true'
+      KEYCLOAK_AVAILABILITYCHECK_TIMEOUT: '120s'
+      IMPORT_FILES_LOCATIONS: '/config/*'
+      # Preserve users — only manage realm config, clients, roles, scopes
+      IMPORT_MANAGED_USER: 'no-delete'
+      # Enable ${env:VAR} substitution in realm JSON files
+      IMPORT_VARSUBSTITUTION_ENABLED: 'true'
+      SPRING_PROFILES_ACTIVE: env
+      # Force re-apply to ensure smtpServer is always updated from env vars
+      IMPORT_FORCE: 'true'
+      # SMTP credentials — substituted into realm JSON via ${env:VAR} syntax
+      KEYCLOAK_SMTP_USER: ${KEYCLOAK_SMTP_USER:?KEYCLOAK_SMTP_USER not set in .env}
+      KEYCLOAK_SMTP_PASSWORD: ${KEYCLOAK_SMTP_PASSWORD:?KEYCLOAK_SMTP_PASSWORD not set in .env}
+      KEYCLOAK_VERIFY_EMAIL: ${KEYCLOAK_VERIFY_EMAIL:-true}
+      # Client secret — substituted into realm JSON for portal-backend client
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?KEYCLOAK_CLIENT_SECRET not set in .env}
+    volumes:
+      - ./keycloak/realms:/config
+    restart: on-failure
 
 volumes:
   keycloak_data:
+  keycloak_mysql_data:
+  app_mysql_data:

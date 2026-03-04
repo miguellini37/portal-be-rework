@@ -8,7 +8,7 @@ import {
   RelationId,
   JoinColumn,
 } from 'typeorm';
-import { Athlete, SchoolEmployee } from '.';
+import { Athlete, SchoolDomain, SchoolEmployee } from '.';
 
 @Entity()
 export class School extends BaseEntity {
@@ -17,6 +17,9 @@ export class School extends BaseEntity {
 
   @Column({ nullable: true, unique: true })
   schoolName?: string;
+
+  @OneToMany(() => SchoolDomain, (domain) => domain.school, { cascade: true })
+  schoolDomains?: SchoolDomain[];
 
   @OneToMany(() => Athlete, (athlete) => athlete.school)
   athletes?: Athlete[];

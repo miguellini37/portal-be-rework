@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -78,6 +79,10 @@ export class Company extends BaseEntity {
 
   @Column({ nullable: true, unique: true })
   companyName?: string;
+
+  @Index({ unique: true })
+  @Column({ nullable: true })
+  orgDomain?: string;
 
   @Column({ nullable: true })
   industry?: string;

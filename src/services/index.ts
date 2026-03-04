@@ -10,3 +10,4 @@ export { InterviewService } from './interview.service';
 export { CareerOutcomesService } from './career-outcomes.service';
 export { ProfileService } from './profile.service';
 export { MessageService } from './message.service';
+export { EmailService } from './email.service';

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration1761697568691 implements MigrationInterface {
-  name = 'Migration1761697568691';
+export class Migration1772302943200 implements MigrationInterface {
+  name = 'Migration1772302943200';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -10,7 +10,8 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`companyName\` varchar(255) NULL,
                 \`industry\` varchar(255) NULL,
                 \`recruiting\` json NULL,
-                \`createdAtDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`createdAtDate\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`ownerId\` varchar(36) NULL,
                 \`cultureCulturevalues\` json NULL,
                 \`cultureEnvironmenttiles\` json NULL,
                 \`cultureThrivepoints\` json NULL,
@@ -22,6 +23,7 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`benefitsTotalcompmax\` int NULL,
                 \`benefitsSpecificbenefits\` json NULL,
                 UNIQUE INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` (\`companyName\`),
+                UNIQUE INDEX \`REL_ee87438803acb531639e8284be\` (\`ownerId\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -35,6 +37,7 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`phone\` varchar(255) NULL,
                 \`location\` varchar(255) NULL,
                 \`bio\` varchar(255) NULL,
+                \`isVerified\` tinyint NULL,
                 \`position\` varchar(255) NULL,
                 \`type\` varchar(255) NOT NULL,
                 \`companyId\` varchar(36) NULL,
@@ -66,7 +69,7 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`description\` varchar(255) NULL,
                 \`industry\` varchar(255) NULL,
                 \`experience\` varchar(255) NULL,
-                \`createdDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`createdDate\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`applicationDeadline\` date NULL,
                 \`benefits\` varchar(255) NULL,
                 \`type\` varchar(255) NULL,
@@ -84,10 +87,21 @@ export class Migration1761697568691 implements MigrationInterface {
             ) ENGINE = InnoDB
         `);
     await queryRunner.query(`
+            CREATE TABLE \`school_domain\` (
+                \`id\` varchar(36) NOT NULL,
+                \`domain\` varchar(255) NOT NULL,
+                \`schoolId\` varchar(36) NULL,
+                UNIQUE INDEX \`IDX_8f16db58df871b99037f1bdfbc\` (\`domain\`),
+                PRIMARY KEY (\`id\`)
+            ) ENGINE = InnoDB
+        `);
+    await queryRunner.query(`
             CREATE TABLE \`school\` (
                 \`id\` varchar(36) NOT NULL,
                 \`schoolName\` varchar(255) NULL,
+                \`ownerId\` varchar(36) NULL,
                 UNIQUE INDEX \`IDX_9eb00e0accde5ee2d96e86570b\` (\`schoolName\`),
+                UNIQUE INDEX \`REL_cb3b185eba83efed664a5fdb04\` (\`ownerId\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -99,7 +113,7 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`interviewer\` varchar(255) NULL,
                 \`preparationTips\` varchar(255) NULL,
                 \`status\` enum ('scheduled', 'cancelled', 'complete') NOT NULL DEFAULT 'scheduled',
-                \`creationDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`creationDate\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`jobId\` varchar(36) NOT NULL,
                 \`applicationId\` varchar(36) NOT NULL,
                 \`companyId\` varchar(36) NOT NULL,
@@ -110,7 +124,7 @@ export class Migration1761697568691 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE \`application\` (
                 \`id\` varchar(36) NOT NULL,
-                \`creationDate\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`creationDate\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`terminalStatusDate\` date NULL,
                 \`employerReviewed\` tinyint NOT NULL DEFAULT 0,
                 \`status\` enum (
@@ -132,12 +146,39 @@ export class Migration1761697568691 implements MigrationInterface {
                 \`activityId\` varchar(36) NOT NULL,
                 \`type\` enum ('application', 'interview', 'other') NOT NULL DEFAULT 'other',
                 \`message\` text NULL,
-                \`date\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`date\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`userId\` varchar(36) NULL,
                 \`applicationId\` varchar(36) NULL,
                 \`interviewId\` varchar(36) NULL,
                 PRIMARY KEY (\`activityId\`)
             ) ENGINE = InnoDB
+        `);
+    await queryRunner.query(`
+            CREATE TABLE \`email_whitelist\` (
+                \`id\` varchar(36) NOT NULL,
+                \`orgId\` varchar(255) NOT NULL,
+                \`email\` varchar(255) NOT NULL,
+                \`isActive\` tinyint NOT NULL DEFAULT 1,
+                \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                \`updatedAt\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                PRIMARY KEY (\`id\`)
+            ) ENGINE = InnoDB
+        `);
+    await queryRunner.query(`
+            CREATE TABLE \`message\` (
+                \`id\` varchar(36) NOT NULL,
+                \`conversationId\` varchar(255) NOT NULL,
+                \`fromUserId\` varchar(255) NOT NULL,
+                \`toUserId\` varchar(255) NOT NULL,
+                \`message\` text NOT NULL,
+                \`readAt\` datetime NULL,
+                \`createdAt\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                PRIMARY KEY (\`id\`)
+            ) ENGINE = InnoDB
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`company\`
+            ADD CONSTRAINT \`FK_ee87438803acb531639e8284be0\` FOREIGN KEY (\`ownerId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`user\`
@@ -154,6 +195,14 @@ export class Migration1761697568691 implements MigrationInterface {
     await queryRunner.query(`
             ALTER TABLE \`job\`
             ADD CONSTRAINT \`FK_4230d15401eafcf6f4538208015\` FOREIGN KEY (\`ownerId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`school_domain\`
+            ADD CONSTRAINT \`FK_01ea860d6c33a1717c9be3ba295\` FOREIGN KEY (\`schoolId\`) REFERENCES \`school\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`school\`
+            ADD CONSTRAINT \`FK_cb3b185eba83efed664a5fdb04b\` FOREIGN KEY (\`ownerId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`interview\`
@@ -197,9 +246,23 @@ export class Migration1761697568691 implements MigrationInterface {
             ADD CONSTRAINT \`FK_1ec871667cd35957d136979e31e\` FOREIGN KEY (\`interviewId\`) REFERENCES \`interview\`(\`id\`) ON DELETE
             SET NULL ON UPDATE NO ACTION
         `);
+    await queryRunner.query(`
+            ALTER TABLE \`message\`
+            ADD CONSTRAINT \`FK_c59262513a3006fd8f58bb4b7c2\` FOREIGN KEY (\`fromUserId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`message\`
+            ADD CONSTRAINT \`FK_96789153e31e0bb7885ea13a279\` FOREIGN KEY (\`toUserId\`) REFERENCES \`user\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+            ALTER TABLE \`message\` DROP FOREIGN KEY \`FK_96789153e31e0bb7885ea13a279\`
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`message\` DROP FOREIGN KEY \`FK_c59262513a3006fd8f58bb4b7c2\`
+        `);
     await queryRunner.query(`
             ALTER TABLE \`activity\` DROP FOREIGN KEY \`FK_1ec871667cd35957d136979e31e\`
         `);
@@ -231,6 +294,12 @@ export class Migration1761697568691 implements MigrationInterface {
             ALTER TABLE \`interview\` DROP FOREIGN KEY \`FK_15008468e129b5542f78d0718d6\`
         `);
     await queryRunner.query(`
+            ALTER TABLE \`school\` DROP FOREIGN KEY \`FK_cb3b185eba83efed664a5fdb04b\`
+        `);
+    await queryRunner.query(`
+            ALTER TABLE \`school_domain\` DROP FOREIGN KEY \`FK_01ea860d6c33a1717c9be3ba295\`
+        `);
+    await queryRunner.query(`
             ALTER TABLE \`job\` DROP FOREIGN KEY \`FK_4230d15401eafcf6f4538208015\`
         `);
     await queryRunner.query(`
@@ -243,6 +312,15 @@ export class Migration1761697568691 implements MigrationInterface {
             ALTER TABLE \`user\` DROP FOREIGN KEY \`FK_86586021a26d1180b0968f98502\`
         `);
     await queryRunner.query(`
+            ALTER TABLE \`company\` DROP FOREIGN KEY \`FK_ee87438803acb531639e8284be0\`
+        `);
+    await queryRunner.query(`
+            DROP TABLE \`message\`
+        `);
+    await queryRunner.query(`
+            DROP TABLE \`email_whitelist\`
+        `);
+    await queryRunner.query(`
             DROP TABLE \`activity\`
         `);
     await queryRunner.query(`
@@ -252,10 +330,19 @@ export class Migration1761697568691 implements MigrationInterface {
             DROP TABLE \`interview\`
         `);
     await queryRunner.query(`
+            DROP INDEX \`REL_cb3b185eba83efed664a5fdb04\` ON \`school\`
+        `);
+    await queryRunner.query(`
             DROP INDEX \`IDX_9eb00e0accde5ee2d96e86570b\` ON \`school\`
         `);
     await queryRunner.query(`
             DROP TABLE \`school\`
+        `);
+    await queryRunner.query(`
+            DROP INDEX \`IDX_8f16db58df871b99037f1bdfbc\` ON \`school_domain\`
+        `);
+    await queryRunner.query(`
+            DROP TABLE \`school_domain\`
         `);
     await queryRunner.query(`
             DROP TABLE \`job\`
@@ -268,6 +355,9 @@ export class Migration1761697568691 implements MigrationInterface {
         `);
     await queryRunner.query(`
             DROP TABLE \`user\`
+        `);
+    await queryRunner.query(`
+            DROP INDEX \`REL_ee87438803acb531639e8284be\` ON \`company\`
         `);
     await queryRunner.query(`
             DROP INDEX \`IDX_a7018eb2ac7b827608ba6856ca\` ON \`company\`

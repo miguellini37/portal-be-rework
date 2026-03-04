@@ -10,7 +10,7 @@ export class KeycloakService {
   constructor() {
     this.kcAdminClient = new KcAdminClient({
       baseUrl: process.env.KEYCLOAK_AUTH_SERVER_URL ?? 'http://localhost:8180',
-      realmName: process.env.KEYCLOAK_REALM ?? 'portal',
+      realmName: process.env.KEYCLOAK_REALM ?? 'portal-jobs',
     });
   }
 
@@ -29,10 +29,9 @@ export class KeycloakService {
   async updateUserAttributes(
     userId: string,
     attributes: {
-      permission?: string;
       schoolId?: string;
       companyId?: string;
-      isOrgVerified?: string;
+      isVerified?: string;
     }
   ): Promise<void> {
     await this.ensureAuthenticated();
@@ -52,17 +51,14 @@ export class KeycloakService {
       };
 
       // Only update provided attributes (undefined check, not falsy check)
-      if (attributes.permission !== undefined) {
-        updatedAttributes.permission = [attributes.permission];
-      }
       if (attributes.schoolId !== undefined) {
         updatedAttributes.schoolId = [attributes.schoolId];
       }
       if (attributes.companyId !== undefined) {
         updatedAttributes.companyId = [attributes.companyId];
       }
-      if (attributes.isOrgVerified !== undefined) {
-        updatedAttributes.isOrgVerified = [attributes.isOrgVerified];
+      if (attributes.isVerified !== undefined) {
+        updatedAttributes.isVerified = [attributes.isVerified];
       }
 
       // Only send updatable fields to Keycloak
@@ -76,16 +72,19 @@ export class KeycloakService {
         attributes: updatedAttributes,
       };
 
+      console.log(`Updating Keycloak user ${userId} with attributes:`, updatePayload);
+
       await this.kcAdminClient.users.update({ id: userId }, updatePayload);
     } catch (error: unknown) {
-      // If token expired, re-authenticate and retry
-      const isUnauthorized =
-        error &&
-        typeof error === 'object' &&
-        'response' in error &&
-        (error as { response?: { status?: number } }).response?.status === 401;
+      // If token expired or forbidden, re-authenticate and retry.
+      // Keycloak may return 401 OR 403 when the service-account token is stale.
+      const responseStatus =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined;
+      const isAuthError = responseStatus === 401 || responseStatus === 403;
 
-      if (isUnauthorized) {
+      if (isAuthError) {
         this.isAuthenticated = false;
         await this.ensureAuthenticated();
 
@@ -100,23 +99,25 @@ export class KeycloakService {
           ...(existingUser.attributes || {}),
         };
 
-        if (attributes.permission !== undefined) {
-          updatedAttributes.permission = [attributes.permission];
-        }
         if (attributes.schoolId !== undefined) {
           updatedAttributes.schoolId = [attributes.schoolId];
         }
         if (attributes.companyId !== undefined) {
           updatedAttributes.companyId = [attributes.companyId];
         }
-        if (attributes.isOrgVerified !== undefined) {
-          updatedAttributes.isOrgVerified = [attributes.isOrgVerified];
+        if (attributes.isVerified !== undefined) {
+          updatedAttributes.isVerified = [attributes.isVerified];
         }
 
         await this.kcAdminClient.users.update(
           { id: userId },
           {
-            ...existingUser,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName,
+            email: existingUser.email,
+            username: existingUser.username,
+            enabled: existingUser.enabled,
+            emailVerified: existingUser.emailVerified,
             attributes: updatedAttributes,
           }
         );
