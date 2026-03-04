@@ -98,6 +98,9 @@ jobs:
             docker rm -f "$CID"
           fi
 
+      - name: Ensure Docker network exists
+        run: docker network create portal-net 2>/dev/null || true
+
       - name: Run Keycloak container
         shell: bash
         run: |
@@ -111,6 +114,7 @@ jobs:
             --name portal-keycloak \
             --restart unless-stopped \
             --memory=384m \
+            --network portal-net \
             --env-file .env \
             --env-file .keycloak.env \
             -e JAVA_OPTS_APPEND="-Xms64m -Xmx256m" \
@@ -154,10 +158,10 @@ jobs:
           set +a
 
           docker run --rm \
-            --network host \
+            --network portal-net \
             --memory=256m \
             -e JAVA_TOOL_OPTIONS="-Xms32m -Xmx128m" \
-            -e KEYCLOAK_URL="http://localhost:${KEYCLOAK_HTTP_PORT:-8080}" \
+            -e KEYCLOAK_URL="http://portal-keycloak:8080" \
             -e KEYCLOAK_USER="${KEYCLOAK_ADMIN}" \
             -e KEYCLOAK_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}" \
             -e KEYCLOAK_AVAILABILITYCHECK_ENABLED=true \
