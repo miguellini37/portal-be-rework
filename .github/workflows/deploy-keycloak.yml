@@ -7,6 +7,25 @@ jobs:
   deploy-keycloak:
     runs-on: [self-hosted]
     steps:
+      - name: Ensure swap exists (t2.micro safety net)
+        shell: bash
+        run: |
+          if [ ! -f /swapfile ]; then
+            sudo fallocate -l 1G /swapfile
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+            echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+          fi
+          sudo swapon --show
+
+      - name: Check host memory
+        run: |
+          echo "=== Memory ==="
+          free -m
+          echo "=== Docker containers ==="
+          docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}" || true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -91,8 +110,10 @@ jobs:
           docker run -d \
             --name portal-keycloak \
             --restart unless-stopped \
+            --memory=384m \
             --env-file .env \
             --env-file .keycloak.env \
+            -e JAVA_OPTS_APPEND="-Xms64m -Xmx256m" \
             -p "${KEYCLOAK_HTTP_PORT:-8080}:8080" \
             -v keycloak_data:/opt/keycloak/data \
             -v /opt/keycloak-themes/portal-jobs:/opt/keycloak/themes/portal-jobs:ro \
@@ -121,6 +142,9 @@ jobs:
           docker logs portal-keycloak --tail 50 || true
           exit 1
 
+      - name: Stop backend to free memory for import
+        run: docker stop portal-backend-container || true
+
       - name: Import realm config (preserve users)
         shell: bash
         run: |
@@ -131,6 +155,8 @@ jobs:
 
           docker run --rm \
             --network host \
+            --memory=256m \
+            -e JAVA_TOOL_OPTIONS="-Xms32m -Xmx128m" \
             -e KEYCLOAK_URL="http://localhost:${KEYCLOAK_HTTP_PORT:-8080}" \
             -e KEYCLOAK_USER="${KEYCLOAK_ADMIN}" \
             -e KEYCLOAK_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}" \
@@ -146,6 +172,9 @@ jobs:
             -e KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}" \
             -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
             adorsys/keycloak-config-cli:latest-24.0.5
+
+      - name: Restart backend
+        run: docker start portal-backend-container || true
 
       - name: Cleanup env files
         run: rm -f .env .keycloak.env

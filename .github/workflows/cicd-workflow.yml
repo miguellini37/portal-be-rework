@@ -36,6 +36,13 @@ jobs:
       - name: Pull image from docker hub
         run: docker pull portaljobs/portal-backend:latest
 
+      - name: Check host memory
+        run: |
+          echo "=== Memory ==="
+          free -m
+          echo "=== Docker containers ==="
+          docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}" || true
+
       - name: Delete old container
         run: docker rm -f portal-backend-container || true
 
@@ -46,6 +53,8 @@ jobs:
         run: |
           docker run -d \
             --env-file .env \
+            --memory=192m \
+            -e NODE_OPTIONS="--max-old-space-size=128" \
             -p 3000:3001 \
             --name portal-backend-container \
             portaljobs/portal-backend:latest
