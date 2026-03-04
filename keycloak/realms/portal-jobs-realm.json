@@ -598,7 +598,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "$(env:KEYCLOAK_CLIENT_SECRET)",
+      "secret": "$(env:PORTAL_CLIENT_SECRET)",
       "redirectUris": ["/*"],
       "webOrigins": ["/*"],
       "notBefore": 0,

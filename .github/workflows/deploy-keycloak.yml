@@ -173,7 +173,7 @@ jobs:
             -e KEYCLOAK_VERIFY_EMAIL="${KEYCLOAK_VERIFY_EMAIL}" \
             -e KEYCLOAK_SMTP_USER="${KEYCLOAK_SMTP_USER}" \
             -e KEYCLOAK_SMTP_PASSWORD="${KEYCLOAK_SMTP_PASSWORD}" \
-            -e KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}" \
+            -e PORTAL_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}" \
             -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
             adorsys/keycloak-config-cli:latest-24.0.5
 
