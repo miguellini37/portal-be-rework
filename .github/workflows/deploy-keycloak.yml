@@ -149,6 +149,24 @@ jobs:
       - name: Stop backend to free memory for import
         run: docker stop portal-backend-container || true
 
+      - name: Diagnose config-cli auth
+        shell: bash
+        run: |
+          set -a
+          source .env
+          set +a
+          PORT="${KEYCLOAK_HTTP_PORT:-8080}"
+
+          echo "=== Image baked-in env vars ==="
+          docker inspect adorsys/keycloak-config-cli:latest-24.0.5 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -i "keycloak\|client" || echo "(none found)"
+
+          echo "=== Test: plain password grant against admin-cli ==="
+          curl -s -X POST "http://localhost:${PORT}/realms/master/protocol/openid-connect/token" \
+            -d "grant_type=password" \
+            -d "client_id=admin-cli" \
+            -d "username=${KEYCLOAK_ADMIN}" \
+            -d "password=${KEYCLOAK_ADMIN_PASSWORD}" | python3 -c "import sys,json; d=json.load(sys.stdin); print('SUCCESS' if 'access_token' in d else 'FAIL: '+d.get('error_description','unknown'))"
+
       - name: Import realm config (preserve users)
         shell: bash
         run: |
