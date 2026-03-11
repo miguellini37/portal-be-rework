@@ -48,8 +48,7 @@ export class SchoolEmployeeService {
   async getSchoolEmployees(userId: string, query: ISchoolEmployeeQueryInput) {
     const queryBuilder = this.schoolEmployeeRepository
       .createQueryBuilder('schoolEmployee')
-      .leftJoinAndSelect('schoolEmployee.school', 'school')
-      .where('schoolEmployee.isVerified = :isVerified', { isVerified: true });
+      .leftJoinAndSelect('schoolEmployee.school', 'school');
 
     if (query.schoolId) {
       queryBuilder.andWhere('school.id = :schoolId', { schoolId: query.schoolId });

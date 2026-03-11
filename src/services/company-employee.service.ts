@@ -29,9 +29,20 @@ export class CompanyEmployeeService {
       Object.assign(companyEmployee, {
         firstName: updateInput.firstName ?? companyEmployee.firstName,
         lastName: updateInput.lastName ?? companyEmployee.lastName,
+        phone: updateInput.phone ?? companyEmployee.phone,
+        bio: updateInput.bio ?? companyEmployee.bio,
+        linkedIn: updateInput.linkedIn ?? companyEmployee.linkedIn,
         position: updateInput.position ?? companyEmployee.position,
+        roleType: updateInput.roleType ?? companyEmployee.roleType,
         company: updateInput.companyId ? { id: updateInput.companyId } : undefined,
         isVerified: companyHasChanged ? null : companyEmployee.isVerified,
+        isFormerAthlete: updateInput.isFormerAthlete ?? companyEmployee.isFormerAthlete,
+        athleteSport: updateInput.athleteSport ?? companyEmployee.athleteSport,
+        athletePosition: updateInput.athletePosition ?? companyEmployee.athletePosition,
+        athleteUniversity: updateInput.athleteUniversity ?? companyEmployee.athleteUniversity,
+        athleteGraduationYear:
+          updateInput.athleteGraduationYear ?? companyEmployee.athleteGraduationYear,
+        athleteAchievements: updateInput.athleteAchievements ?? companyEmployee.athleteAchievements,
       });
 
       await this.companyEmployeeRepository.save(companyEmployee);

@@ -33,7 +33,31 @@ export class IUpdateSchoolEmployeeInput {
 
   @IsOptional()
   @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedIn?: string;
+
+  @IsOptional()
+  @IsString()
   position?: string;
+
+  @IsOptional()
+  @IsString()
+  department?: string;
+
+  @IsOptional()
+  @IsString()
+  officeLocation?: string;
+
+  @IsOptional()
+  @IsString()
+  officeHours?: string;
 
   @IsOptional()
   @IsString()

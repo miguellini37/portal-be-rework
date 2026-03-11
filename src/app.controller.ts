@@ -308,6 +308,56 @@ export class AppController {
    * Company Employee Routes
    */
 
+  /**
+   * PUT /updateCompanyEmployee
+   *
+   * Updates the authenticated company employee's profile. The FE should call this endpoint
+   * with a JSON body containing any subset of the following fields (all are optional):
+   *
+   * Basic Information:
+   *   - firstName: string
+   *   - lastName: string
+   *   - phone: string
+   *   - bio: string           (Professional Bio)
+   *   - linkedIn: string      (LinkedIn profile URL)
+   *
+   * Professional Role:
+   *   - position: string      (Job Title)
+   *   - roleType: string      (Role Type, e.g. "Recruiter")
+   *   - companyId: string     (UUID of the company — triggers re-verification if changed)
+   *
+   * Athletic Background (all optional; only relevant when isFormerAthlete is true):
+   *   - isFormerAthlete: boolean
+   *   - athleteSport: string
+   *   - athletePosition: string
+   *   - athleteUniversity: string
+   *   - athleteGraduationYear: string
+   *   - athleteAchievements: string
+   *
+   * Authentication: Bearer token required (Keycloak JWT).
+   * The endpoint reads the user's email from the JWT to look up the employee record.
+   *
+   * Example:
+   *   PUT /updateCompanyEmployee
+   *   Authorization: Bearer <token>
+   *   Content-Type: application/json
+   *   {
+   *     "firstName": "Marcus",
+   *     "lastName": "Thompson",
+   *     "phone": "(512) 555-0147",
+   *     "linkedIn": "linkedin.com/in/marcusthompson",
+   *     "position": "Senior Recruiter",
+   *     "roleType": "Recruiter",
+   *     "bio": "Passionate about connecting student-athletes...",
+   *     "isFormerAthlete": true,
+   *     "athleteSport": "Football",
+   *     "athletePosition": "Linebacker",
+   *     "athleteUniversity": "University of Texas",
+   *     "athleteGraduationYear": "2016",
+   *     "athleteAchievements": "2x All-Big 12, Team Captain 2015"
+   *   }
+   */
+
   @Put('updateCompanyEmployee')
   async updateCompanyEmployee(
     @Request() req: IAuthenticatedRequest,
@@ -420,6 +470,54 @@ export class AppController {
 
   /*
    * School Employee Routes
+   */
+
+  /**
+   * PUT /updateSchoolEmployee
+   *
+   * Updates the authenticated university/school employee's profile. The FE should call this
+   * endpoint with a JSON body containing any subset of the following fields (all are optional):
+   *
+   * Personal Information:
+   *   - firstName: string
+   *   - lastName: string
+   *
+   * Contact Information:
+   *   - phone: string
+   *   - linkedIn: string      (LinkedIn profile URL)
+   *
+   * Role & Department:
+   *   - position: string      (Job Title)
+   *   - department: string
+   *
+   * Office Information:
+   *   - officeLocation: string  (e.g. "Building, Room #")
+   *   - officeHours: string     (e.g. "Mon-Fri, 9am-5pm")
+   *
+   * About You:
+   *   - bio: string
+   *
+   * School:
+   *   - schoolId: string      (UUID of the school — triggers re-verification if changed)
+   *
+   * Authentication: Bearer token required (Keycloak JWT).
+   * The endpoint uses the user's subject claim (sub) from the JWT to look up the employee record.
+   *
+   * Example:
+   *   PUT /updateSchoolEmployee
+   *   Authorization: Bearer <token>
+   *   Content-Type: application/json
+   *   {
+   *     "firstName": "Jane",
+   *     "lastName": "Smith",
+   *     "phone": "(555) 123-4567",
+   *     "linkedIn": "linkedin.com/in/yourprofile",
+   *     "position": "Academic Advisor",
+   *     "department": "Athletics",
+   *     "officeLocation": "Student Center, Room 204",
+   *     "officeHours": "Mon-Fri, 9am-5pm",
+   *     "bio": "Tell student-athletes a bit about yourself..."
+   *   }
    */
 
   @Put('updateSchoolEmployee')
