@@ -91,7 +91,7 @@ The backend uses Socket.IO (not raw WebSocket), so the iOS app requires the `soc
 - Connects on app foreground when authenticated (passes JWT via `auth.token`)
 - Emits `subscribe` event with `{ userId }` after connection
 - Listens for `newMessage` events → updates conversation state in real-time
-- Emits `unsubscribe` on disconnect
+- No explicit `unsubscribe` needed — server-side `handleDisconnect` fires automatically on socket close
 - Auto-reconnect with exponential backoff on connection drop
 - Disconnects on app background
 
@@ -154,7 +154,7 @@ Each tab uses its own `NavigationStack` with typed navigation paths.
 **Home Feed (role-adaptive)**
 - Greeting header with user avatar/initials (dark gradient background)
 - Stat badges row (applications, interviews, messages — role-appropriate counts)
-- Activity feed: recent activity items from `GET /activity`
+- Activity feed: recent activity items from `GET /activity?limit=10`
 - Role-specific cards: recommended jobs (athlete), pending reviews (employer), overview metrics (school)
 
 **Messages**
