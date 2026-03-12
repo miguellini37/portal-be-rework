@@ -218,8 +218,8 @@ jobs:
 
           echo "Current client config: $CLIENT_JSON"
 
-          # Parse UUID and compute updated arrays
-          read -r CLIENT_UUID WEB_ORIGINS REDIRECT_URIS < <(echo "$CLIENT_JSON" | python3 -c "
+          # Parse UUID and compute updated arrays (one per line to avoid space-splitting)
+          PARSED=$(echo "$CLIENT_JSON" | python3 -c "
           import sys, json
           clients = json.load(sys.stdin)
           client = clients[0]
@@ -230,10 +230,14 @@ jobs:
           origins.add('https://portal-fe-rework-production.up.railway.app')
           redirects.add('https://portal-fe-rework-production.up.railway.app/*')
 
-          wo = json.dumps(sorted(origins))
-          ru = json.dumps(sorted(redirects))
-          print(client['id'], wo, ru)
+          print(client['id'])
+          print(json.dumps(sorted(origins)))
+          print(json.dumps(sorted(redirects)))
           ")
+
+          CLIENT_UUID=$(echo "$PARSED" | sed -n '1p')
+          WEB_ORIGINS=$(echo "$PARSED" | sed -n '2p')
+          REDIRECT_URIS=$(echo "$PARSED" | sed -n '3p')
 
           echo "Client UUID: $CLIENT_UUID"
           echo "New webOrigins: $WEB_ORIGINS"
