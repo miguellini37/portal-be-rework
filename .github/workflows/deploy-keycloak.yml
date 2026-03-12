@@ -195,6 +195,63 @@ jobs:
             -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
             adorsys/keycloak-config-cli:latest-24.0.5
 
+      - name: Patch portal-frontend client webOrigins via Admin API
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source .env
+          set +a
+          PORT="${KEYCLOAK_HTTP_PORT:-8080}"
+
+          # Get admin token
+          TOKEN=$(curl -sf -X POST "http://localhost:${PORT}/realms/master/protocol/openid-connect/token" \
+            -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN}&password=${KEYCLOAK_ADMIN_PASSWORD}" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+          # Get portal-frontend client UUID
+          CLIENT_UUID=$(curl -sf "http://localhost:${PORT}/admin/realms/portal-jobs/clients?clientId=portal-frontend" \
+            -H "Authorization: Bearer $TOKEN" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+
+          echo "portal-frontend client UUID: $CLIENT_UUID"
+
+          # Read current client config, update redirectUris and webOrigins
+          curl -sf "http://localhost:${PORT}/admin/realms/portal-jobs/clients/${CLIENT_UUID}" \
+            -H "Authorization: Bearer $TOKEN" \
+            | python3 -c "
+          import sys, json
+          client = json.load(sys.stdin)
+
+          origins = set(client.get('webOrigins', []))
+          redirects = set(client.get('redirectUris', []))
+
+          origins.add('https://portal-fe-rework-production.up.railway.app')
+          redirects.add('https://portal-fe-rework-production.up.railway.app/*')
+
+          client['webOrigins'] = sorted(origins)
+          client['redirectUris'] = sorted(redirects)
+
+          json.dump(client, sys.stdout)
+          " > /tmp/client-update.json
+
+          # PUT updated client config
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" \
+            -X PUT "http://localhost:${PORT}/admin/realms/portal-jobs/clients/${CLIENT_UUID}" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/client-update.json)
+
+          echo "Update portal-frontend response: HTTP $HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "204" ]; then
+            echo "ERROR: Failed to update portal-frontend client"
+            exit 1
+          fi
+
+          echo "Successfully updated portal-frontend webOrigins"
+          rm -f /tmp/client-update.json
+
       - name: Restart backend
         run: docker start portal-backend-container || true
 
