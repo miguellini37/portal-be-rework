@@ -302,6 +302,7 @@
       "portal-backend": [],
       "account-console": [],
       "portal-frontend": [],
+      "portal-frontend-rework": [],
       "broker": [
         {
           "id": "28cada38-e7a8-487b-8065-478059af15aa",
@@ -732,7 +733,6 @@
       "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"]
     },
     {
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "clientId": "portal-frontend-rework",
       "name": "",
       "description": "Frontend rework deployed on Railway",
