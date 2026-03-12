@@ -696,7 +696,8 @@
         "http://localhost:3000/*",
         "https://www.portaljobs.net/*",
         "https://auth.portaljobs.net/*",
-        "https://portal-fe-rework-production.up.railway.app/*"
+        "https://portal-fe-rework-production.up.railway.app/*",
+        "portaljobs://auth/callback"
       ],
       "webOrigins": [
         "http://localhost:3000",
