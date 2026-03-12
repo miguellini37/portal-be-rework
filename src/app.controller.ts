@@ -11,6 +11,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   AthleteService,
@@ -365,7 +367,7 @@ export class AppController {
   ) {
     const email = req.user?.email;
     if (!email) {
-      throw new Error('User email is required');
+      throw new BadRequestException('User email is required. Please log out and log back in.');
     }
     return this.companyEmployeeService.updateCompanyEmployee(req.user.sub, email, updateInput);
   }
@@ -428,11 +430,11 @@ export class AppController {
     @Request() req: IAuthenticatedRequest
   ): Promise<IUniversityOverviewResponse> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access university overview.');
+      throw new ForbiddenException('Access denied. Only school users can access university overview.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for university overview.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.schoolService.getUniversityOverview(req.user.schoolId);
@@ -443,11 +445,11 @@ export class AppController {
     @Request() req: IAuthenticatedRequest
   ): Promise<ICompaniesForUniversityResponse> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access companies for university.');
+      throw new ForbiddenException('Access denied. Only school users can access companies for university.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for companies for university.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.schoolService.getCompaniesForUniversity(req.user.schoolId);
@@ -458,11 +460,11 @@ export class AppController {
     @Request() req: IAuthenticatedRequest
   ): Promise<IUniversityNILOversightResponse> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access NIL oversight.');
+      throw new ForbiddenException('Access denied. Only school users can access NIL oversight.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for NIL oversight.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.schoolService.getUniversityNILOversight(req.user.schoolId);
@@ -550,11 +552,11 @@ export class AppController {
     @Request() req: IAuthenticatedRequest
   ): Promise<IStudentJobOutcomesResponse> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access career outcomes.');
+      throw new ForbiddenException('Access denied. Only school users can access career outcomes.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for career outcomes.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.careerOutcomesService.getStudentJobOutcomes(req.user.schoolId);
@@ -566,11 +568,11 @@ export class AppController {
     @Query() filters: ICareerOutcomesQueryInput
   ): Promise<IPlacementBySportItem[]> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access career outcomes.');
+      throw new ForbiddenException('Access denied. Only school users can access career outcomes.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for career outcomes.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.careerOutcomesService.getPlacementBySport(req.user.schoolId, filters);
@@ -582,11 +584,11 @@ export class AppController {
     @Query() filters: ICareerOutcomesQueryInput
   ): Promise<ISalaryDistributionResponse> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access career outcomes.');
+      throw new ForbiddenException('Access denied. Only school users can access career outcomes.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for career outcomes.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.careerOutcomesService.getSalaryDistribution(req.user.schoolId, filters);
@@ -598,11 +600,11 @@ export class AppController {
     @Query() filters: ICareerOutcomesQueryInput
   ): Promise<IStudentOutcome[]> {
     if (req.user.permission !== 'school') {
-      throw new Error('Access denied. Only school users can access career outcomes.');
+      throw new ForbiddenException('Access denied. Only school users can access career outcomes.');
     }
 
     if (!req.user.schoolId) {
-      throw new Error('School reference ID is required for career outcomes.');
+      throw new BadRequestException('School reference ID is required. Please log out and log back in.');
     }
 
     return this.careerOutcomesService.getStudentOutcomes(req.user.schoolId, filters);
