@@ -695,12 +695,14 @@
         "https://portaljobs.net/*",
         "http://localhost:3000/*",
         "https://www.portaljobs.net/*",
-        "https://auth.portaljobs.net/*"
+        "https://auth.portaljobs.net/*",
+        "https://portal-fe-rework-production.up.railway.app/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "https://www.portaljobs.net",
-        "https://portaljobs.net"
+        "https://portaljobs.net",
+        "https://portal-fe-rework-production.up.railway.app"
       ],
       "notBefore": 0,
       "bearerOnly": false,
