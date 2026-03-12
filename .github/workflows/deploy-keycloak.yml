@@ -195,71 +195,34 @@ jobs:
             -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
             adorsys/keycloak-config-cli:latest-24.0.5
 
-      - name: Patch portal-frontend client webOrigins via Admin API
+      - name: Patch portal-frontend client webOrigins via kcadm.sh
         shell: bash
         run: |
           set -euo pipefail
           set -a
           source .env
           set +a
-          PORT="${KEYCLOAK_HTTP_PORT:-8080}"
 
-          # Wait for Keycloak to be ready after import
-          echo "Waiting 10s for Keycloak to settle after import..."
-          sleep 10
+          echo "Authenticating kcadm.sh against Keycloak..."
+          docker exec portal-keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+            --server http://localhost:8080 \
+            --realm master \
+            --user "${KEYCLOAK_ADMIN}" \
+            --password "${KEYCLOAK_ADMIN_PASSWORD}"
 
-          # Get admin token (with retry)
-          TOKEN=""
-          for attempt in 1 2 3; do
-            echo "Token request attempt $attempt/3..."
-            RESPONSE=$(curl -sS -X POST "http://localhost:${PORT}/realms/master/protocol/openid-connect/token" \
-              -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN}&password=${KEYCLOAK_ADMIN_PASSWORD}" 2>&1)
-            echo "Token response: ${RESPONSE:0:200}"
-            TOKEN=$(echo "$RESPONSE" | python3 -c "
+          echo "Fetching portal-frontend client..."
+          CLIENT_JSON=$(docker exec portal-keycloak /opt/keycloak/bin/kcadm.sh get clients \
+            -r portal-jobs \
+            -q clientId=portal-frontend \
+            --fields id,webOrigins,redirectUris)
+
+          echo "Current client config: $CLIENT_JSON"
+
+          # Parse UUID and compute updated arrays
+          read -r CLIENT_UUID WEB_ORIGINS REDIRECT_URIS < <(echo "$CLIENT_JSON" | python3 -c "
           import sys, json
-          try:
-              data = json.load(sys.stdin)
-              if 'access_token' in data:
-                  print(data['access_token'])
-              else:
-                  print('FAIL:' + data.get('error_description', data.get('error', 'unknown')), file=sys.stderr)
-          except Exception as e:
-              print('FAIL:' + str(e), file=sys.stderr)
-          " 2>&1) || true
-            if [ -n "$TOKEN" ] && [[ "$TOKEN" != FAIL:* ]]; then
-              echo "Got admin token."
-              break
-            fi
-            echo "Failed: $TOKEN"
-            TOKEN=""
-            sleep 5
-          done
-
-          if [ -z "$TOKEN" ]; then
-            echo "ERROR: Could not obtain admin token after 3 attempts"
-            exit 1
-          fi
-
-          # Get portal-frontend client UUID
-          CLIENTS_RESPONSE=$(curl -sS "http://localhost:${PORT}/admin/realms/portal-jobs/clients?clientId=portal-frontend" \
-            -H "Authorization: Bearer $TOKEN" 2>&1)
-          echo "Clients response: ${CLIENTS_RESPONSE:0:300}"
-
-          CLIENT_UUID=$(echo "$CLIENTS_RESPONSE" | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          print(data[0]['id'])
-          ")
-
-          echo "portal-frontend client UUID: $CLIENT_UUID"
-
-          # Read current client config, update redirectUris and webOrigins
-          CLIENT_RESPONSE=$(curl -sS "http://localhost:${PORT}/admin/realms/portal-jobs/clients/${CLIENT_UUID}" \
-            -H "Authorization: Bearer $TOKEN" 2>&1)
-
-          echo "$CLIENT_RESPONSE" | python3 -c "
-          import sys, json
-          client = json.load(sys.stdin)
+          clients = json.load(sys.stdin)
+          client = clients[0]
 
           origins = set(client.get('webOrigins', []))
           redirects = set(client.get('redirectUris', []))
@@ -267,32 +230,21 @@ jobs:
           origins.add('https://portal-fe-rework-production.up.railway.app')
           redirects.add('https://portal-fe-rework-production.up.railway.app/*')
 
-          client['webOrigins'] = sorted(origins)
-          client['redirectUris'] = sorted(redirects)
+          wo = json.dumps(sorted(origins))
+          ru = json.dumps(sorted(redirects))
+          print(client['id'], wo, ru)
+          ")
 
-          print('Updated webOrigins:', client['webOrigins'], file=sys.stderr)
-          print('Updated redirectUris:', client['redirectUris'], file=sys.stderr)
+          echo "Client UUID: $CLIENT_UUID"
+          echo "New webOrigins: $WEB_ORIGINS"
+          echo "New redirectUris: $REDIRECT_URIS"
 
-          json.dump(client, sys.stdout)
-          " > /tmp/client-update.json
+          docker exec portal-keycloak /opt/keycloak/bin/kcadm.sh update "clients/${CLIENT_UUID}" \
+            -r portal-jobs \
+            -s "webOrigins=${WEB_ORIGINS}" \
+            -s "redirectUris=${REDIRECT_URIS}"
 
-          # PUT updated client config
-          HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
-            -X PUT "http://localhost:${PORT}/admin/realms/portal-jobs/clients/${CLIENT_UUID}" \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Content-Type: application/json" \
-            -d @/tmp/client-update.json 2>&1)
-
-          echo "Update portal-frontend response: HTTP $HTTP_CODE"
-
-          if [ "$HTTP_CODE" != "204" ]; then
-            echo "ERROR: Failed to update portal-frontend client (HTTP $HTTP_CODE)"
-            cat /tmp/client-update.json | python3 -c "import sys,json; d=json.load(sys.stdin); print('webOrigins:', d.get('webOrigins'))" || true
-            exit 1
-          fi
-
-          echo "Successfully updated portal-frontend webOrigins"
-          rm -f /tmp/client-update.json
+          echo "Successfully updated portal-frontend webOrigins and redirectUris"
 
       - name: Restart backend
         run: docker start portal-backend-container || true
