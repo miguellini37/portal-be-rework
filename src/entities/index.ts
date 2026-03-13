@@ -1,5 +1,6 @@
 export * from './Application';
 export * from './Activity';
+export * from './DeviceToken';
 export * from './Athlete';
 export * from './Company';
 export * from './CompanyEmployee';

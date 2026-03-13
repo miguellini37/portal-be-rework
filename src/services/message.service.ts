@@ -18,6 +18,7 @@ import {
   IUserToMessage,
 } from '../models/message.models';
 import { MessagingGateway } from '../gateways/messaging.gateway';
+import { PushNotificationService } from './push-notification.service';
 
 interface ILatestMessageResult {
   conversationId: string;
@@ -37,7 +38,8 @@ export class MessageService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @Inject(forwardRef(() => MessagingGateway))
-    private messagingGateway: MessagingGateway
+    private messagingGateway: MessagingGateway,
+    private pushNotificationService: PushNotificationService
   ) {}
 
   /**
@@ -193,6 +195,19 @@ export class MessageService {
     if (this.messagingGateway) {
       this.messagingGateway.emitMessageToUser(toUserId, response);
     }
+
+    // Send push notification to recipient
+    const sender = await this.userRepository.findOne({ where: { id: userId } });
+    const senderName = sender
+      ? `${sender.firstName ?? ''} ${sender.lastName ?? ''}`.trim() || 'Someone'
+      : 'Someone';
+    this.pushNotificationService
+      .sendPushToUser(toUserId, senderName, message, {
+        type: 'message',
+        conversationId,
+        fromUserId: userId,
+      })
+      .catch(() => {});
 
     return response;
   }

@@ -26,6 +26,7 @@ import {
   CareerOutcomesService,
   ProfileService,
   MessageService,
+  PushNotificationService,
 } from './services';
 import { IUpdateAthleteInput, IAthleteQueryInput } from './models/athlete.models';
 import { IUpdateCompanyInput, ICompanyQueryInput } from './models/company.models';
@@ -107,7 +108,8 @@ export class AppController {
     private readonly careerOutcomesService: CareerOutcomesService,
     private readonly profileService: ProfileService,
     private readonly adminService: AdminService,
-    private readonly messageService: MessageService
+    private readonly messageService: MessageService,
+    private readonly pushNotificationService: PushNotificationService
   ) {}
 
   /*
@@ -677,5 +679,32 @@ export class AppController {
       req.user.companyId,
       query
     );
+  }
+
+  /*
+   * Device Token Routes (Push Notifications)
+   */
+
+  @Post('registerDeviceToken')
+  @HttpCode(HttpStatus.OK)
+  async registerDeviceToken(
+    @Request() req: IAuthenticatedRequest,
+    @Body() body: { token: string; platform?: string }
+  ): Promise<{ success: boolean }> {
+    await this.pushNotificationService.registerToken(
+      req.user.sub,
+      body.token,
+      body.platform ?? 'apns'
+    );
+    return { success: true };
+  }
+
+  @Post('unregisterDeviceToken')
+  @HttpCode(HttpStatus.OK)
+  async unregisterDeviceToken(
+    @Body() body: { token: string }
+  ): Promise<{ success: boolean }> {
+    await this.pushNotificationService.unregisterToken(body.token);
+    return { success: true };
   }
 }

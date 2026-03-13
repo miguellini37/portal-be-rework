@@ -22,6 +22,7 @@ import {
   Activity,
   EmailWhitelist,
   Message,
+  DeviceToken,
 } from './entities';
 import { AppController } from './app.controller';
 import {
@@ -37,6 +38,7 @@ import {
   CareerOutcomesService,
   ProfileService,
   MessageService,
+  PushNotificationService,
 } from './services';
 import { KeycloakService } from './services/keycloak.service';
 import { AdminService } from './services/admin.service';
@@ -79,6 +81,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
         Activity,
         EmailWhitelist,
         Message,
+        DeviceToken,
       ],
       migrations: ['src/migrations/**/*.ts'],
       subscribers: [],
@@ -98,6 +101,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
       Activity,
       EmailWhitelist,
       Message,
+      DeviceToken,
     ]),
   ],
   controllers: [AppController],
@@ -128,6 +132,7 @@ import { MessagingGateway } from './gateways/messaging.gateway';
     KeycloakService,
     AdminService,
     MessageService,
+    PushNotificationService,
     MessagingGateway,
     EmailService,
   ],
