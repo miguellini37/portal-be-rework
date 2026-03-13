@@ -195,6 +195,61 @@ jobs:
             -v "$GITHUB_WORKSPACE/keycloak/realms:/config" \
             adorsys/keycloak-config-cli:latest-24.0.5
 
+      - name: Create realm admin user
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -a
+          source .env
+          set +a
+
+          KCADM="/opt/keycloak/bin/kcadm.sh"
+          REALM="portal-jobs"
+          USER_EMAIL="mike.silver@portaljobs.net"
+
+          echo "=== Authenticating to Keycloak ==="
+          docker exec portal-keycloak "$KCADM" config credentials \
+            --server http://localhost:8080 \
+            --realm master \
+            --user "${KEYCLOAK_ADMIN}" \
+            --password "${KEYCLOAK_ADMIN_PASSWORD}"
+
+          echo "=== Creating user: ${USER_EMAIL} ==="
+          USER_ID=$(docker exec portal-keycloak "$KCADM" create users \
+            -r "$REALM" \
+            -s "username=${USER_EMAIL}" \
+            -s "email=${USER_EMAIL}" \
+            -s "firstName=Mike" \
+            -s "lastName=Silver" \
+            -s "enabled=true" \
+            -s "emailVerified=true" \
+            -s 'attributes.permission=["admin"]' \
+            -i 2>&1) || {
+              echo "User may already exist, looking up..."
+              USER_ID=$(docker exec portal-keycloak "$KCADM" get users \
+                -r "$REALM" \
+                -q "email=${USER_EMAIL}" \
+                --fields id --format csv --noquotes | tail -1)
+            }
+
+          echo "User ID: ${USER_ID}"
+
+          echo "=== Setting temporary password ==="
+          docker exec portal-keycloak "$KCADM" set-password \
+            -r "$REALM" \
+            --userid "${USER_ID}" \
+            --new-password "ChangeMe123!" \
+            --temporary
+
+          echo "=== Assigning realm-admin role ==="
+          docker exec portal-keycloak "$KCADM" add-roles \
+            -r "$REALM" \
+            --userid "${USER_ID}" \
+            --cclientid "realm-management" \
+            --rolename "realm-admin"
+
+          echo "=== Realm admin created: ${USER_EMAIL} ==="
+
       - name: Restart backend
         run: docker start portal-backend-container || true
 

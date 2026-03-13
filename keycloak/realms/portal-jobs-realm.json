@@ -697,13 +697,15 @@
         "https://www.portaljobs.net/*",
         "https://auth.portaljobs.net/*",
         "https://portal-fe-rework-production.up.railway.app/*",
+        "https://beta.portaljobs.net/*",
         "portaljobs://auth/callback"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "https://www.portaljobs.net",
         "https://portaljobs.net",
-        "https://portal-fe-rework-production.up.railway.app"
+        "https://portal-fe-rework-production.up.railway.app",
+        "https://beta.portaljobs.net"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -748,10 +750,12 @@
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
         "https://portal-fe-rework-production.up.railway.app/*",
+        "https://beta.portaljobs.net/*",
         "http://localhost:3000/*"
       ],
       "webOrigins": [
         "https://portal-fe-rework-production.up.railway.app",
+        "https://beta.portaljobs.net",
         "http://localhost:3000"
       ],
       "notBefore": 0,
