@@ -56,10 +56,11 @@ export class MessageService {
         m1.toUserId,
         m1.message,
         m1.createdAt,
-        (SELECT COUNT(*) 
-         FROM message m2 
-         WHERE m2.conversationId = m1.conversationId 
-           AND m2.toUserId = ? 
+        (SELECT COUNT(*)
+         FROM message m2
+         WHERE m2.conversationId = m1.conversationId
+           AND m2.toUserId = ?
+           AND m2.fromUserId != ?
            AND m2.readAt IS NULL
         ) as unreadCount
       FROM message m1
@@ -75,7 +76,7 @@ export class MessageService {
 
     const latestMessages: ILatestMessageResult[] = await this.messageRepository.query(
       latestMessagesQuery,
-      [userId, userId, userId]
+      [userId, userId, userId, userId]
     );
 
     if (latestMessages.length === 0) {
@@ -191,9 +192,10 @@ export class MessageService {
       createdAt: savedMessage.createdAt,
     };
 
-    // Emit WebSocket event to the recipient
+    // Emit WebSocket event to both recipient and sender
     if (this.messagingGateway) {
       this.messagingGateway.emitMessageToUser(toUserId, response);
+      this.messagingGateway.emitMessageToUser(userId, response);
     }
 
     // Send push notification to recipient
