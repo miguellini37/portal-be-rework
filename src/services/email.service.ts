@@ -27,6 +27,11 @@ export class EmailService {
    * Rewrites test domain emails to their real forwarding address.
    * e.g. user@pjobs.edu → user@portaljobs.net
    */
+  private isTestDomain(email: string): boolean {
+    const domain = email.split('@')[1]?.toLowerCase();
+    return !!domain && domain in TEST_DOMAIN_MAP;
+  }
+
   private resolveTestDomain(email: string): string {
     const [local, domain] = email.split('@');
     const forwardDomain = TEST_DOMAIN_MAP[domain?.toLowerCase()];
@@ -39,13 +44,19 @@ export class EmailService {
   }
 
   sendEmail(options: { to: string; subject: string; body: string }): void {
-    const to = this.resolveTestDomain(options.to);
+    const isTest = this.isTestDomain(options.to);
+    const to = isTest ? this.resolveTestDomain(options.to) : options.to;
+    const body = isTest ? `***TEST EMAIL***\n\n${options.body}` : options.body;
+    const html = isTest
+      ? `<h2 style="color: red; font-weight: bold;">***TEST EMAIL***</h2>${options.body.replace(/\n/g, '<br>')}`
+      : undefined;
     this.transporter
       .sendMail({
         from: process.env.SMTP_FROM ?? 'noreply@portaljobs.net',
         to,
         subject: options.subject,
-        text: options.body,
+        text: body,
+        ...(html && { html }),
       })
       .then(() => this.logger.log(`Email sent to ${to}: ${options.subject}`))
       .catch((error: unknown) => this.logger.error(`Failed to send email to ${to}`, error));
