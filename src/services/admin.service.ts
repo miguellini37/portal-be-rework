@@ -78,6 +78,10 @@ export class AdminService {
     }
   }
 
+  async setUserVerified(userId: string, isVerified: boolean): Promise<void> {
+    await this.userRepository.update(userId, { isVerified });
+  }
+
   async getAllCompanies(): Promise<IGetAllCompaniesResponse> {
     try {
       const companies = await this.companyRepository

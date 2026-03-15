@@ -128,6 +128,60 @@ export class KeycloakService {
   }
 
   /**
+   * Disable a user account in Keycloak
+   */
+  async setUserEnabled(keycloakUserId: string, enabled: boolean): Promise<void> {
+    await this.ensureAuthenticated();
+
+    try {
+      await this.kcAdminClient.users.update({ id: keycloakUserId }, { enabled });
+    } catch (error: unknown) {
+      const responseStatus =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined;
+
+      if (responseStatus === 401 || responseStatus === 403) {
+        this.isAuthenticated = false;
+        await this.ensureAuthenticated();
+        await this.kcAdminClient.users.update({ id: keycloakUserId }, { enabled });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Send a password reset email to a user via Keycloak
+   */
+  async sendResetPasswordEmail(keycloakUserId: string): Promise<void> {
+    await this.ensureAuthenticated();
+
+    try {
+      await this.kcAdminClient.users.executeActionsEmail({
+        id: keycloakUserId,
+        actions: ['UPDATE_PASSWORD'],
+      });
+    } catch (error: unknown) {
+      const responseStatus =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined;
+
+      if (responseStatus === 401 || responseStatus === 403) {
+        this.isAuthenticated = false;
+        await this.ensureAuthenticated();
+        await this.kcAdminClient.users.executeActionsEmail({
+          id: keycloakUserId,
+          actions: ['UPDATE_PASSWORD'],
+        });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
    * Get user attributes from Keycloak (useful for debugging)
    */
   async getUserAttributes(userId: string): Promise<Record<string, string[]> | undefined> {

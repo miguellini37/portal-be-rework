@@ -82,6 +82,7 @@ import {
 } from './models/message.models';
 import { AdminGuard, OrgOwnerGuard, OrgOwnerOrAdminGuard } from './guards';
 import { AdminService } from './services/admin.service';
+import { KeycloakService } from './services/keycloak.service';
 import {
   ICreateCompanyInput,
   ICreateSchoolInput,
@@ -109,7 +110,8 @@ export class AppController {
     private readonly profileService: ProfileService,
     private readonly adminService: AdminService,
     private readonly messageService: MessageService,
-    private readonly pushNotificationService: PushNotificationService
+    private readonly pushNotificationService: PushNotificationService,
+    private readonly keycloakService: KeycloakService
   ) {}
 
   /*
@@ -163,6 +165,28 @@ export class AppController {
   @UseGuards(AdminGuard)
   async updateCompanyOwner(@Body() updateCompanyOwnerInput: IUpdateCompanyOwnerInput) {
     return this.adminService.updateCompanyOwner(updateCompanyOwnerInput);
+  }
+
+  @Post('sendResetPasswordEmail')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  async sendResetPasswordEmail(@Body() body: { userId: string }) {
+    return this.keycloakService.sendResetPasswordEmail(body.userId);
+  }
+
+  @Post('unverifyUser')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  async unverifyUser(@Body() body: { userId: string }) {
+    await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'false' });
+    await this.adminService.setUserVerified(body.userId, false);
+  }
+
+  @Post('blockUser')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  async blockUser(@Body() body: { userId: string; blocked: boolean }) {
+    await this.keycloakService.setUserEnabled(body.userId, !body.blocked);
   }
 
   /*
