@@ -178,13 +178,14 @@ export class AppController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AdminGuard)
   async verifyUser(@Body() body: { userId: string }) {
-    await this.adminService.setUserVerified(body.userId, true);
+    const user = await this.adminService.setUserVerified(body.userId, true);
     try {
       await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'true' });
     } catch (error) {
       await this.adminService.setUserVerified(body.userId, false);
       throw error;
     }
+    this.adminService.sendVerificationEmail(user);
   }
 
   @Post('unverifyUser')

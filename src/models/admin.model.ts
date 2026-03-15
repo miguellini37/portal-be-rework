@@ -2,10 +2,10 @@ import { Company, School, User } from '../entities';
 
 export type IGetAllUsersResponse = (Pick<
   User,
-  'id' | 'email' | 'firstName' | 'lastName' | 'permission'
+  'id' | 'email' | 'firstName' | 'lastName' | 'permission' | 'isVerified'
 > & {
-  company?: { companyName: string };
-  school?: { schoolName: string };
+  company?: { id: string; companyName: string };
+  school?: { id: string; schoolName: string };
 })[];
 
 export type IGetAllCompaniesResponse = (Pick<Company, 'id' | 'companyName'> & {
