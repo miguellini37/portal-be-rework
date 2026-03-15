@@ -4,7 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToMany,
-  OneToOne,
+  ManyToOne,
   RelationId,
   JoinColumn,
 } from 'typeorm';
@@ -27,7 +27,7 @@ export class School extends BaseEntity {
   @OneToMany(() => SchoolEmployee, (employee) => employee.school)
   employees?: SchoolEmployee[];
 
-  @OneToOne(() => SchoolEmployee, { nullable: true })
+  @ManyToOne(() => SchoolEmployee, { nullable: true })
   @JoinColumn({ name: 'ownerId' })
   schoolOwner?: SchoolEmployee;
 

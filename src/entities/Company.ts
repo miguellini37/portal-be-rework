@@ -6,7 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  OneToOne,
+  ManyToOne,
   RelationId,
   JoinColumn,
 } from 'typeorm';
@@ -105,7 +105,7 @@ export class Company extends BaseEntity {
   @OneToMany(() => CompanyEmployee, (user) => user.company)
   companyEmployees?: CompanyEmployee[];
 
-  @OneToOne(() => CompanyEmployee, { nullable: true })
+  @ManyToOne(() => CompanyEmployee, { nullable: true })
   @JoinColumn({ name: 'ownerId' })
   companyOwner?: CompanyEmployee;
 

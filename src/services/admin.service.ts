@@ -204,12 +204,10 @@ export class AdminService {
         .execute();
 
       // Set as owner
-      await queryRunner.manager
-        .createQueryBuilder()
-        .update(School)
-        .set({ schoolOwner: { id: input.ownerId } })
-        .where('id = :id', { id: input.schoolId })
-        .execute();
+      await queryRunner.query(
+        'UPDATE school SET ownerId = ? WHERE id = ?',
+        [input.ownerId, input.schoolId]
+      );
 
       await queryRunner.commitTransaction();
 
@@ -260,12 +258,10 @@ export class AdminService {
         .execute();
 
       // Set as owner
-      await queryRunner.manager
-        .createQueryBuilder()
-        .update(Company)
-        .set({ companyOwner: { id: input.ownerId } })
-        .where('id = :id', { id: input.companyId })
-        .execute();
+      await queryRunner.query(
+        'UPDATE company SET ownerId = ? WHERE id = ?',
+        [input.ownerId, input.companyId]
+      );
 
       await queryRunner.commitTransaction();
 
