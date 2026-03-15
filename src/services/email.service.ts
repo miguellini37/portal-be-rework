@@ -13,8 +13,8 @@ export class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST ?? 'email-smtp.us-east-1.amazonaws.com',
-      port: Number(process.env.SMTP_PORT ?? 587),
-      secure: false,
+      port: Number(process.env.SMTP_PORT ?? 465),
+      secure: true,
       auth: {
         user: process.env.SMTP_USER ?? process.env.KEYCLOAK_SMTP_USER,
         pass: process.env.SMTP_PASSWORD ?? process.env.KEYCLOAK_SMTP_PASSWORD,
@@ -39,17 +39,14 @@ export class EmailService {
 
   async sendEmail(options: { to: string; subject: string; body: string }): Promise<void> {
     const to = this.resolveTestDomain(options.to);
-    try {
-      await this.transporter.sendMail({
+    this.transporter
+      .sendMail({
         from: process.env.SMTP_FROM ?? 'noreply@portaljobs.net',
         to,
         subject: options.subject,
         text: options.body,
-      });
-      this.logger.log(`Email sent to ${to}: ${options.subject}`);
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${to}`, error);
-      throw error;
-    }
+      })
+      .then(() => this.logger.log(`Email sent to ${to}: ${options.subject}`))
+      .catch((error: unknown) => this.logger.error(`Failed to send email to ${to}`, error));
   }
 }
