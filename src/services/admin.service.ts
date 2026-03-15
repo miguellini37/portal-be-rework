@@ -14,6 +14,7 @@ import {
 } from '../models/admin.model';
 import { School, User, SchoolEmployee, CompanyEmployee } from '../entities';
 import { ProfileService } from './profile.service';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AdminService {
@@ -24,7 +25,8 @@ export class AdminService {
     private companyRepository: Repository<Company>,
     @InjectRepository(School)
     private schoolRepository: Repository<School>,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private emailService: EmailService
   ) {}
 
   async getAllUsers(input?: IGetAllUsersInput): Promise<IGetAllUsersResponse> {
@@ -80,6 +82,17 @@ export class AdminService {
 
   async setUserVerified(userId: string, isVerified: boolean): Promise<void> {
     await this.userRepository.update(userId, { isVerified });
+
+    if (isVerified) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (user?.email) {
+        await this.emailService.sendEmail({
+          to: user.email,
+          subject: 'Your Portal Jobs account has been verified',
+          body: `Hi ${user.firstName ?? 'there'},\n\nYour Portal Jobs account has been verified. You now have full access to the platform.\n\nLog in at https://portaljobs.net to get started.\n\nThanks,\nThe Portal Jobs Team`,
+        });
+      }
+    }
   }
 
   async getAllCompanies(): Promise<IGetAllCompaniesResponse> {

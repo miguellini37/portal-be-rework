@@ -174,6 +174,14 @@ export class AppController {
     return this.keycloakService.sendResetPasswordEmail(body.userId);
   }
 
+  @Post('verifyUser')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  async verifyUser(@Body() body: { userId: string }) {
+    await this.adminService.setUserVerified(body.userId, true);
+    await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'true' });
+  }
+
   @Post('unverifyUser')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AdminGuard)
