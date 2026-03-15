@@ -13,6 +13,7 @@ export class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST ?? 'email-smtp.us-east-1.amazonaws.com',
+      // Port 2465: SES alternate TLS port — standard 465/587 blocked by Railway
       port: Number(process.env.SMTP_PORT ?? 2465),
       secure: true,
       auth: {

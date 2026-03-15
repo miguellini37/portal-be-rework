@@ -179,15 +179,25 @@ export class AppController {
   @UseGuards(AdminGuard)
   async verifyUser(@Body() body: { userId: string }) {
     await this.adminService.setUserVerified(body.userId, true);
-    await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'true' });
+    try {
+      await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'true' });
+    } catch (error) {
+      await this.adminService.setUserVerified(body.userId, false);
+      throw error;
+    }
   }
 
   @Post('unverifyUser')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AdminGuard)
   async unverifyUser(@Body() body: { userId: string }) {
-    await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'false' });
     await this.adminService.setUserVerified(body.userId, false);
+    try {
+      await this.keycloakService.updateUserAttributes(body.userId, { isVerified: 'false' });
+    } catch (error) {
+      await this.adminService.setUserVerified(body.userId, true);
+      throw error;
+    }
   }
 
   @Post('blockUser')

@@ -81,17 +81,20 @@ export class AdminService {
   }
 
   async setUserVerified(userId: string, isVerified: boolean): Promise<void> {
-    await this.userRepository.update(userId, { isVerified });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-    if (isVerified) {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (user?.email) {
-        await this.emailService.sendEmail({
-          to: user.email,
-          subject: 'Your Portal Jobs account has been verified',
-          body: `Hi ${user.firstName ?? 'there'},\n\nYour Portal Jobs account has been verified. You now have full access to the platform.\n\nLog in at https://portaljobs.net to get started.\n\nThanks,\nThe Portal Jobs Team`,
-        });
-      }
+    user.isVerified = isVerified;
+    await this.userRepository.save(user);
+
+    if (isVerified && user.email) {
+      this.emailService.sendEmail({
+        to: user.email,
+        subject: 'Your Portal Jobs account has been verified',
+        body: `Hi ${user.firstName ?? 'there'},\n\nYour Portal Jobs account has been verified. You now have full access to the platform.\n\nLog in at https://portaljobs.net to get started.\n\nThanks,\nThe Portal Jobs Team`,
+      });
     }
   }
 
@@ -183,20 +186,27 @@ export class AdminService {
         throw new Error('User not found');
       }
 
-      // Link user to school if not already linked
-      if ((owner as SchoolEmployee).schoolId !== input.schoolId) {
-        (owner as SchoolEmployee).schoolId = input.schoolId;
-        owner.isVerified = true;
-        await this.userRepository.save(owner);
-      }
+      // Link user to school and verify
+      await this.userRepository
+        .createQueryBuilder()
+        .update()
+        .set({ school: { id: input.schoolId }, isVerified: true } as any)
+        .where('id = :id', { id: input.ownerId })
+        .execute();
 
+      // Set as owner
       await this.schoolRepository
         .createQueryBuilder()
         .update()
         .set({ schoolOwner: { id: input.ownerId } } as any)
         .where('id = :id', { id: input.schoolId })
         .execute();
-      return (await this.schoolRepository.findOne({ where: { id: input.schoolId } }))!;
+
+      const updated = await this.schoolRepository.findOne({ where: { id: input.schoolId } });
+      if (!updated) {
+        throw new Error('School not found after update');
+      }
+      return updated;
     } catch (error) {
       throw new Error(
         `Failed to update school owner: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -222,20 +232,27 @@ export class AdminService {
         throw new Error('User not found');
       }
 
-      // Link user to company if not already linked
-      if ((owner as CompanyEmployee).companyId !== input.companyId) {
-        (owner as CompanyEmployee).companyId = input.companyId;
-        owner.isVerified = true;
-        await this.userRepository.save(owner);
-      }
+      // Link user to company and verify
+      await this.userRepository
+        .createQueryBuilder()
+        .update()
+        .set({ company: { id: input.companyId }, isVerified: true } as any)
+        .where('id = :id', { id: input.ownerId })
+        .execute();
 
+      // Set as owner
       await this.companyRepository
         .createQueryBuilder()
         .update()
         .set({ companyOwner: { id: input.ownerId } } as any)
         .where('id = :id', { id: input.companyId })
         .execute();
-      return (await this.companyRepository.findOne({ where: { id: input.companyId } }))!;
+
+      const updated = await this.companyRepository.findOne({ where: { id: input.companyId } });
+      if (!updated) {
+        throw new Error('Company not found after update');
+      }
+      return updated;
     } catch (error) {
       throw new Error(
         `Failed to update company owner: ${error instanceof Error ? error.message : 'Unknown error'}`
