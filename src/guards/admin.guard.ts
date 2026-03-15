@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { REQUIRE_ADMIN_KEY } from '../decorators/require-admin.decorator';
 import { IAuthenticatedRequest } from '../models/request.models';
+import { USER_PERMISSIONS } from '../constants/user-permissions';
 
 /**
  * Guard to validate that the user has admin permission.
@@ -31,7 +32,7 @@ export class AdminGuard implements CanActivate {
     }
 
     // Check if user has admin permission
-    if (user.permission !== 'admin') {
+    if (user.permission !== USER_PERMISSIONS.ADMIN) {
       throw new ForbiddenException('Admin permission required');
     }
 
