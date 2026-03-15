@@ -190,7 +190,12 @@ export class AdminService {
         await this.userRepository.save(owner);
       }
 
-      await this.schoolRepository.update(input.schoolId, { ownerId: input.ownerId } as any);
+      await this.schoolRepository
+        .createQueryBuilder()
+        .update()
+        .set({ schoolOwner: { id: input.ownerId } } as any)
+        .where('id = :id', { id: input.schoolId })
+        .execute();
       return (await this.schoolRepository.findOne({ where: { id: input.schoolId } }))!;
     } catch (error) {
       throw new Error(
@@ -224,7 +229,12 @@ export class AdminService {
         await this.userRepository.save(owner);
       }
 
-      await this.companyRepository.update(input.companyId, { ownerId: input.ownerId } as any);
+      await this.companyRepository
+        .createQueryBuilder()
+        .update()
+        .set({ companyOwner: { id: input.ownerId } } as any)
+        .where('id = :id', { id: input.companyId })
+        .execute();
       return (await this.companyRepository.findOne({ where: { id: input.companyId } }))!;
     } catch (error) {
       throw new Error(

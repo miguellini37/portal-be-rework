@@ -37,7 +37,7 @@ export class EmailService {
     return email;
   }
 
-  async sendEmail(options: { to: string; subject: string; body: string }): Promise<void> {
+  sendEmail(options: { to: string; subject: string; body: string }): void {
     const to = this.resolveTestDomain(options.to);
     this.transporter
       .sendMail({
