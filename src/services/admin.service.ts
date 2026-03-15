@@ -162,7 +162,6 @@ export class AdminService {
         throw new Error('School not found');
       }
 
-      // Verify the owner exists and is a school employee
       const owner = await this.userRepository.findOne({
         where: { id: input.ownerId },
       });
@@ -171,11 +170,12 @@ export class AdminService {
         throw new Error('User not found');
       }
 
-      await this.profileService.whiteListUser({
-        email: owner.email ?? '',
-        orgId: input.schoolId,
-        isActive: true,
-      });
+      // Link user to school if not already linked
+      if ((owner as SchoolEmployee).schoolId !== input.schoolId) {
+        (owner as SchoolEmployee).schoolId = input.schoolId;
+        owner.isVerified = true;
+        await this.userRepository.save(owner);
+      }
 
       school.schoolOwner = { id: input.ownerId } as SchoolEmployee;
       return await this.schoolRepository.save(school);
@@ -196,7 +196,6 @@ export class AdminService {
         throw new Error('Company not found');
       }
 
-      // Verify the owner exists and is a company employee
       const owner = await this.userRepository.findOne({
         where: { id: input.ownerId },
       });
@@ -205,11 +204,12 @@ export class AdminService {
         throw new Error('User not found');
       }
 
-      await this.profileService.whiteListUser({
-        email: owner.email ?? '',
-        orgId: input.companyId,
-        isActive: true,
-      });
+      // Link user to company if not already linked
+      if ((owner as CompanyEmployee).companyId !== input.companyId) {
+        (owner as CompanyEmployee).companyId = input.companyId;
+        owner.isVerified = true;
+        await this.userRepository.save(owner);
+      }
 
       company.companyOwner = { id: input.ownerId } as CompanyEmployee;
       return await this.companyRepository.save(company);
