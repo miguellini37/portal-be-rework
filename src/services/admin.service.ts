@@ -190,8 +190,8 @@ export class AdminService {
         await this.userRepository.save(owner);
       }
 
-      school.schoolOwner = { id: input.ownerId } as SchoolEmployee;
-      return await this.schoolRepository.save(school);
+      await this.schoolRepository.update(input.schoolId, { ownerId: input.ownerId } as any);
+      return (await this.schoolRepository.findOne({ where: { id: input.schoolId } }))!;
     } catch (error) {
       throw new Error(
         `Failed to update school owner: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -224,8 +224,8 @@ export class AdminService {
         await this.userRepository.save(owner);
       }
 
-      company.companyOwner = { id: input.ownerId } as CompanyEmployee;
-      return await this.companyRepository.save(company);
+      await this.companyRepository.update(input.companyId, { ownerId: input.ownerId } as any);
+      return (await this.companyRepository.findOne({ where: { id: input.companyId } }))!;
     } catch (error) {
       throw new Error(
         `Failed to update company owner: ${error instanceof Error ? error.message : 'Unknown error'}`
