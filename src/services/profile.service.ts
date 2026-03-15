@@ -392,6 +392,15 @@ export class ProfileService {
         isVerified: input.isActive.toString(),
       });
       this.logger.log(`Updated isVerified for user ${existingUser.email} to ${input.isActive}`);
+
+      if (input.isActive && existingUser.email) {
+        await this.emailService.sendEmail({
+          to: existingUser.email,
+          subject: 'Your Portal Jobs account has been verified',
+          body: `Hi ${existingUser.firstName ?? 'there'},\n\nYour Portal Jobs account has been verified. You now have full access to the platform.\n\nLog in at https://portaljobs.net to get started.\n\nThanks,\nThe Portal Jobs Team`,
+        });
+      }
+
       return true;
     }
 
