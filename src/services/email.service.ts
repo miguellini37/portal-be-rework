@@ -13,7 +13,7 @@ export class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST ?? 'email-smtp.us-east-1.amazonaws.com',
-      port: Number(process.env.SMTP_PORT ?? 465),
+      port: Number(process.env.SMTP_PORT ?? 2465),
       secure: true,
       auth: {
         user: process.env.SMTP_USER ?? process.env.KEYCLOAK_SMTP_USER,
